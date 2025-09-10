@@ -140,6 +140,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
                     FirstName = model.FirstName,
+                    LastName = model.LastName,
                     Role = Roles.Buyer,
                     IsEmailConfirmed = true,
                     AccessToken = tokens.AccessToken,

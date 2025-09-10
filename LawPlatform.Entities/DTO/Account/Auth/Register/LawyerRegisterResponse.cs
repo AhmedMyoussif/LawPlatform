@@ -13,7 +13,7 @@ namespace LawPlatform.Entities.DTO.Account.Auth.Register
         public string PhoneNumber { get; set; }
         public string FullName { get; set; }
 
-        public ApprovalStatus Status { get; set; }
+        public string Status { get; set; }
         public string QualificationDocumentUrl { get; set; } 
     }
 }
