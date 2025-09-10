@@ -228,7 +228,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                     PhoneNumber = user.PhoneNumber,
                     FullName = model.FullName,
                     Role = Roles.Lawyer,
-                    Status = lawyer.Status,
+                    Status = lawyer.Status.ToString(),
                     QualificationDocumentUrl = lawyer.QualificationDocumentPath,
                     AccessToken = tokens.AccessToken,
                     RefreshToken = tokens.RefreshToken
