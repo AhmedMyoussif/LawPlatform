@@ -15,6 +15,8 @@ namespace LawPlatform.Entities.Models.Auth.Users
         public DateTime BirthDate { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
-        
+        public ICollection<Consultation> Consultations { get; set; } = new List<Consultation>();
+
+
     }
 }

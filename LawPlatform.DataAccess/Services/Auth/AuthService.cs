@@ -20,7 +20,7 @@ namespace LawPlatform.DataAccess.Services.Auth
 {
     public static class Roles
     {
-        public const string Buyer = "Buyer";
+        public const string Buyer = "Cleint";
         public const string Lawyer = "Lawyer";
     }
 
@@ -99,7 +99,7 @@ namespace LawPlatform.DataAccess.Services.Auth
             var emailPhoneCheck = await CheckIfEmailOrPhoneExists(model.Email, model.PhoneNumber);
             if (emailPhoneCheck != null)
                 return _responseHandler.BadRequest<CustomerRegisterResponse>(emailPhoneCheck);
-
+         
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -117,12 +117,15 @@ namespace LawPlatform.DataAccess.Services.Auth
                     return _responseHandler.BadRequest<CustomerRegisterResponse>(errors);
                 }
 
-                await _userManager.AddToRoleAsync(user, "Customer");
+                await _userManager.AddToRoleAsync(user, "Client");
 
                 var client = new Client
                 {
                     Id = user.Id,
-                   
+                   FirstName = model.FirstName,
+                   LastName = model.LastName,
+                   BirthDate = model.BirthDate,
+
                 };
                 _context.Clients.Add(client);
 
@@ -143,7 +146,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                     RefreshToken = tokens.RefreshToken
                 };
 
-                return _responseHandler.Created(response, "Customer registered successfully. Please check your email for OTP.");
+                return _responseHandler.Created(response, "Client registered successfully.");
             }
             catch (Exception ex)
             {
@@ -182,6 +185,10 @@ namespace LawPlatform.DataAccess.Services.Auth
 
                 await _userManager.AddToRoleAsync(user, Roles.Lawyer);
 
+                var names = model.FullName?.Split(' ', 2);
+                var firstName = names != null && names.Length > 0 ? names[0] : "Unknown";
+                var lastName = names != null && names.Length > 1 ? names[1] : "Unknown";
+
                 string? qualificationDocumentUrl = null;
                 if (model.QualificationDocument != null)
                 {
@@ -192,6 +199,8 @@ namespace LawPlatform.DataAccess.Services.Auth
                 var lawyer = new Lawyer
                 {
                     Id = user.Id,
+                    FirstName = firstName,
+                    LastName = lastName,
                     BankAccountNumber = model.BankAccountNumber,
                     BankName = model.BankName,
                     Country = model.Country,

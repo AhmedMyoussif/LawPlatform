@@ -26,5 +26,7 @@ namespace LawPlatform.Entities.Models.Auth.Users
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
+
+        public ICollection<Offer> Offers { get; set; } = new List<Offer>();
     }
 }

@@ -31,8 +31,8 @@ namespace LawPlatform.API.Controllers
         }
         #endregion
 
-        #region Register Customer
-        [HttpPost("register/customer")]
+        #region Register Client
+        [HttpPost("register/Client")]
         public async Task<ActionResult<Response<CustomerRegisterResponse>>> RegisterCustomer([FromBody] CustomerRegisterRequest model)
         {
             var result = await _authService.RegisterCustomerAsync(model);

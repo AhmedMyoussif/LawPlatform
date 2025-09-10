@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LawPlatform.Entities.Models;
 using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Models.Auth.Users;
 using LawPlatform.Entities.Models.Auth.UserTokens;
@@ -28,5 +29,10 @@ namespace LawPlatform.DataAccess.ApplicationContext
         public DbSet<UserRefreshToken> UserRefreshTokens { get; set; }
         public DbSet<Lawyer> Lawyers { get; set; }
         public DbSet<Client> Clients { get; set; }
+        public DbSet<Consultation> consultations { get; set; }
+        public DbSet<Offer> Offers { get; set; }
+        public DbSet<ConsultationCategory> ConsultationCategories { get; set; }
+        public DbSet<ConsultationFile> ConsultationFiles { get; set; }
+
     }
 }
