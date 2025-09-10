@@ -22,16 +22,26 @@ namespace LawPlatform.DataAccess.Seeder
                 await _userManager.CreateAsync(adminUser, "P@ssw0rd123Pass");
                 await _userManager.AddToRoleAsync(adminUser, "Admin");
 
-                var defaultUser = new User()
+                var lawyerUser = new User()
                 {
-                    UserName = "AhmedElghrabawyBuyer",
-                    Email = "ahmedElghrabawy@gmail.com",
+                    UserName = "ahmedYoussefLawyer",
+                    Email = "ahmedyoussef@gmail.com",
                     PhoneNumber = "01224309198",
                     EmailConfirmed = true,
                 };
-                await _userManager.CreateAsync(defaultUser, "P@ssw0rd123Pass");
-                await _userManager.AddToRoleAsync(defaultUser, "Buyer");
-
+                await _userManager.CreateAsync(lawyerUser, "P@ssw0rd123Pass");
+                await _userManager.AddToRoleAsync(lawyerUser, "Lawyer");
+                
+                
+                var clientUser = new User()
+                {
+                    UserName = "ziadMohammedClient",
+                    Email = "ziadmohammed@gmail.com",
+                    PhoneNumber = "01224309198",
+                    EmailConfirmed = true
+                };
+                await _userManager.CreateAsync(clientUser, "P@ssw0rd123Pass");
+                await _userManager.AddToRoleAsync(clientUser, "Client");
             }
         }
     }

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LawPrlatform.DataAccess.EntitiesConfigurations
 {
-    public class CustomerConfiguration : IEntityTypeConfiguration<Client>
+    public class ClientConfiguration : IEntityTypeConfiguration<Client>
     {
         public void Configure(EntityTypeBuilder<Client> builder)
         {
@@ -19,8 +19,25 @@ namespace LawPrlatform.DataAccess.EntitiesConfigurations
                    .WithOne()
                    .HasForeignKey<Client>(c => c.Id)
                    .OnDelete(DeleteBehavior.Cascade);
+            
+            builder.Property(b => b.FirstName)
+                .HasMaxLength(100)
+                .IsRequired();
 
-            builder.ToTable("Customers");
+            builder.Property(b => b.LastName)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            builder.Property(b => b.BirthDate)
+                .IsRequired();
+
+            builder.Property(b => b.CreatedAt)
+                .HasDefaultValueSql("GETUTCDATE()");
+
+            builder.Property(b => b.UpdatedAt)
+                .IsRequired(false);
+
+            builder.ToTable("Clients");
         }
     }
 }

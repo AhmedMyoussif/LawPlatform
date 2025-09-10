@@ -107,7 +107,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                 {
                     UserName = model.Email.Trim().ToLower(),
                     Email = model.Email.Trim().ToLower(),
-                    PhoneNumber = model.PhoneNumber
+                    PhoneNumber = model.PhoneNumber,
                 };
 
                 var createUserResult = await _userManager.CreateAsync(user, model.Password);

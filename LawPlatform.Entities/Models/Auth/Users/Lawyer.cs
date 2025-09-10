@@ -7,12 +7,12 @@ namespace LawPlatform.Entities.Models.Auth.Users
 {
     public class Lawyer
     {
-        [Key]
         public string Id { get; set; }
-       
-        public string UserId { get; set; }
         public User User { get; set; }
-
+       
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public DateTime BirthDate { get; set; }
         public string Bio { get; set; }
         public string Experiences { get; set; } 
         public string Qualifications { get; set; }
@@ -25,5 +25,6 @@ namespace LawPlatform.Entities.Models.Auth.Users
         public ApprovalStatus Status { get; set; } = ApprovalStatus.Pending;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
     }
 }

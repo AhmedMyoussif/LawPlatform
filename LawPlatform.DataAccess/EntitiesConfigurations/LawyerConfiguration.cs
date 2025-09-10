@@ -21,6 +21,19 @@ namespace LawPrlatform.DataAccess.EntitiesConfigurations
                    .HasForeignKey<Lawyer>(l => l.Id)
                    .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Property(b => b.FirstName)
+                   .HasMaxLength(100)
+                   .IsRequired();
+
+            builder.Property(b => b.LastName)
+                   .HasMaxLength(100)
+                   .IsRequired();
+
+            builder.Property(b => b.BirthDate)
+                   .IsRequired();
+
+            
+            
             builder.Property(l => l.Bio)
                    .HasMaxLength(1000);
 
@@ -41,6 +54,9 @@ namespace LawPrlatform.DataAccess.EntitiesConfigurations
 
             builder.Property(l => l.CreatedAt)
                    .HasDefaultValueSql("GETUTCDATE()");
+            
+            builder.Property(b => b.UpdatedAt)
+                   .IsRequired(false);
 
             builder.ToTable("Lawyers");
         }
