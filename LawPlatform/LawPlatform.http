@@ -1,0 +1,6 @@
+@LawPlatform_HostAddress = http://localhost:5143
+
+GET {{LawPlatform_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
