@@ -43,7 +43,7 @@ namespace LawPlatform.API.Controllers
 
         #region Register Lawyer
         [HttpPost("register/lawyer")]
-        public async Task<ActionResult<Response<LawyerRegisterResponse>>> RegisterLawyer([FromBody] LawyerRegisterRequest model)
+        public async Task<ActionResult<Response<LawyerRegisterResponse>>> RegisterLawyer([FromForm] LawyerRegisterRequest model)
         {
             var result = await _authService.RegisterLawyerAsync(model);
             if (!result.Succeeded) return BadRequest(result);
