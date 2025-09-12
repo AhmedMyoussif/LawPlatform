@@ -1,0 +1,17 @@
+using LawPlatform.Entities.Models;
+using LawPlatform.Utilities.Enums;
+using Microsoft.AspNetCore.Http;
+
+namespace LawPlatform.Entities.DTO.Consultaion;
+
+public class CreateConsultationRequest
+{
+    public string Title { get; set; }
+    public string Description { get; set; }
+    public decimal budget { get; set; }
+        
+    public int duration { get; set; }
+    public string CategoryId { get; set; }
+    public IFormFile? Files { get; set; }
+
+}

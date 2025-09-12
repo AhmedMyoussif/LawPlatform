@@ -9,7 +9,7 @@ namespace LawPlatform.DataAccess.Services.Token
         Task SaveRefreshTokenAsync(string userId, string refreshToken);
         Task InvalidateOldTokensAsync(string userId);
         Task<bool> IsValidAsync(string refreshToken);
-
+        Task<(string AccessToken, string RefreshToken)> GenerateAndStoreTokensAsync(string userId, User user);
 
     }
 }

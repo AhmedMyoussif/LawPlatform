@@ -111,5 +111,15 @@ namespace LawPlatform.Entities.Shared.Bases
                 Message = "There is an error while operation please try again"
             });
         }
+        
+        public Response<T> ValidationError<T>(List<string> errors)
+        {
+            return new Response<T>
+            {
+                Succeeded = false,
+                Message = "Validation failed",
+                Errors = errors
+            };
+        }
     }
 }

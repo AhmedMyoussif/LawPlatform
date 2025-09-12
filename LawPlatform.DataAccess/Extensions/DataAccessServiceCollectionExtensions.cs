@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net.Mail;
 using System.Net;
+using Ecommerce.DataAccess.Services.Category;
+using Ecommerce.DataAccess.Services.OAuth;
 using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.Auth;
 using LawPlatform.DataAccess.Services.Email;
@@ -13,6 +15,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using FluentEmail.Smtp;
 using LawPlatform.DataAccess.Services.Admin;
+using LawPlatform.DataAccess.Services.Category;
+using LawPlatform.DataAccess.Services.Consultation;
+using LawPlatform.DataAccess.Services.OAuth;
 
 
 namespace LawPlatform.DataAccess.Extensions
@@ -31,9 +36,12 @@ namespace LawPlatform.DataAccess.Extensions
         {
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IAuthGoogleService, AuthGoogleService>();
             services.AddScoped<IImageUploadService, CloudinaryImageUploadService>();
             services.AddScoped<ITokenStoreService, TokenStoreService>();
             services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IConsultationService, ConsultationService>();
 
 
             QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;

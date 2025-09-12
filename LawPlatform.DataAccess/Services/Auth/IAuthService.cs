@@ -1,4 +1,8 @@
 ﻿//using LawPlatform.Entities.DTO.Account.Auth.Admin;
+
+using System.Security.Claims;
+using Ecommerce.Entities.DTO.Account.Auth.ResetPassword;
+using LawPlatform.Entities.DTO.Account.Auth;
 using LawPlatform.Entities.DTO.Account.Auth.Admin;
 using LawPlatform.Entities.DTO.Account.Auth.Login;
 using LawPlatform.Entities.DTO.Account.Auth.Register;
@@ -29,7 +33,12 @@ namespace LawPlatform.DataAccess.Services.Auth
         Task<Response<ForgetPasswordResponse>> ForgotPasswordAsync(ForgetPasswordRequest model);
         Task<Response<ResetPasswordResponse>> ResetPasswordAsync(ResetPasswordRequest model);
         #endregion
+        
+        
+        Task<RefreshTokenResponse> RefreshTokenAsync(string refreshToken);
+        Task<Response<string>> LogoutAsync(ClaimsPrincipal userClaims);
 
+        Task<Response<string>> ChangePasswordAsync(ClaimsPrincipal user, ChangePasswordRequest request);
        
     }
 }
