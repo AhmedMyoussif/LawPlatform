@@ -173,7 +173,7 @@ namespace LawPlatform.DataAccess.Services.Auth
             {
                 var user = new User
                 {
-                    UserName = model.Email.Trim().ToLower(),
+                    UserName = model.UserName.Trim(),
                     Email = model.Email.Trim().ToLower(),
                     PhoneNumber = model.PhoneNumber
                 };
@@ -187,41 +187,47 @@ namespace LawPlatform.DataAccess.Services.Auth
 
                 await _userManager.AddToRoleAsync(user, "Lawyer");
 
-                var names = model.FullName?.Split(' ', 2);
-                var firstName = names != null && names.Length > 0 ? names[0] : "Unknown";
-                var lastName = names != null && names.Length > 1 ? names[1] : "Unknown";
-
                 string? qualificationDocumentUrl = null;
                 if (model.QualificationDocument != null)
                 {
                     var uploadResult = await _imageUploadService.UploadAsync(model.QualificationDocument);
                     qualificationDocumentUrl = uploadResult.Url;
                 }
-                
-                await _userManager.CreateAsync(user);
+
+                string? licenseDocumentUrl = null;
+                if (model.LicenseDocument != null)
+                {
+                    var uploadResult = await _imageUploadService.UploadAsync(model.LicenseDocument);
+                    licenseDocumentUrl = uploadResult.Url;
+                }
 
                 var lawyer = new Lawyer
                 {
-                    Id = user.Id,
-                    FirstName = firstName,
-                    LastName = lastName,
-                    BankAccountNumber = model.BankAccountNumber,
-                    BankName = model.BankName,
-                    Country = model.Country,
+                    UserId = user.Id,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    User = user,
                     Bio = model.Bio,
                     Experiences = model.Experiences,
-                    QualificationDocumentPath = qualificationDocumentUrl,
-                    YearsOfExperience = model.YearsOfExperience,
                     Qualifications = model.Qualifications,
+                    YearsOfExperience = model.YearsOfExperience,
+                    LicenseNumber = model.LicenseNumber,
+                    LicenseDocumentPath = licenseDocumentUrl,
+                    QualificationDocumentPath = qualificationDocumentUrl,
+                    Specialization = model.Specialization,
+                    Country = model.Country,
+                    IBAN = model.IBAN,
+                    BankAccountNumber = model.BankAccountNumber,
+                    BankName = model.BankName,
                     Status = ApprovalStatus.Pending,
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow
                 };
 
-
+                await _context.Lawyers.AddAsync(lawyer);
+                await _context.SaveChangesAsync();
 
                 var tokens = await GenerateAndStoreTokensAsync(user.Id, user);
 
-                await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 var response = new LawyerRegisterResponse
@@ -229,10 +235,14 @@ namespace LawPlatform.DataAccess.Services.Auth
                     Id = user.Id,
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
-                    FullName = model.FullName,
+                    UserName = user.UserName,
+                    FullName = $"{lawyer.FirstName} {lawyer.LastName}",
                     Role = "Lawyer",
-                    Status = model.Status.ToString(),
-                    QualificationDocumentPath = qualificationDocumentUrl,
+                    Specialization = lawyer.Specialization.ToString(),
+                    LicenseNumber = lawyer.LicenseNumber,
+                    LicenseDocumentPath = lawyer.LicenseDocumentPath,
+                    QualificationDocumentPath = lawyer.QualificationDocumentPath,
+                    Status = lawyer.Status,
                     AccessToken = tokens.AccessToken,
                     RefreshToken = tokens.RefreshToken
                 };
@@ -246,6 +256,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                 return _responseHandler.BadRequest<LawyerRegisterResponse>("An error occurred during registration.");
             }
         }
+
         #endregion
 
         #region Forgot / Reset Password

@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using LawPlatform.Entities.Models.Auth.Users;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using LawPlatform.Entities.Models.Auth.Users;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using LawPlatform.Utilities.Enums;
 
-namespace LawPrlatform.DataAccess.EntitiesConfigurations
+namespace LawPlatform.DataAccess.EntitiesConfigurations
 {
     public class LawyerConfiguration : IEntityTypeConfiguration<Lawyer>
     {
@@ -18,44 +13,56 @@ namespace LawPrlatform.DataAccess.EntitiesConfigurations
 
             builder.HasOne(l => l.User)
                    .WithOne()
-                   .HasForeignKey<Lawyer>(l => l.Id)
+                   .HasForeignKey<Lawyer>(l => l.UserId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Property(b => b.FirstName)
+            builder.Property(l => l.FirstName)
                    .HasMaxLength(100)
                    .IsRequired();
 
-            builder.Property(b => b.LastName)
+            builder.Property(l => l.LastName)
                    .HasMaxLength(100)
                    .IsRequired();
 
-            builder.Property(b => b.BirthDate)
-                   .IsRequired();
-
-            
-            
             builder.Property(l => l.Bio)
                    .HasMaxLength(1000);
 
+            builder.Property(l => l.Experiences)
+                   .HasMaxLength(500);
+
             builder.Property(l => l.Qualifications)
                    .HasMaxLength(500);
+
+            builder.Property(l => l.LicenseNumber)
+                   .HasMaxLength(50)
+                   .IsRequired();
+
+            builder.Property(l => l.Specialization)
+                   .HasMaxLength(100)
+                   .IsRequired();
+
+            builder.Property(l => l.Country)
+                   .HasMaxLength(100)
+                   .IsRequired();
+
+            builder.Property(l => l.IBAN)
+                   .HasMaxLength(34)
+                   .IsRequired();
 
             builder.Property(l => l.BankAccountNumber)
                    .HasMaxLength(50);
 
             builder.Property(l => l.BankName)
-                   .HasMaxLength(100);
-
-            builder.Property(l => l.Country)
-                   .HasMaxLength(100);
+                   .HasMaxLength(150)
+                   .IsRequired();
 
             builder.Property(l => l.Status)
                    .HasDefaultValue(ApprovalStatus.Pending);
 
             builder.Property(l => l.CreatedAt)
                    .HasDefaultValueSql("GETUTCDATE()");
-            
-            builder.Property(b => b.UpdatedAt)
+
+            builder.Property(l => l.UpdatedAt)
                    .IsRequired(false);
 
             builder.ToTable("Lawyers");

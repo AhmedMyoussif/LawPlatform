@@ -11,9 +11,15 @@ namespace LawPlatform.Entities.DTO.Account.Auth.Register
 
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
+        public string UserName { get; set; }
         public string FullName { get; set; }
 
-        public string Status { get; set; }
-        public string QualificationDocumentPath { get; set; } 
+      
+        public string Specialization { get; set; }
+        public string LicenseNumber { get; set; }
+        public string LicenseDocumentPath { get; set; }
+        public string QualificationDocumentPath { get; set; }
+
+        public ApprovalStatus Status { get; set; }
     }
 }
