@@ -28,7 +28,7 @@ namespace LawPrlatform.DataAccess.EntitiesConfigurations
                 .HasMaxLength(100)
                 .IsRequired();
 
-            builder.Property(b => b.BirthDate)
+            builder.Property(b => b.Address)
                 .IsRequired();
 
             builder.Property(b => b.CreatedAt)

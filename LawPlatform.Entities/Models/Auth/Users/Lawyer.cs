@@ -30,6 +30,10 @@ namespace LawPlatform.Entities.Models.Auth.Users
 
         public int YearsOfExperience { get; set; }
 
+        public int Age { get; set; }
+
+        public string Address { get; set; }
+
         [Required, MaxLength(50)]
         public string LicenseNumber { get; set; }  
 

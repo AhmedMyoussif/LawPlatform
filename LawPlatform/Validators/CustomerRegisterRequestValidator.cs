@@ -27,10 +27,7 @@ namespace LawPlatform.API.Validators
                 .MinimumLength(2).WithMessage("Last name must be at least 2 characters.")
                 .MaximumLength(50).WithMessage("Last name cannot exceed 50 characters.");
 
-            RuleFor(x => x.BirthDate)
-                .NotEmpty().WithMessage("Birth date is required.")
-                .LessThanOrEqualTo(DateTime.UtcNow.AddYears(-13)).WithMessage("You must be at least 13 years old.");
-
+          
             RuleFor(x => x.Address)
                 .NotEmpty().WithMessage("Address is required.")
                 .MinimumLength(5).WithMessage("Address must be at least 5 characters.")

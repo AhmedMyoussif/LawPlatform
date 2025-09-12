@@ -12,7 +12,7 @@ namespace LawPlatform.Entities.Models.Auth.Users
 
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public DateTime BirthDate { get; set; }
+        public string Address { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
         public ICollection<Consultation> Consultations { get; set; } = new List<Consultation>();

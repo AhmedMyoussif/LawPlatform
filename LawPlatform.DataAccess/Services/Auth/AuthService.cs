@@ -125,7 +125,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                     Id = user.Id,
                     FirstName = model.FirstName,
                     LastName = model.LastName,
-                    BirthDate = model.BirthDate,
+                    User = user,
                     CreatedAt = DateTime.UtcNow,
                 };
                 _context.Clients.Add(client);
@@ -142,6 +142,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                     PhoneNumber = user.PhoneNumber,
                     FirstName = model.FirstName,
                     LastName = model.LastName,
+                    UserName = user.UserName,
                     Role = "Client",
                     IsEmailConfirmed = true,
                     AccessToken = tokens.AccessToken,
@@ -217,6 +218,8 @@ namespace LawPlatform.DataAccess.Services.Auth
                     Specialization = model.Specialization,
                     Country = model.Country,
                     IBAN = model.IBAN,
+                    Address = model.Address,
+                    Age = model.Age,
                     BankAccountNumber = model.BankAccountNumber,
                     BankName = model.BankName,
                     Status = ApprovalStatus.Pending,
@@ -244,7 +247,9 @@ namespace LawPlatform.DataAccess.Services.Auth
                     QualificationDocumentPath = lawyer.QualificationDocumentPath,
                     Status = lawyer.Status,
                     AccessToken = tokens.AccessToken,
-                    RefreshToken = tokens.RefreshToken
+                    RefreshToken = tokens.RefreshToken,
+                    Address = lawyer.Address,
+                    Age = lawyer.Age
                 };
 
                 return _responseHandler.Created(response, "Lawyer registered successfully and is pending admin approval.");

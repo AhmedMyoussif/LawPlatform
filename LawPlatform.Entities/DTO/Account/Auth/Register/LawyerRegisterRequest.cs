@@ -44,6 +44,10 @@ namespace LawPlatform.Entities.DTO.Account.Auth.Register
         [Required, MaxLength(100)]
         public string Country { get; set; }
 
+        public int Age { get; set; }
+
+        public string Address { get; set; }
+
         [Required, MaxLength(34)]
         public string IBAN { get; set; }
 
@@ -55,6 +59,5 @@ namespace LawPlatform.Entities.DTO.Account.Auth.Register
         public IFormFile LicenseDocument { get; set; }
         public IFormFile QualificationDocument { get; set; }
 
-        public ApprovalStatus Status { get; set; } = ApprovalStatus.Pending;
     }
 }
