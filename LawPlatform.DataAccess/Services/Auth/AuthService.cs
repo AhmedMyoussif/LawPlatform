@@ -1,7 +1,10 @@
-﻿using LawPlatform.DataAccess.ApplicationContext;
+﻿using System.Security.Claims;
+using Ecommerce.Entities.DTO.Account.Auth.ResetPassword;
+using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.Email;
 using LawPlatform.DataAccess.Services.ImageUploading;
 using LawPlatform.DataAccess.Services.Token;
+using LawPlatform.Entities.DTO.Account.Auth;
 using LawPlatform.Entities.DTO.Account.Auth.Admin;
 using LawPlatform.Entities.DTO.Account.Auth.Login;
 using LawPlatform.Entities.DTO.Account.Auth.Register;
@@ -18,11 +21,11 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace LawPlatform.DataAccess.Services.Auth
 {
-    public static class Roles
-    {
-        public const string Buyer = "Cleint";
-        public const string Lawyer = "Lawyer";
-    }
+    // public static class Roles
+    // {
+    //     public const string Buyer = "Cleint";
+    //     public const string Lawyer = "Lawyer";
+    // }
 
     public class AuthService : IAuthService
     {
@@ -67,7 +70,7 @@ namespace LawPlatform.DataAccess.Services.Auth
 
             var roles = await _userManager.GetRolesAsync(user);
 
-            if (roles.Contains(Roles.Lawyer))
+            if (roles.Contains("Lawyer"))
             {
                 var lawyer = await _context.Lawyers.FirstOrDefaultAsync(l => l.Id == user.Id);
                 if (lawyer == null || lawyer.Status != ApprovalStatus.Approved)
@@ -80,7 +83,7 @@ namespace LawPlatform.DataAccess.Services.Auth
             {
                 Id = user.Id,
                 Email = user.Email,
-                Role = roles.FirstOrDefault() ?? Roles.Buyer,
+                Role = roles.FirstOrDefault(),
                 IsEmailConfirmed = user.EmailConfirmed,
                 AccessToken = tokens.AccessToken,
                 RefreshToken = tokens.RefreshToken
@@ -113,21 +116,23 @@ namespace LawPlatform.DataAccess.Services.Auth
                 var createUserResult = await _userManager.CreateAsync(user, model.Password);
                 if (!createUserResult.Succeeded)
                 {
-                    var errors = string.Join(", ", createUserResult.Errors.Select(e => e.Description));
-                    return _responseHandler.BadRequest<CustomerRegisterResponse>(errors);
+                    var errors = createUserResult.Errors.Select(e => e.Description).ToList();
+                    _logger.LogWarning("User creation failed for Email: {Email}. Errors: {Errors}", model.Email, string.Join(", ", errors));
+                    return _responseHandler.BadRequest<CustomerRegisterResponse>(string.Join(", ", errors));;
                 }
 
                 await _userManager.AddToRoleAsync(user, "Client");
+                await _userManager.CreateAsync(user);
 
-                var client = new Client
-                {
-                    Id = user.Id,
-                   FirstName = model.FirstName,
-                   LastName = model.LastName,
-                   BirthDate = model.BirthDate,
-
-                };
-                _context.Clients.Add(client);
+                // var client = new Client
+                // {
+                //     Id = user.Id,
+                //    FirstName = model.FirstName,
+                //    LastName = model.LastName,
+                //    BirthDate = model.BirthDate,
+                //
+                // };
+                // _context.Clients.Add(client);
 
                 var tokens = await GenerateAndStoreTokensAsync(user.Id, user);
 
@@ -141,7 +146,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                     PhoneNumber = user.PhoneNumber,
                     FirstName = model.FirstName,
                     LastName = model.LastName,
-                    Role = Roles.Buyer,
+                    Role = "Client",
                     IsEmailConfirmed = true,
                     AccessToken = tokens.AccessToken,
                     RefreshToken = tokens.RefreshToken
@@ -184,7 +189,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                     return _responseHandler.BadRequest<LawyerRegisterResponse>(errors);
                 }
 
-                await _userManager.AddToRoleAsync(user, Roles.Lawyer);
+                await _userManager.AddToRoleAsync(user, "Lawyer");
 
                 var names = model.FullName?.Split(' ', 2);
                 var firstName = names != null && names.Length > 0 ? names[0] : "Unknown";
@@ -196,25 +201,27 @@ namespace LawPlatform.DataAccess.Services.Auth
                     var uploadResult = await _cloudinary.UploadAsync(model.QualificationDocument);
                     qualificationDocumentUrl = uploadResult.Url;
                 }
+                
+                await _userManager.CreateAsync(user);
 
-                var lawyer = new Lawyer
-                {
-                    Id = user.Id,
-                    FirstName = firstName,
-                    LastName = lastName,
-                    BankAccountNumber = model.BankAccountNumber,
-                    BankName = model.BankName,
-                    Country = model.Country,
-                    Bio = model.Bio,
-                    Experiences = model.Experiences,
-                    QualificationDocumentPath = qualificationDocumentUrl,
-                    YearsOfExperience = model.YearsOfExperience,
-                    Qualifications = model.Qualifications,
-                    Status = ApprovalStatus.Pending,
-                    CreatedAt = DateTime.UtcNow,
-                };
+                // var lawyer = new Lawyer
+                // {
+                //     Id = user.Id,
+                //     FirstName = firstName,
+                //     LastName = lastName,
+                //     BankAccountNumber = model.BankAccountNumber,
+                //     BankName = model.BankName,
+                //     Country = model.Country,
+                //     Bio = model.Bio,
+                //     Experiences = model.Experiences,
+                //     QualificationDocumentPath = qualificationDocumentUrl,
+                //     YearsOfExperience = model.YearsOfExperience,
+                //     Qualifications = model.Qualifications,
+                //     Status = ApprovalStatus.Pending,
+                //     CreatedAt = DateTime.UtcNow,
+                // };
 
-                _context.Lawyers.Add(lawyer);
+              
 
                 var tokens = await GenerateAndStoreTokensAsync(user.Id, user);
 
@@ -227,9 +234,9 @@ namespace LawPlatform.DataAccess.Services.Auth
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
                     FullName = model.FullName,
-                    Role = Roles.Lawyer,
-                    Status = lawyer.Status.ToString(),
-                    QualificationDocumentUrl = lawyer.QualificationDocumentPath,
+                    Role = "Lawyer",
+                    Status = model.Status.ToString(),
+                    QualificationDocumentPath = qualificationDocumentUrl,
                     AccessToken = tokens.AccessToken,
                     RefreshToken = tokens.RefreshToken
                 };
@@ -282,12 +289,135 @@ namespace LawPlatform.DataAccess.Services.Auth
                 UserId = user.Id,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                Role = roles.FirstOrDefault() ?? Roles.Buyer
+                Role = roles.FirstOrDefault()
             };
 
             return _responseHandler.Success(response, "Password reset successfully. Please log in with your new password.");
         }
+        
+        public async Task<Response<string>> ChangePasswordAsync(ClaimsPrincipal userClaims, ChangePasswordRequest request)
+        {
+            try
+            {
+                // Get user ID from claims
+                var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return _responseHandler.Unauthorized<string>("User not authenticated");
+                }
+
+                // Find user
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    return _responseHandler.NotFound<string>("User not found");
+                }
+
+                // Verify current password
+                var isCurrentPasswordValid = await _userManager.CheckPasswordAsync(user, request.CurrentPassword);
+                if (!isCurrentPasswordValid)
+                {
+                    return _responseHandler.BadRequest<string>("Current password is incorrect");
+                }
+
+                // Change password
+                var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    return _responseHandler.BadRequest<string>(errors);
+                }
+
+                // Invalidate all existing refresh tokens for security
+                await _tokenStoreService.InvalidateOldTokensAsync(userId);
+
+                return _responseHandler.Success<string>(null,"Password changed successfully. Please login again.");
+            }
+            catch (Exception ex)
+            {
+                return _responseHandler.ServerError<string>($"An error occurred while changing password: {ex.Message}");
+            }
+        }
+        
+        public async Task<Response<string>> LogoutAsync(ClaimsPrincipal userClaims)
+        {
+            try
+            {
+                // Get user ID from claims
+                var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return _responseHandler.Unauthorized<string>("User not authenticated");
+                }
+
+                // Invalidate all refresh tokens for this user
+                await _tokenStoreService.InvalidateOldTokensAsync(userId);
+
+                return _responseHandler.Success<string>(null,"Logged out successfully");
+            }
+            catch (Exception ex)
+            {
+                return _responseHandler.ServerError<string>($"An error occurred during logout: {ex.Message}");
+            }
+        }
         #endregion
+        
+        
+        public async Task<RefreshTokenResponse> RefreshTokenAsync(string refreshToken)
+        {
+            _logger.LogInformation("Starting RefreshTokenAsync for token: {TokenSnippet}", refreshToken.Substring(0, Math.Min(8, refreshToken.Length)));
+
+            try
+            {
+                var isValid = await _tokenStoreService.IsValidAsync(refreshToken);
+                if (!isValid)
+                {
+                    _logger.LogWarning("Invalid refresh token provided: {TokenSnippet}", refreshToken.Substring(0, Math.Min(8, refreshToken.Length)));
+                    throw new SecurityTokenException("Invalid refresh token");
+                }
+
+                var tokenEntry = await _context.UserRefreshTokens
+                    .FirstOrDefaultAsync(r => r.Token == refreshToken);
+                if (tokenEntry == null)
+                {
+                    _logger.LogWarning("No refresh token entry found for token: {TokenSnippet}", refreshToken.Substring(0, Math.Min(8, refreshToken.Length)));
+                    throw new SecurityTokenException("Invalid refresh token");
+                }
+
+                var user = await _userManager.FindByIdAsync(tokenEntry.UserId.ToString());
+                if (user == null)
+                {
+                    _logger.LogWarning("User not found for refresh token with UserId: {UserId}", tokenEntry.UserId);
+                    throw new SecurityTokenException("Invalid user");
+                }
+
+                _logger.LogInformation("Invalidating old refresh tokens for user: {UserId}", user.Id);
+                await _tokenStoreService.InvalidateOldTokensAsync(user.Id);
+
+                _logger.LogInformation("Generating new access and refresh tokens for user: {UserId}", user.Id);
+                var userTokens = await _tokenStoreService.GenerateAndStoreTokensAsync(user.Id, user);
+                
+                await _tokenStoreService.SaveRefreshTokenAsync(user.Id, userTokens.RefreshToken);
+                _logger.LogInformation("New refresh token saved for user: {UserId}", user.Id);
+
+                return new RefreshTokenResponse
+                {
+                    AccessToken = userTokens.AccessToken,
+                    RefreshToken = userTokens.RefreshToken,
+                };
+            }
+            catch (SecurityTokenException ex)
+            {
+                _logger.LogError(ex, "Security token error during refresh token process for token: {TokenSnippet}", refreshToken.Substring(0, Math.Min(8, refreshToken.Length)));
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error during refresh token process for token: {TokenSnippet}", refreshToken.Substring(0, Math.Min(8, refreshToken.Length)));
+                throw;
+            }
+        }
+
 
 
         #region Helpers

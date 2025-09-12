@@ -8,7 +8,7 @@ namespace LawPlatform.Utilities.Enums
 {
     public enum ApprovalStatus
     {
-        Pending,
+        Pending, // for admin to review lawyers account
         Approved,
         Rejected
     }

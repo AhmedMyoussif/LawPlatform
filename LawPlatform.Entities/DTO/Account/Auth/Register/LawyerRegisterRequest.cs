@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using LawPlatform.Utilities.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace LawPlatform.Entities.DTO.Account.Auth.Register
 {
@@ -18,6 +19,8 @@ namespace LawPlatform.Entities.DTO.Account.Auth.Register
         public string BankAccountNumber { get; set; }
         public string BankName { get; set; }
         public string Country { get; set; }
+        
+        public ApprovalStatus Status { get; set; }
 
 
         public IFormFile QualificationDocument { get; set; }

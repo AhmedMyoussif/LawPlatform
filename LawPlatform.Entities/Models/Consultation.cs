@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Models.Auth.Users;
+using LawPlatform.Utilities.Enums;
 
 namespace LawPlatform.Entities.Models
 {
@@ -19,7 +20,11 @@ namespace LawPlatform.Entities.Models
         public DateTime? UpdatedAt { get; set; }
         public string ClientId { get; set; }
         public Client Client { get; set; }
-
+        
+        public decimal budget { get; set; }
+        
+        public int duration { get; set; }
+        public ConsultationStatus Status { get; set; } = ConsultationStatus.Active;
         public string CategoryId { get; set; }
         public ConsultationCategory Category { get; set; }
         public ICollection<ConsultationFile> Files { get; set; } = new List<ConsultationFile>();

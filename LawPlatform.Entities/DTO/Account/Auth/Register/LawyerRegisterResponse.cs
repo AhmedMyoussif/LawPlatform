@@ -14,6 +14,6 @@ namespace LawPlatform.Entities.DTO.Account.Auth.Register
         public string FullName { get; set; }
 
         public string Status { get; set; }
-        public string QualificationDocumentUrl { get; set; } 
+        public string QualificationDocumentPath { get; set; } 
     }
 }

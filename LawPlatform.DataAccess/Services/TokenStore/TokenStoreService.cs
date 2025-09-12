@@ -94,5 +94,13 @@ namespace LawPlatform.DataAccess.Services.Token
             return await _authContext.UserRefreshTokens
                 .AnyAsync(r => r.Token == refreshToken && !r.IsUsed && r.ExpiryDateUtc > DateTime.UtcNow);
         }
+        
+        public async Task<(string AccessToken, string RefreshToken)> GenerateAndStoreTokensAsync(string userId, User user)
+        {
+            var accessToken = await CreateAccessTokenAsync(user);
+            var refreshToken = GenerateRefreshToken();
+            await SaveRefreshTokenAsync(userId, refreshToken);
+            return (accessToken, refreshToken);   
+        }
     }
 }
