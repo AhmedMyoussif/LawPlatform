@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Net.Mail;
 using System.Net;
-using Ecommerce.DataAccess.Services.Category;
-using Ecommerce.DataAccess.Services.OAuth;
+using LawPlatform.DataAccess.Services.Category;
+using LawPlatform.DataAccess.Services.OAuth;
 using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.Auth;
 using LawPlatform.DataAccess.Services.Email;
@@ -29,7 +29,7 @@ namespace LawPlatform.DataAccess.Extensions
         {
             services.AddDbContext<LawPlatformContext>(options =>
                 options.UseSqlServer(
-                    configuration.GetConnectionString("ProdCS")));
+                    configuration.GetConnectionString("DevCS")));
 
             return services;
         }

@@ -1,7 +1,7 @@
 ﻿using LawPlatform.Entities.DTO.Category;
 using FluentValidation;
 using LawPlatform.Entities.DTO.Category;
-namespace Ecommerce.API.Validators
+namespace LawPlatform.API.Validators
 {
     public class CreateCategoryRequestValidator : AbstractValidator<CreateCategoryRequest>
     {

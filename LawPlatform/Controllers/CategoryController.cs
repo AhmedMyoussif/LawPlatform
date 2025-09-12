@@ -7,7 +7,7 @@ using LawPlatform.DataAccess.Services.Category;
 using LawPlatform.Entities.DTO.Category;
 using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Entities.Shared.Bases;
-using Ecommerce.DataAccess.Services.Category;
+using LawPlatform.DataAccess.Services.Category;
 
 namespace LawPlatform.Api.Controllers
 {

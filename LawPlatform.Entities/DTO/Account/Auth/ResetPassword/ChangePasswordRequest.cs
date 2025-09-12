@@ -1,4 +1,4 @@
-﻿namespace Ecommerce.Entities.DTO.Account.Auth.ResetPassword
+﻿namespace LawPlatform.Entities.DTO.Account.Auth.ResetPassword
 {
     public class ChangePasswordRequest
     {

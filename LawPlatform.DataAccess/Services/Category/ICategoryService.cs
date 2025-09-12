@@ -6,7 +6,7 @@ using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Entities.Models;
 using LawPlatform.Entities.DTO.Category;
 
-namespace Ecommerce.DataAccess.Services.Category
+namespace LawPlatform.DataAccess.Services.Category
 {
     public interface ICategoryService
     {

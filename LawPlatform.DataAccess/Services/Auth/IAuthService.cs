@@ -1,7 +1,7 @@
 ﻿//using LawPlatform.Entities.DTO.Account.Auth.Admin;
 
 using System.Security.Claims;
-using Ecommerce.Entities.DTO.Account.Auth.ResetPassword;
+using LawPlatform.Entities.DTO.Account.Auth.ResetPassword;
 using LawPlatform.Entities.DTO.Account.Auth;
 using LawPlatform.Entities.DTO.Account.Auth.Admin;
 using LawPlatform.Entities.DTO.Account.Auth.Login;

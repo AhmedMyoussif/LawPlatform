@@ -1,4 +1,4 @@
-﻿using Ecommerce.DataAccess.Services.OAuth;
+﻿using LawPlatform.DataAccess.Services.OAuth;
 using LawPlatform.Utilities.Configurations;
 using LawPlatform.DataAccess.Services.Token;
 using Google.Apis.Auth;

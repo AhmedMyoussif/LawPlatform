@@ -3,7 +3,7 @@ using LawPlatform.Entities.Shared.Bases;
 
 using Google.Apis.Auth;
 
-namespace Ecommerce.DataAccess.Services.OAuth
+namespace LawPlatform.DataAccess.Services.OAuth
 {
     public interface IAuthGoogleService
     {

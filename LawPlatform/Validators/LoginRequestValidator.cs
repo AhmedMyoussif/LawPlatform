@@ -3,7 +3,7 @@
 using FluentValidation;
 using LawPlatform.Entities.DTO.Account.Auth.Login;
 
-namespace Ecommerce.API.Validators
+namespace LawPlatform.API.Validators
 {
     public class LoginRequestValidator : AbstractValidator<LoginRequest>
     {

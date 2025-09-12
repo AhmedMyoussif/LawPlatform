@@ -3,7 +3,7 @@
 using FluentValidation;
 using LawPlatform.Entities.DTO.Account.Auth.ResetPassword;
 
-namespace Ecommerce.API.Validators
+namespace LawPlatform.API.Validators
 {
     public class ForgetPasswordRequestValidator : AbstractValidator<ForgetPasswordRequest>
     {

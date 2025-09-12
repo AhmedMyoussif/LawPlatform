@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using LawPlatform.DataAccess.Services.Consultation;
 using LawPlatform.Entities.DTO.Consultaion;
 using LawPlatform.Entities.Shared.Bases;
@@ -24,7 +25,7 @@ namespace LawPlatform.API.Controllers
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Invalid request model for CreateConsultation");
-                return BadRequest(new Response<CreateConsultationResponse>
+                return BadRequest(new Response<GetConsultationResponse>
                 {
                     Succeeded = false,
                     Message = "Invalid request data",
@@ -33,8 +34,12 @@ namespace LawPlatform.API.Controllers
                                               .ToList()
                 });
             }
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                 ?? User.FindFirst("nameid")?.Value;
 
-            var result = await _consultationService.CreateConsultationAsync(request);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("User not authenticated.");
+            var result = await _consultationService.CreateConsultationAsync(request, userId);
 
             if (!result.Succeeded)
             {
@@ -44,6 +49,17 @@ namespace LawPlatform.API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, result);
             }
 
+            return Ok(result);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllConsultations()
+        {
+            var result = await _consultationService.GetAllConsultationsAsync();
+            if (!result.Succeeded)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, result);
+            }
             return Ok(result);
         }
     }

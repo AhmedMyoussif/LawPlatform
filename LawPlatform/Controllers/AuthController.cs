@@ -1,5 +1,5 @@
-﻿using Ecommerce.DataAccess.Services.OAuth;
-using Ecommerce.Entities.DTO.Account.Auth.ResetPassword;
+﻿using LawPlatform.DataAccess.Services.OAuth;
+using LawPlatform.Entities.DTO.Account.Auth.ResetPassword;
 using FluentValidation;
 using LawPlatform.DataAccess.Services.Auth;
 using LawPlatform.DataAccess.Services.Token;
@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using LoginRequest = LawPlatform.Entities.DTO.Account.Auth.Login.LoginRequest;
 using ResetPasswordRequest = LawPlatform.Entities.DTO.Account.Auth.ResetPassword.ResetPasswordRequest;
+using LawPlatform.DataAccess.Services.OAuth;
 
 namespace LawPlatform.API.Controllers
 {
@@ -26,18 +27,17 @@ namespace LawPlatform.API.Controllers
     {
         private readonly IAuthService _authService;
         private readonly ITokenStoreService _tokenStoreService;
-        private readonly ResponseHandler _responseHandler;
-        private readonly IValidator<RegisterRequest> _registerValidator;
+        private readonly ResponseHandler _responseHandler;      
         private readonly IValidator<LoginRequest> _loginValidator;
         private readonly IValidator<ForgetPasswordRequest> _forgetPasswordValidator;
         private readonly IValidator<ResetPasswordRequest> _resetPasswordValidator;
         private readonly IValidator<ChangePasswordRequest> _changePasswordValidator;
         private readonly IAuthGoogleService _authGoogleService;
-        public AccountController(IAuthService authService, ResponseHandler responseHandler, IValidator<RegisterRequest> registerValidator, IValidator<LoginRequest> loginValidator, IValidator<ForgetPasswordRequest> forgetPasswordValidator, IValidator<ResetPasswordRequest> resetPasswordValidator ,IAuthGoogleService authGoogleService, IValidator<ChangePasswordRequest> changePasswordValidator)
+        public AccountController(IAuthService authService, ResponseHandler responseHandler, IValidator<LoginRequest> loginValidator, IValidator<ForgetPasswordRequest> forgetPasswordValidator, IValidator<ResetPasswordRequest> resetPasswordValidator ,IAuthGoogleService authGoogleService, IValidator<ChangePasswordRequest> changePasswordValidator)
         {
             _authService = authService;
             _responseHandler = responseHandler;
-            _registerValidator = registerValidator;
+           
             _loginValidator = loginValidator;
             _forgetPasswordValidator = forgetPasswordValidator;
             _resetPasswordValidator = resetPasswordValidator;

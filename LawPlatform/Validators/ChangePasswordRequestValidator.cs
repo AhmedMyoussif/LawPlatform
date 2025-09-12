@@ -1,6 +1,7 @@
 ﻿using LawPlatform.Entities.DTO.Account.Auth.ResetPassword;
 using FluentValidation;
-using Ecommerce.Entities.DTO.Account.Auth.ResetPassword;
+using LawPlatform.Entities.DTO.Account.Auth.ResetPassword;
+using LawPlatform.Entities.DTO.Account.Auth.ResetPassword;
 
 namespace LawPlatform.API.Validators
 {

@@ -10,7 +10,7 @@ using LawPlatform.Entities.Shared.Bases;
 using System.Linq.Expressions;
 using Microsoft.Extensions.Logging;
 using LawPlatform.DataAccess.Services.Category;
-using Ecommerce.DataAccess.Services.Category;
+using LawPlatform.DataAccess.Services.Category;
 
 namespace LawPlatform.DataAccess.Services.Category
 {
@@ -59,8 +59,7 @@ namespace LawPlatform.DataAccess.Services.Category
             }
 
             var category = new ConsultationCategory
-            {
-                Id = Guid.NewGuid().ToString(),
+            {                
                 Name = dto.Name,
                 Description = dto.Description,
                 IsDeleted = false

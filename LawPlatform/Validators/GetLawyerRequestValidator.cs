@@ -5,7 +5,7 @@ using FluentValidation;
 using LawPlatform.Entities.DTO.Account.Auth.Admin;
 using LawPlatform.Utilities.Enums;
 
-namespace Ecommerce.API.Validators
+namespace LawPlatform.API.Validators
 {
     public class GetLawyerRequestValidator : AbstractValidator<GetLawyerByStatusRequest>
     {

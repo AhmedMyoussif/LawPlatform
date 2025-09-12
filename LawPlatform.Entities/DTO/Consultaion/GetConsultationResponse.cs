@@ -3,7 +3,7 @@ using LawPlatform.Utilities.Enums;
 
 namespace LawPlatform.Entities.DTO.Consultaion;
 
-public class CreateConsultationResponse
+public class GetConsultationResponse
 {
     public string Id { get; set; }
     public string Title { get; set; }

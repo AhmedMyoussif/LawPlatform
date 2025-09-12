@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using CloudinaryDotNet;
 using FluentValidation;
 using LawPlatform.DataAccess.ApplicationContext;
@@ -5,8 +6,11 @@ using LawPlatform.DataAccess.Services.ImageUploading;
 using LawPlatform.Entities.DTO.Category;
 using LawPlatform.Entities.DTO.Consultaion;
 using LawPlatform.Entities.Models;
+using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Utilities.Enums;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace LawPlatform.DataAccess.Services.Consultation;
@@ -18,15 +22,19 @@ public class ConsultationService :  IConsultationService
     private readonly ILogger<ConsultationService> _logger;
     private readonly IValidator<CreateConsultationRequest> _validator;
     private readonly IImageUploadService _imageUploadService;
-    public ConsultationService(LawPlatformContext context , ResponseHandler responseHandler, ILogger<ConsultationService> logger, ICloudinary cloudinary , IImageUploadService imageUploadService)
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public ConsultationService(LawPlatformContext context, ResponseHandler responseHandler, ILogger<ConsultationService> logger, IImageUploadService imageUploadService, IValidator<CreateConsultationRequest> validator, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _responseHandler = responseHandler;
         _logger = logger;
-        _imageUploadService  = imageUploadService;
+        _imageUploadService = imageUploadService;
+        _validator = validator;
+        _httpContextAccessor = httpContextAccessor;
     }
 
-     public async Task<Response<CreateConsultationResponse>> CreateConsultationAsync(CreateConsultationRequest request)
+    public async Task<Response<GetConsultationResponse>> CreateConsultationAsync(CreateConsultationRequest request,string clientid)
     {
         try
         {
@@ -39,15 +47,27 @@ public class ConsultationService :  IConsultationService
                 _logger.LogWarning("Validation failed for consultation creation. Errors: {Errors}",
                     string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)));
 
-                return _responseHandler.ValidationError<CreateConsultationResponse>(
+                return _responseHandler.ValidationError<GetConsultationResponse>(
                     validationResult.Errors.Select(e => e.ErrorMessage).ToList()
                 );
             }
-            
-       
+            //var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            //if (string.IsNullOrEmpty(clientId))
+            //{
+            //    _logger.LogWarning("ClientId could not be determined from the logged-in user.");
+            //    return _responseHandler.Unauthorized<GetConsultationResponse>("User not authenticated.");
+            //}
+            //if (userId == null)
+            //    userId = _httpContextAccessor.HttpContext?.User?.FindFirst("nameid")?.Value;
+            //if (string.IsNullOrEmpty(userId))
+            //{
+            //    return _responseHandler.Unauthorized<GetConsultationResponse>("User not authenticated.");
+            //}
+
             var consultation = new Entities.Models.Consultation
             {
-                
+                ClientId = clientid,
                 Title = request.Title,
                 Description = request.Description,
                 CategoryId = request.CategoryId,
@@ -58,6 +78,9 @@ public class ConsultationService :  IConsultationService
                 Files = new List<ConsultationFile>()
                
             };
+            _context.Add(consultation);
+            _context.SaveChanges();
+
             
             var uploadedFiles = new List<string>();
             if (request.Files != null && request.Files.Count > 0)
@@ -70,7 +93,7 @@ public class ConsultationService :  IConsultationService
                     {
                         ConsultationId = consultation.Id,
                         FileName = file.FileName,
-                        FilePath = uploadResult.Url // ✅ URL اللي رجع من Cloudinary
+                        FilePath = uploadResult.Url 
                     });
 
                     uploadedFiles.Add(uploadResult.Url);
@@ -84,7 +107,7 @@ public class ConsultationService :  IConsultationService
             _logger.LogInformation("Consultation {ConsultationId} created successfully for ClientId: {ClientId}",
                 consultation.Id, consultation.ClientId);
 
-            var consultationResponse = new CreateConsultationResponse
+            var consultationResponse = new GetConsultationResponse
             {
                 Id = consultation.Id,
                 Title = consultation.Title,
@@ -102,7 +125,34 @@ public class ConsultationService :  IConsultationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while creating consultation for ClientI");
-            return _responseHandler.ServerError<CreateConsultationResponse>("An error occurred while creating consultation");
+            return _responseHandler.ServerError<GetConsultationResponse>("An error occurred while creating consultation");
         }
+    }
+    public async Task<Response<List<GetConsultationResponse>>> GetAllConsultationsAsync()
+    {
+        _logger.LogInformation("Retrieving all consultations");
+        var consultations = _context.consultations.Include(c => c.Files).ToList();
+        if (!consultations.Any())
+        {
+            _logger.LogWarning("No consultations found");
+            return _responseHandler.NotFound<List<GetConsultationResponse>>("No consultations found.");
+        }
+        var consultationResponses = consultations.Select(c => new GetConsultationResponse
+        {
+            Id = c.Id,
+            Title = c.Title,
+            Description = c.Description,
+            CreatedAt = c.CreatedAt,
+            UpdatedAt = c.UpdatedAt,
+            ClientId = c.ClientId,
+            budget = c.budget,
+            duration = c.duration,
+            Status = c.Status,
+            CategoryId = c.CategoryId,
+            UrlFiles = c.Files.Select(f => f.FilePath).ToList()
+        }).ToList();
+        _logger.LogInformation("Retrieved {Count} consultations", consultationResponses.Count);
+        return _responseHandler.Success(consultationResponses, "Consultations retrieved successfully.");
+
     }
 }

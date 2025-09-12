@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using Ecommerce.Entities.DTO.Account.Auth.ResetPassword;
+using LawPlatform.Entities.DTO.Account.Auth.ResetPassword;
 using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.Email;
 using LawPlatform.DataAccess.Services.ImageUploading;
@@ -21,11 +21,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace LawPlatform.DataAccess.Services.Auth
 {
-    // public static class Roles
-    // {
-    //     public const string Buyer = "Cleint";
-    //     public const string Lawyer = "Lawyer";
-    // }
+    
 
     public class AuthService : IAuthService
     {
@@ -122,17 +118,17 @@ namespace LawPlatform.DataAccess.Services.Auth
                 }
 
                 await _userManager.AddToRoleAsync(user, "Client");
-                await _userManager.CreateAsync(user);
 
-                // var client = new Client
-                // {
-                //     Id = user.Id,
-                //    FirstName = model.FirstName,
-                //    LastName = model.LastName,
-                //    BirthDate = model.BirthDate,
-                //
-                // };
-                // _context.Clients.Add(client);
+
+                var client = new Client
+                {
+                    Id = user.Id,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    BirthDate = model.BirthDate,
+                    CreatedAt = DateTime.UtcNow,
+                };
+                _context.Clients.Add(client);
 
                 var tokens = await GenerateAndStoreTokensAsync(user.Id, user);
 
@@ -204,24 +200,24 @@ namespace LawPlatform.DataAccess.Services.Auth
                 
                 await _userManager.CreateAsync(user);
 
-                // var lawyer = new Lawyer
-                // {
-                //     Id = user.Id,
-                //     FirstName = firstName,
-                //     LastName = lastName,
-                //     BankAccountNumber = model.BankAccountNumber,
-                //     BankName = model.BankName,
-                //     Country = model.Country,
-                //     Bio = model.Bio,
-                //     Experiences = model.Experiences,
-                //     QualificationDocumentPath = qualificationDocumentUrl,
-                //     YearsOfExperience = model.YearsOfExperience,
-                //     Qualifications = model.Qualifications,
-                //     Status = ApprovalStatus.Pending,
-                //     CreatedAt = DateTime.UtcNow,
-                // };
+                var lawyer = new Lawyer
+                {
+                    Id = user.Id,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    BankAccountNumber = model.BankAccountNumber,
+                    BankName = model.BankName,
+                    Country = model.Country,
+                    Bio = model.Bio,
+                    Experiences = model.Experiences,
+                    QualificationDocumentPath = qualificationDocumentUrl,
+                    YearsOfExperience = model.YearsOfExperience,
+                    Qualifications = model.Qualifications,
+                    Status = ApprovalStatus.Pending,
+                    CreatedAt = DateTime.UtcNow,
+                };
 
-              
+
 
                 var tokens = await GenerateAndStoreTokensAsync(user.Id, user);
 
