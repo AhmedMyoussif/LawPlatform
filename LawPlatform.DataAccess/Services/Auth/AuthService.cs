@@ -33,7 +33,7 @@ namespace LawPlatform.DataAccess.Services.Auth
         private readonly LawPlatformContext _context;
         private readonly IEmailService _emailService;
         private readonly ResponseHandler _responseHandler;
-        private readonly IImageUploadService _cloudinary;
+        private readonly IImageUploadService _imageUploadService;
         private readonly ITokenStoreService _tokenStoreService;
         private readonly ILogger<AuthService> _logger;
 
@@ -42,7 +42,7 @@ namespace LawPlatform.DataAccess.Services.Auth
             LawPlatformContext context,
             IEmailService emailService,
             ResponseHandler responseHandler,
-            IImageUploadService cloudinary,
+            IImageUploadService imageUploadService,
             ITokenStoreService tokenStoreService,
             ILogger<AuthService> logger)
         {
@@ -50,7 +50,7 @@ namespace LawPlatform.DataAccess.Services.Auth
             _context = context;
             _emailService = emailService;
             _responseHandler = responseHandler;
-            _cloudinary = cloudinary;
+            _imageUploadService = imageUploadService;
             _tokenStoreService = tokenStoreService;
             _logger = logger;
         }
@@ -198,7 +198,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                 string? qualificationDocumentUrl = null;
                 if (model.QualificationDocument != null)
                 {
-                    var uploadResult = await _cloudinary.UploadAsync(model.QualificationDocument);
+                    var uploadResult = await _imageUploadService.UploadAsync(model.QualificationDocument);
                     qualificationDocumentUrl = uploadResult.Url;
                 }
                 

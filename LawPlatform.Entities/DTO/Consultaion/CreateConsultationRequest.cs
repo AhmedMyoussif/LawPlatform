@@ -12,6 +12,6 @@ public class CreateConsultationRequest
         
     public int duration { get; set; }
     public string CategoryId { get; set; }
-    public IFormFile? Files { get; set; }
+    public List<IFormFile>? Files { get; set; }
 
 }

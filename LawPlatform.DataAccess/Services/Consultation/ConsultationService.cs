@@ -1,8 +1,12 @@
+using CloudinaryDotNet;
 using FluentValidation;
 using LawPlatform.DataAccess.ApplicationContext;
+using LawPlatform.DataAccess.Services.ImageUploading;
 using LawPlatform.Entities.DTO.Category;
 using LawPlatform.Entities.DTO.Consultaion;
+using LawPlatform.Entities.Models;
 using LawPlatform.Entities.Shared.Bases;
+using LawPlatform.Utilities.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace LawPlatform.DataAccess.Services.Consultation;
@@ -13,11 +17,13 @@ public class ConsultationService :  IConsultationService
     private readonly ResponseHandler _responseHandler;
     private readonly ILogger<ConsultationService> _logger;
     private readonly IValidator<CreateConsultationRequest> _validator;
-    public ConsultationService(LawPlatformContext context , ResponseHandler responseHandler, ILogger<ConsultationService> logger)
+    private readonly IImageUploadService _imageUploadService;
+    public ConsultationService(LawPlatformContext context , ResponseHandler responseHandler, ILogger<ConsultationService> logger, ICloudinary cloudinary , IImageUploadService imageUploadService)
     {
         _context = context;
         _responseHandler = responseHandler;
         _logger = logger;
+        _imageUploadService  = imageUploadService;
     }
 
      public async Task<Response<CreateConsultationResponse>> CreateConsultationAsync(CreateConsultationRequest request)
@@ -47,9 +53,30 @@ public class ConsultationService :  IConsultationService
                 CategoryId = request.CategoryId,
                 CreatedAt = DateTime.UtcNow,
                 budget = request.budget,
-                duration = request.duration
+                duration = request.duration,
+                Status = ConsultationStatus.Active,
+                Files = new List<ConsultationFile>()
                
             };
+            
+            var uploadedFiles = new List<string>();
+            if (request.Files != null && request.Files.Count > 0)
+            {
+                foreach (var file in request.Files)
+                {
+                    var uploadResult = await _imageUploadService.UploadAsync(file);
+
+                    consultation.Files.Add(new ConsultationFile
+                    {
+                        ConsultationId = consultation.Id,
+                        FileName = file.FileName,
+                        FilePath = uploadResult.Url // ✅ URL اللي رجع من Cloudinary
+                    });
+
+                    uploadedFiles.Add(uploadResult.Url);
+                }
+            }
+
 
             await _context.consultations.AddAsync(consultation);
             await _context.SaveChangesAsync();
@@ -66,8 +93,8 @@ public class ConsultationService :  IConsultationService
                 ClientId =  consultation.ClientId,
                 CategoryId = consultation.CategoryId,
                 budget = consultation.budget,
-                duration = consultation.duration
-               // UrlFiles = consultation.Files
+                duration = consultation.duration,
+                UrlFiles = uploadedFiles
             };
 
             return _responseHandler.Success(consultationResponse, "Consultation created successfully");
