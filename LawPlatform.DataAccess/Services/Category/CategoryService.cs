@@ -60,6 +60,7 @@ namespace LawPlatform.DataAccess.Services.Category
 
             var category = new ConsultationCategory
             {
+                Id = Guid.NewGuid().ToString(),
                 Name = dto.Name,
                 Description = dto.Description,
                 IsDeleted = false

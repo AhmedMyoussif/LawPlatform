@@ -137,7 +137,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserRefreshTokens");
+                    b.ToTable("UserRefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.Auth.Users.Client", b =>
@@ -291,7 +291,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("consultations");
+                    b.ToTable("consultations", (string)null);
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.ConsultationCategory", b =>
@@ -313,7 +313,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ConsultationCategories");
+                    b.ToTable("ConsultationCategories", (string)null);
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.ConsultationFile", b =>
@@ -338,7 +338,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("ConsultationId");
 
-                    b.ToTable("ConsultationFiles");
+                    b.ToTable("ConsultationFiles", (string)null);
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.Offer", b =>
@@ -387,7 +387,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("LawyerId");
 
-                    b.ToTable("Offers");
+                    b.ToTable("Offers", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
@@ -406,7 +406,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DataProtectionKeys");
+                    b.ToTable("DataProtectionKeys", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

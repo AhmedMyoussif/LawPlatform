@@ -42,7 +42,7 @@ namespace LawPlatform.Api.Controllers
             return StatusCode((int)result.StatusCode, result);
         }
 
-        [HttpGet("{id:string}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
             var result = await _categoryService.GetCategoryByIdAsync(id);
@@ -58,7 +58,7 @@ namespace LawPlatform.Api.Controllers
 
         
 
-        [HttpPut("{id:string}")]
+        [HttpPut("{id}")]
         //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(string id, [FromBody] UpdateCategoryRequest dto)
         {
@@ -69,7 +69,7 @@ namespace LawPlatform.Api.Controllers
             return StatusCode((int)result.StatusCode, result);
         }
 
-        [HttpDelete("{id:string}")]
+        [HttpDelete("{id}")]
         //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(string id)
         {

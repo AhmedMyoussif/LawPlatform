@@ -18,6 +18,7 @@ using LawPlatform.DataAccess.Services.Admin;
 using LawPlatform.DataAccess.Services.Category;
 using LawPlatform.DataAccess.Services.Consultation;
 using LawPlatform.DataAccess.Services.OAuth;
+using CloudinaryDotNet;
 
 
 namespace LawPlatform.DataAccess.Extensions
@@ -32,7 +33,7 @@ namespace LawPlatform.DataAccess.Extensions
 
             return services;
         }
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services , IConfiguration configuration)
         {
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IAuthService, AuthService>();
@@ -44,6 +45,10 @@ namespace LawPlatform.DataAccess.Extensions
             services.AddScoped<IConsultationService, ConsultationService>();
 
 
+            var cloudinarySettings = configuration.GetSection("Cloudinary").Get<CloudinarySettings>();
+            var account = new Account(cloudinarySettings.CloudName, cloudinarySettings.ApiKey, cloudinarySettings.ApiSecret);
+            var cloudinary = new Cloudinary(account);
+            services.AddSingleton<ICloudinary>(cloudinary);
             QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
             return services;
