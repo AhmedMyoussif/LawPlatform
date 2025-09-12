@@ -53,3 +53,5 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml
 .vs
+/LawPlatform/appsettings.json
+/LawPlatform/appsettings.Development.json
