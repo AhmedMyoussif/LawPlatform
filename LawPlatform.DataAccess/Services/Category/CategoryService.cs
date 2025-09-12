@@ -96,7 +96,7 @@ namespace LawPlatform.DataAccess.Services.Category
             return _responseHandler.Success(categories, "Categories retrieved successfully.");
         }
 
-        public async Task<Response<GetCategoryResponse>> GetCategoryByIdAsync(string id)
+        public async Task<Response<GetCategoryResponse>> GetCategoryByIdAsync(Guid id)
         {
             if (id == null)
             {
@@ -132,7 +132,7 @@ namespace LawPlatform.DataAccess.Services.Category
             return _responseHandler.Success(category, "Category retrieved successfully.");
         }
 
-        public async Task<Response<ConsultationCategory>> DeleteCategoryAsync(string id)
+        public async Task<Response<ConsultationCategory>> DeleteCategoryAsync(Guid id)
         {
             if (id == null)
             {
@@ -158,24 +158,24 @@ namespace LawPlatform.DataAccess.Services.Category
             return _responseHandler.Success(category, "Category deleted successfully.");
         }
 
-        public async Task<Response<string>> UpdateCategoryAsync(string id, UpdateCategoryRequest dto)
+        public async Task<Response<Guid>> UpdateCategoryAsync(Guid id, UpdateCategoryRequest dto)
         {
             if (id == null || dto == null)
             {
                 _logger.LogWarning("UpdateCategoryAsync called with invalid input. ID: {Id}", id);
-                return _responseHandler.BadRequest<string>("Invalid input data.");
+                return _responseHandler.BadRequest<Guid>("Invalid input data.");
             }
 
             var category = await _context.ConsultationCategories.FindAsync(id);
             if (category == null || category.IsDeleted)
             {
                 _logger.LogWarning("UpdateCategoryAsync - Category not found. ID: {Id}", id);
-                return _responseHandler.NotFound<string>("Category not found.");
+                return _responseHandler.NotFound<Guid>("Category not found.");
             }
 
             if (category.Name == dto.Name && category.Description == dto.Description)
             {
-                return _responseHandler.BadRequest<string>("No changes detected.");
+                return _responseHandler.BadRequest<Guid>("No changes detected.");
             }
 
             // Check for duplication with another category (excluding current one)
@@ -188,7 +188,7 @@ namespace LawPlatform.DataAccess.Services.Category
 
             if (existingCategory != null)
             {
-                return _responseHandler.BadRequest<string>("Another category with the same name already exists.");
+                return _responseHandler.BadRequest<Guid>("Another category with the same name already exists.");
             }
 
             category.Name = dto.Name;
@@ -199,7 +199,7 @@ namespace LawPlatform.DataAccess.Services.Category
 
             _logger.LogInformation("Category with ID {Id} updated successfully.", id);
 
-            return _responseHandler.Success<string>(category.Id, "Category updated successfully.");
+            return _responseHandler.Success<Guid>(category.Id, "Category updated successfully.");
         }
     }
 }

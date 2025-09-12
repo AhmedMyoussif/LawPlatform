@@ -5,7 +5,7 @@ namespace LawPlatform.Entities.DTO.Consultaion;
 
 public class GetConsultationResponse
 {
-    public string Id { get; set; }
+    public Guid Id { get; set; }
     public string Title { get; set; }
     public string Description { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -15,6 +15,6 @@ public class GetConsultationResponse
         
     public int duration { get; set; }
     public ConsultationStatus Status { get; set; }
-    public string CategoryId { get; set; }
+    public Guid CategoryId { get; set; }
     public List<string> UrlFiles { get; set; }
 }

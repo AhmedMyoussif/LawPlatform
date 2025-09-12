@@ -43,7 +43,7 @@ namespace LawPlatform.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(string id)
+        public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _categoryService.GetCategoryByIdAsync(id);
             return StatusCode((int)result.StatusCode, result);
@@ -60,7 +60,7 @@ namespace LawPlatform.Api.Controllers
 
         [HttpPut("{id}")]
         //[Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Update(string id, [FromBody] UpdateCategoryRequest dto)
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCategoryRequest dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(_responseHandler.HandleModelStateErrors(ModelState));
@@ -71,7 +71,7 @@ namespace LawPlatform.Api.Controllers
 
         [HttpDelete("{id}")]
         //[Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _categoryService.DeleteCategoryAsync(id);
             return StatusCode((int)result.StatusCode, result);

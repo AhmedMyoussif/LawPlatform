@@ -11,7 +11,7 @@ public class CreateConsultationRequest
     public decimal budget { get; set; }
         
     public int duration { get; set; }
-    public string CategoryId { get; set; }
+    public Guid CategoryId { get; set; }
     public List<IFormFile>? Files { get; set; }
 
 }

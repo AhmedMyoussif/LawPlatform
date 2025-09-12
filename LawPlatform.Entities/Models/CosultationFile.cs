@@ -12,8 +12,8 @@ namespace LawPlatform.Entities.Models
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public string Id { get; set; }
-        public string ConsultationId { get; set; }
+        public Guid Id { get; set; }
+        public Guid ConsultationId { get; set; }
         public Consultation Consultation { get; set; }
 
         public string FilePath { get; set; }

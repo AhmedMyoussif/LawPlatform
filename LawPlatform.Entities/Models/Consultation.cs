@@ -15,7 +15,7 @@ namespace LawPlatform.Entities.Models
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -27,7 +27,7 @@ namespace LawPlatform.Entities.Models
         
         public int duration { get; set; }
         public ConsultationStatus Status { get; set; } = ConsultationStatus.Active;
-        public string CategoryId { get; set; }
+        public Guid CategoryId { get; set; }
         public ConsultationCategory Category { get; set; }
         public ICollection<ConsultationFile> Files { get; set; } = new List<ConsultationFile>();
         public ICollection<Offer> Offers { get; set; } = new List<Offer>();

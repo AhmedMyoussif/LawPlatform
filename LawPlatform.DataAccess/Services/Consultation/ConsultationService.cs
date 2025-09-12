@@ -51,22 +51,10 @@ public class ConsultationService :  IConsultationService
                     validationResult.Errors.Select(e => e.ErrorMessage).ToList()
                 );
             }
-            //var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            //if (string.IsNullOrEmpty(clientId))
-            //{
-            //    _logger.LogWarning("ClientId could not be determined from the logged-in user.");
-            //    return _responseHandler.Unauthorized<GetConsultationResponse>("User not authenticated.");
-            //}
-            //if (userId == null)
-            //    userId = _httpContextAccessor.HttpContext?.User?.FindFirst("nameid")?.Value;
-            //if (string.IsNullOrEmpty(userId))
-            //{
-            //    return _responseHandler.Unauthorized<GetConsultationResponse>("User not authenticated.");
-            //}
 
             var consultation = new Entities.Models.Consultation
             {
+             
                 ClientId = clientid,
                 Title = request.Title,
                 Description = request.Description,
@@ -78,10 +66,9 @@ public class ConsultationService :  IConsultationService
                 Files = new List<ConsultationFile>()
                
             };
-            _context.Add(consultation);
-            _context.SaveChanges();
+            //await _context.consultations.AddAsync(consultation);
+            //await _context.SaveChangesAsync();
 
-            
             var uploadedFiles = new List<string>();
             if (request.Files != null && request.Files.Count > 0)
             {

@@ -137,7 +137,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserRefreshTokens", (string)null);
+                    b.ToTable("UserRefreshTokens");
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.Auth.Users.Client", b =>
@@ -245,12 +245,12 @@ namespace LawPlatform.DataAccess.Migrations
 
             modelBuilder.Entity("LawPlatform.Entities.Models.Consultation", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CategoryId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ClientId")
                         .IsRequired()
@@ -291,13 +291,14 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("consultations", (string)null);
+                    b.ToTable("consultations");
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.ConsultationCategory", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -313,17 +314,17 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ConsultationCategories", (string)null);
+                    b.ToTable("ConsultationCategories");
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.ConsultationFile", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("ConsultationId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("ConsultationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("FileName")
                         .IsRequired()
@@ -338,20 +339,17 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("ConsultationId");
 
-                    b.ToTable("ConsultationFiles", (string)null);
+                    b.ToTable("ConsultationFiles");
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.Offer", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ConsultationId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("ConsultationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -387,7 +385,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("LawyerId");
 
-                    b.ToTable("Offers", (string)null);
+                    b.ToTable("Offers");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
@@ -406,7 +404,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DataProtectionKeys", (string)null);
+                    b.ToTable("DataProtectionKeys");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

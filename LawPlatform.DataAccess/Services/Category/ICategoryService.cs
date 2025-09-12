@@ -13,9 +13,9 @@ namespace LawPlatform.DataAccess.Services.Category
         Task<Response<GetCategoryResponse>> AddCategoryAsync(CreateCategoryRequest dto);
         Task<Response<List<GetCategoryResponse>>> GetAllCategoriesAsync();
 
-        Task<Response<GetCategoryResponse>> GetCategoryByIdAsync(string id);
+        Task<Response<GetCategoryResponse>> GetCategoryByIdAsync(Guid id);
         Task<Response<GetCategoryResponse>> GetCategoryByNameAsync(string name);
-        Task<Response<ConsultationCategory>> DeleteCategoryAsync(string id);
-        Task<Response<string>> UpdateCategoryAsync(string id, UpdateCategoryRequest dto);
+        Task<Response<ConsultationCategory>> DeleteCategoryAsync(Guid id);
+        Task<Response<Guid>> UpdateCategoryAsync(Guid id, UpdateCategoryRequest dto);
     }
 }
