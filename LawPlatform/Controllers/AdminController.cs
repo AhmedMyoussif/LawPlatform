@@ -12,6 +12,8 @@ namespace LawPlatform.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles ="Admin")]
+
     public class AdminController : ControllerBase
     {
         private readonly IAuthService _authService;
@@ -36,7 +38,7 @@ namespace LawPlatform.API.Controllers
         #endregion
 
         #region Update Lawyer Account Status
-        [HttpPut("lawyers/{lawyerId}/status")]
+        [HttpPut("lawyers/status")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Response<UpdateLawyerAccountStatusResponse>>> UpdateLawyerAccountStatus(
            

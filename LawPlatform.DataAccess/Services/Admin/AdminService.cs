@@ -106,7 +106,7 @@ namespace LawPlatform.DataAccess.Services.Admin
 
         #endregion
 
-        #region Get / Update Client
+        #region Get /  Client
         public async Task<Response<List<GetClientsResponse>>> GetAllClients()
         {
             _logger.LogInformation("Starting GetAllClients at {Time}", DateTime.UtcNow);

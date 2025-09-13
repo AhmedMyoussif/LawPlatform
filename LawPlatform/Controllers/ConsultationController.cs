@@ -18,7 +18,7 @@ namespace LawPlatform.API.Controllers
             _consultationService = consultationService;
             _logger = logger;
         }
-        
+
         [HttpPost("Client")]
         public async Task<IActionResult> CreateConsultation([FromForm] CreateConsultationRequest request)
         {
@@ -56,6 +56,40 @@ namespace LawPlatform.API.Controllers
         public async Task<IActionResult> GetAllConsultations([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var result = await _consultationService.GetAllConsultationsAsync(pageNumber, pageSize);
+            return Ok(result);
+        }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetConsultationById(string id)
+        {
+            var result = await _consultationService.GetConsultationByIdAsync(id);
+            if (!result.Succeeded)
+            {
+                if (result.Message == "Consultation not found")
+                    return NotFound(result);
+                return StatusCode(StatusCodes.Status500InternalServerError, result);
+            }
+            return Ok(result);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteConsultation(string id)
+        {
+            var result = await _consultationService.DeleteConsultationAsync(id);
+            if (!result.Succeeded)
+            {
+                if (result.Message == "Consultation not found")
+                    return NotFound(result);
+                return StatusCode(StatusCodes.Status500InternalServerError, result);
+            }
+            return Ok(result);
+        }
+
+
+        [HttpGet]
+        public async Task<ActionResult<Response<List<GetConsultationResponse>>>> GetConsultations(
+    [FromQuery] ConsultationFilterRequest filter)
+        {
+            var result = await _consultationService.GetConsultationsAsync(filter);
             return Ok(result);
         }
 

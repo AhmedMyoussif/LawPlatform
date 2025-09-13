@@ -168,4 +168,120 @@ public class ConsultationService :  IConsultationService
         return _responseHandler.Success(result, "Consultations retrieved successfully.");
     }
 
+    public async Task<Response<GetConsultationResponse>> GetConsultationByIdAsync(string ConsultationId)
+    {
+        try
+        {
+            _logger.LogInformation("Starting GetConsultationByIdAsync for ConsultationId: {ConsultationId}", ConsultationId);
+            if (!Guid.TryParse(ConsultationId, out var consultationGuid))
+            {
+                _logger.LogWarning("Invalid ConsultationId format: {ConsultationId}", ConsultationId);
+                return _responseHandler.BadRequest<GetConsultationResponse>("Invalid ConsultationId format.");
+            }
+            var consultation = await _context.consultations
+                .Include(c => c.Files)
+                .FirstOrDefaultAsync(c => c.Id == consultationGuid);
+            if (consultation == null)
+            {
+                _logger.LogWarning("Consultation not found: {ConsultationId}", ConsultationId);
+                return _responseHandler.NotFound<GetConsultationResponse>("Consultation not found.");
+            }
+            var consultationResponse = new GetConsultationResponse
+            {
+                Id = consultation.Id,
+                Title = consultation.Title,
+                Description = consultation.Description,
+                CreatedAt = consultation.CreatedAt,
+                UpdatedAt = consultation.UpdatedAt,
+                ClientId = consultation.ClientId,
+                LawyerId = consultation.LawyerId,
+                Specialization = consultation.Specialization,
+                budget = consultation.budget,
+                duration = consultation.duration,
+                Status = consultation.Status,
+                UrlFiles = consultation.Files.Select(f => f.FilePath).ToList()
+            };
+            _logger.LogInformation("Successfully retrieved consultation: {ConsultationId}", ConsultationId);
+            return _responseHandler.Success(consultationResponse, "Consultation retrieved successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while retrieving consultation: {ConsultationId}", ConsultationId);
+            return _responseHandler.ServerError<GetConsultationResponse>("An error occurred while retrieving the consultation.");
+        }
+
+    }
+
+
+    public async Task<Response<List<GetConsultationResponse>>> GetConsultationsAsync(ConsultationFilterRequest filter)
+    {
+        var query = _context.consultations.AsQueryable();
+
+        if (filter.Specialization != default)
+            query = query.Where(c => c.Specialization == filter.Specialization);
+
+        if (filter.MinBudget.HasValue)
+            query = query.Where(c => c.budget >= filter.MinBudget.Value);
+
+        if (filter.MaxBudget.HasValue)
+            query = query.Where(c => c.budget <= filter.MaxBudget.Value);
+
+        if (!string.IsNullOrEmpty(filter.Sort))
+        {
+            query = filter.Sort.ToLower() == "newest"
+                ? query.OrderByDescending(c => c.CreatedAt)
+                : query.OrderBy(c => c.CreatedAt);
+        }
+
+        var consultationResponses = await query
+            .Include(c => c.Files)
+            .Select(c => new GetConsultationResponse
+            {
+                Id = c.Id,
+                Title = c.Title,
+                Description = c.Description,
+                CreatedAt = c.CreatedAt,
+                UpdatedAt = c.UpdatedAt,
+                ClientId = c.ClientId,
+                budget = c.budget,
+                duration = c.duration,
+                Status = c.Status,
+                UrlFiles = c.Files.Select(f => f.FilePath).ToList()
+            })
+            .ToListAsync();
+
+        return _responseHandler.Success(consultationResponses, "Consultations retrieved successfully");
+    }
+
+
+    public async Task<Response<Guid>> DeleteConsultationAsync(string consultationId)
+    {
+        try
+        {
+            _logger.LogInformation("Starting DeleteConsultationAsync for ConsultationId: {ConsultationId}", consultationId);
+            if (!Guid.TryParse(consultationId, out var consultationGuid))
+            {
+                _logger.LogWarning("Invalid ConsultationId format: {ConsultationId}", consultationId);
+                return _responseHandler.BadRequest<Guid>("Invalid ConsultationId format.");
+            }
+            var consultation = await _context.consultations
+                .Include(c => c.Files)
+                .FirstOrDefaultAsync(c => c.Id == consultationGuid);
+            if (consultation == null)
+            {
+                _logger.LogWarning("Consultation not found: {ConsultationId}", consultationId);
+                return _responseHandler.NotFound<Guid>("Consultation not found.");
+            }
+         
+            _context.consultations.Remove(consultation);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Successfully deleted consultation: {ConsultationId}", consultationId);
+            return _responseHandler.Success(consultation.Id, "Consultation deleted successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while deleting consultation: {ConsultationId}", consultationId);
+            return _responseHandler.ServerError<Guid>("An error occurred while deleting the consultation.");
+        }
+    }
 }
