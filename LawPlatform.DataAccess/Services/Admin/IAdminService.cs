@@ -12,8 +12,15 @@ namespace LawPlatform.DataAccess.Services.Admin
     public interface IAdminService
     {
         #region Get / Update Lawyer
-        Task<Response<List<GetLawyerByStatusResponse>>> GetLawyersByStatusAsync(ApprovalStatus? status = null);
+        Task<Response<List<GetLawyerResponse>>> GetLawyersByStatusAsync(ApprovalStatus? status = null);
         Task<Response<UpdateLawyerAccountStatusResponse>> UpdateLawyerAccountStatusAsync(UpdateLawyerAccountStatusRequest model);
+        Task<Response<GetLawyerResponse>> GetLawyerByIdAsync(string lawyerId);
+        #endregion
+
+        #region Get / Update Client
+
+        Task<Response<List<GetClientsResponse>>> GetAllClients();
+        Task<Response<GetClientsResponse>> GetClientById(string clientid);
         #endregion
 
     }

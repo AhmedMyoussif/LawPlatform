@@ -107,6 +107,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                     UserName = model.Email.Trim().ToLower(),
                     Email = model.Email.Trim().ToLower(),
                     PhoneNumber = model.PhoneNumber,
+                    EmailConfirmed = true
                 };
 
                 var createUserResult = await _userManager.CreateAsync(user, model.Password);
@@ -128,6 +129,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                     User = user,
                     CreatedAt = DateTime.UtcNow,
                     Address = model.Address
+                  
                 };
                 _context.Clients.Add(client);
 
@@ -178,7 +180,8 @@ namespace LawPlatform.DataAccess.Services.Auth
                 {
                     UserName = model.UserName.Trim(),
                     Email = model.Email.Trim().ToLower(),
-                    PhoneNumber = model.PhoneNumber
+                    PhoneNumber = model.PhoneNumber,
+                    EmailConfirmed = true
                 };
 
                 var createUserResult = await _userManager.CreateAsync(user, model.Password);
