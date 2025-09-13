@@ -52,15 +52,12 @@ namespace LawPlatform.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllConsultations()
+        [HttpGet("consultations")]
+        public async Task<IActionResult> GetAllConsultations([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _consultationService.GetAllConsultationsAsync();
-            if (!result.Succeeded)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, result);
-            }
+            var result = await _consultationService.GetAllConsultationsAsync(pageNumber, pageSize);
             return Ok(result);
         }
+
     }
 }

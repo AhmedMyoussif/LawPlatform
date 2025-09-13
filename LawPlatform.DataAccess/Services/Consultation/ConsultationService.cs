@@ -115,15 +115,31 @@ public class ConsultationService :  IConsultationService
             return _responseHandler.ServerError<GetConsultationResponse>("An error occurred while creating consultation");
         }
     }
-    public async Task<Response<List<GetConsultationResponse>>> GetAllConsultationsAsync()
+    public async Task<Response<PaginatedResult<GetConsultationResponse>>> GetAllConsultationsAsync(
+     int pageNumber = 1, int pageSize = 10)
     {
-        _logger.LogInformation("Retrieving all consultations");
-        var consultations = _context.consultations.Include(c => c.Files).ToList();
-        if (!consultations.Any())
+        _logger.LogInformation("Retrieving consultations - Page {Page}, Size {Size}", pageNumber, pageSize);
+
+        if (pageNumber <= 0 || pageSize <= 0)
+            return _responseHandler.BadRequest<PaginatedResult<GetConsultationResponse>>("Invalid pagination parameters.");
+
+        var query = _context.consultations
+            .Include(c => c.Files)
+            .OrderByDescending(c => c.CreatedAt);
+
+        var totalCount = await query.CountAsync();
+
+        if (totalCount == 0)
         {
             _logger.LogWarning("No consultations found");
-            return _responseHandler.NotFound<List<GetConsultationResponse>>("No consultations found.");
+            return _responseHandler.NotFound<PaginatedResult<GetConsultationResponse>>("No consultations found.");
         }
+
+        var consultations = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
         var consultationResponses = consultations.Select(c => new GetConsultationResponse
         {
             Id = c.Id,
@@ -135,11 +151,21 @@ public class ConsultationService :  IConsultationService
             budget = c.budget,
             duration = c.duration,
             Status = c.Status,
-           
             UrlFiles = c.Files.Select(f => f.FilePath).ToList()
         }).ToList();
-        _logger.LogInformation("Retrieved {Count} consultations", consultationResponses.Count);
-        return _responseHandler.Success(consultationResponses, "Consultations retrieved successfully.");
 
+        var result = new PaginatedResult<GetConsultationResponse>
+        {
+            Items = consultationResponses,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+        };
+
+        _logger.LogInformation("Retrieved {Count} consultations on page {Page}", consultationResponses.Count, pageNumber);
+
+        return _responseHandler.Success(result, "Consultations retrieved successfully.");
     }
+
 }

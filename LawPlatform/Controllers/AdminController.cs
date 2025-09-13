@@ -39,12 +39,10 @@ namespace LawPlatform.API.Controllers
         [HttpPut("lawyers/{lawyerId}/status")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Response<UpdateLawyerAccountStatusResponse>>> UpdateLawyerAccountStatus(
-            string lawyerId,
-            [FromBody] UpdateLawyerAccountStatusRequest model)
+           
+            [FromForm] UpdateLawyerAccountStatusRequest model)
         {
-            if (lawyerId != model.LawyerId)
-                return BadRequest("LawyerId in URL does not match request body.");
-
+          
             var result = await _adminService.UpdateLawyerAccountStatusAsync(model);
             if (!result.Succeeded) return BadRequest(result);
             return Ok(result);
