@@ -37,8 +37,7 @@ namespace LawPlatform.DataAccess.EntitiesConfigurations
                    .HasMaxLength(50)
                    .IsRequired();
 
-            builder.Property(l => l.Specialization)
-                   .HasMaxLength(100)
+            builder.Property(l => l.Specialization)                 
                    .IsRequired();
 
             builder.Property(l => l.Country)

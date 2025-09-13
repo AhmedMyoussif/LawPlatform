@@ -49,7 +49,7 @@ namespace LawPlatform.API.Validators
             RuleFor(x => x.Qualifications)
                 .NotEmpty().WithMessage("Qualifications are required.");
 
-            // Experiences (اختياري لكن لو موجود لازم <= 500)
+
             RuleFor(x => x.Experiences)
                 .MaximumLength(500).WithMessage("Experiences cannot exceed 500 characters.")
                 .When(x => !string.IsNullOrEmpty(x.Experiences));

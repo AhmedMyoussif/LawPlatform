@@ -127,6 +127,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                     LastName = model.LastName,
                     User = user,
                     CreatedAt = DateTime.UtcNow,
+                    Address = model.Address
                 };
                 _context.Clients.Add(client);
 
@@ -146,7 +147,8 @@ namespace LawPlatform.DataAccess.Services.Auth
                     Role = "Client",
                     IsEmailConfirmed = true,
                     AccessToken = tokens.AccessToken,
-                    RefreshToken = tokens.RefreshToken
+                    RefreshToken = tokens.RefreshToken,
+                    Address = model.Address
                 };
 
                 return _responseHandler.Created(response, "Client registered successfully.");

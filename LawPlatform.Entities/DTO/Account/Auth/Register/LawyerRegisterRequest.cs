@@ -38,7 +38,7 @@ namespace LawPlatform.Entities.DTO.Account.Auth.Register
         [Required, MaxLength(50)]
         public string LicenseNumber { get; set; }
 
-        [Required, MaxLength(100)]
+  
         public Specialization Specialization { get; set; }
 
         [Required, MaxLength(100)]

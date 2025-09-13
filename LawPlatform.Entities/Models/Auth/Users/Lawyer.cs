@@ -8,6 +8,7 @@ namespace LawPlatform.Entities.Models.Auth.Users
     public class Lawyer
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
         public string UserId { get; set; }
         [ForeignKey(nameof(UserId))]
@@ -41,7 +42,6 @@ namespace LawPlatform.Entities.Models.Auth.Users
 
         public string QualificationDocumentPath { get; set; }
 
-        [Required, MaxLength(100)]
         public Specialization Specialization { get; set; }
 
         [Required, MaxLength(100)]
