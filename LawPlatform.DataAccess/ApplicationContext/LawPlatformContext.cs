@@ -31,7 +31,6 @@ namespace LawPlatform.DataAccess.ApplicationContext
         public DbSet<Client> Clients { get; set; }
         public DbSet<Consultation> consultations { get; set; }
         public DbSet<Offer> Offers { get; set; }
-        public DbSet<ConsultationCategory> ConsultationCategories { get; set; }
         public DbSet<ConsultationFile> ConsultationFiles { get; set; }
 
     }

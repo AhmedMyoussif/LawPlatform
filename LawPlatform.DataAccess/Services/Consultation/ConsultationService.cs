@@ -3,7 +3,6 @@ using CloudinaryDotNet;
 using FluentValidation;
 using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.ImageUploading;
-using LawPlatform.Entities.DTO.Category;
 using LawPlatform.Entities.DTO.Consultaion;
 using LawPlatform.Entities.Models;
 using LawPlatform.Entities.Models.Auth.Identity;
@@ -58,7 +57,8 @@ public class ConsultationService :  IConsultationService
                 ClientId = clientid,
                 Title = request.Title,
                 Description = request.Description,
-                CategoryId = request.CategoryId,
+                LawyerId = request.LawyerId,
+                Specialization = request.Specialization,
                 CreatedAt = DateTime.UtcNow,
                 budget = request.budget,
                 duration = request.duration,
@@ -66,8 +66,7 @@ public class ConsultationService :  IConsultationService
                 Files = new List<ConsultationFile>()
                
             };
-            //await _context.consultations.AddAsync(consultation);
-            //await _context.SaveChangesAsync();
+           
 
             var uploadedFiles = new List<string>();
             if (request.Files != null && request.Files.Count > 0)
@@ -101,7 +100,8 @@ public class ConsultationService :  IConsultationService
                 Description = consultation.Description,
                 Status = consultation.Status,
                 ClientId =  consultation.ClientId,
-                CategoryId = consultation.CategoryId,
+                Specialization = consultation.Specialization,
+                LawyerId = consultation.LawyerId,
                 budget = consultation.budget,
                 duration = consultation.duration,
                 UrlFiles = uploadedFiles
@@ -135,7 +135,7 @@ public class ConsultationService :  IConsultationService
             budget = c.budget,
             duration = c.duration,
             Status = c.Status,
-            CategoryId = c.CategoryId,
+           
             UrlFiles = c.Files.Select(f => f.FilePath).ToList()
         }).ToList();
         _logger.LogInformation("Retrieved {Count} consultations", consultationResponses.Count);

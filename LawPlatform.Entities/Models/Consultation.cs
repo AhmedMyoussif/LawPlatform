@@ -22,13 +22,14 @@ namespace LawPlatform.Entities.Models
         public DateTime? UpdatedAt { get; set; }
         public string ClientId { get; set; }
         public Client Client { get; set; }
-        
+
+        public string? LawyerId { get; set; }  
+        public Lawyer Lawyer { get; set; }        
         public decimal budget { get; set; }
         
         public int duration { get; set; }
-        public ConsultationStatus Status { get; set; } = ConsultationStatus.Active;
-        public Guid CategoryId { get; set; }
-        public ConsultationCategory Category { get; set; }
+        public ConsultationStatus Status { get; set; } = ConsultationStatus.Active;     
+        public Specialization Specialization { get; set; }
         public ICollection<ConsultationFile> Files { get; set; } = new List<ConsultationFile>();
         public ICollection<Offer> Offers { get; set; } = new List<Offer>();
 

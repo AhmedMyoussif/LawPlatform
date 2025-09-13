@@ -1,4 +1,3 @@
-using LawPlatform.Entities.DTO.Category;
 using LawPlatform.Entities.DTO.Consultaion;
 using LawPlatform.Entities.Shared.Bases;
 

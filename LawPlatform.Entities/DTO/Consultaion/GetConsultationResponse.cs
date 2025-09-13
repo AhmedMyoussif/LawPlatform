@@ -12,9 +12,9 @@ public class GetConsultationResponse
     public DateTime? UpdatedAt { get; set; }
     public string ClientId { get; set; }
     public decimal budget { get; set; }
-        
+    public string? LawyerId { get; set; }
     public int duration { get; set; }
     public ConsultationStatus Status { get; set; }
-    public Guid CategoryId { get; set; }
+    public Specialization Specialization { get; set; }
     public List<string> UrlFiles { get; set; }
 }

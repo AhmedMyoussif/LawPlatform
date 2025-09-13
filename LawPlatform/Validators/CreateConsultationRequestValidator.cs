@@ -16,9 +16,6 @@ public class CreateConsultationRequestValidator : AbstractValidator<CreateConsul
             .MaximumLength(2000).WithMessage("Description must not exceed 2000 characters");
 
       
-
-        RuleFor(x => x.CategoryId)
-            .NotEmpty().WithMessage("CategoryId is required");
         
     }
 }

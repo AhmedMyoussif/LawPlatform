@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net.Mail;
 using System.Net;
-using LawPlatform.DataAccess.Services.Category;
 using LawPlatform.DataAccess.Services.OAuth;
 using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.Auth;
@@ -15,7 +14,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using FluentEmail.Smtp;
 using LawPlatform.DataAccess.Services.Admin;
-using LawPlatform.DataAccess.Services.Category;
 using LawPlatform.DataAccess.Services.Consultation;
 using LawPlatform.DataAccess.Services.OAuth;
 using CloudinaryDotNet;
@@ -41,7 +39,6 @@ namespace LawPlatform.DataAccess.Extensions
             services.AddScoped<IImageUploadService, CloudinaryImageUploadService>();
             services.AddScoped<ITokenStoreService, TokenStoreService>();
             services.AddScoped<IAdminService, AdminService>();
-            services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IConsultationService, ConsultationService>();
 
 
