@@ -31,7 +31,7 @@ namespace LawPlatform.Entities.Models
         public ConsultationStatus Status { get; set; } = ConsultationStatus.Active;     
         public Specialization Specialization { get; set; }
         public ICollection<ConsultationFile> Files { get; set; } = new List<ConsultationFile>();
-        public ICollection<Offer> Offers { get; set; } = new List<Offer>();
+        public ICollection<Proposal> Proposals { get; set; } = new List<Proposal>();
 
     }
 }

@@ -10,7 +10,7 @@ using LawPlatform.Utilities.Enums;
 
 namespace LawPlatform.Entities.Models
 {
-    public class Offer
+    public class Proposal
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

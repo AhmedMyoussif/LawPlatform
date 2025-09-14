@@ -35,7 +35,7 @@ namespace LawPlatform.DataAccess.EntitiesConfigurations
                    .OnDelete(DeleteBehavior.Cascade);
 
             // Relation with Offers
-            builder.HasMany(c => c.Offers)
+            builder.HasMany(c => c.Proposals)
                    .WithOne(o => o.Consultation)
                    .HasForeignKey(o => o.ConsultationId)
                    .OnDelete(DeleteBehavior.Cascade);

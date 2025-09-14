@@ -9,9 +9,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LawPlatform.DataAccess.EntitiesConfigurations
 {
-    public class OfferConfiguration : IEntityTypeConfiguration<Offer>
+    public class ProposalConfiguration : IEntityTypeConfiguration<Proposal>
     {
-        public void Configure(EntityTypeBuilder<Offer> builder)
+        public void Configure(EntityTypeBuilder<Proposal> builder)
         {
             builder.HasKey(o => o.Id);
 
@@ -29,7 +29,7 @@ namespace LawPlatform.DataAccess.EntitiesConfigurations
 
             // Relation with Lawyer
             builder.HasOne(o => o.Lawyer)
-                   .WithMany(l => l.Offers)
+                   .WithMany(l => l.Proposals)
                    .HasForeignKey(o => o.LawyerId)
                    .OnDelete(DeleteBehavior.Cascade);
 

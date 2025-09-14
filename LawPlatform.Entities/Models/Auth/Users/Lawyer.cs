@@ -1,5 +1,6 @@
 ﻿using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Utilities.Enums;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -60,7 +61,7 @@ namespace LawPlatform.Entities.Models.Auth.Users
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
-
-        public ICollection<Offer> Offers { get; set; } = new List<Offer>();
+        public ProfileImage ProfileImage { get; set; }
+        public ICollection<Proposal> Proposals { get; set; } = new List<Proposal>();
     }
 }

@@ -30,8 +30,9 @@ namespace LawPlatform.DataAccess.ApplicationContext
         public DbSet<Lawyer> Lawyers { get; set; }
         public DbSet<Client> Clients { get; set; }
         public DbSet<Consultation> consultations { get; set; }
-        public DbSet<Offer> Offers { get; set; }
+        public DbSet<Proposal> Proposals { get; set; }
         public DbSet<ConsultationFile> ConsultationFiles { get; set; }
 
+        public DbSet<ProfileImage> profileImages { get; set; }
     }
 }

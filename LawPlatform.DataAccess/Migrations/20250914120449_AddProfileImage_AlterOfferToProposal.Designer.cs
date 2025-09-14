@@ -4,6 +4,7 @@ using LawPlatform.DataAccess.ApplicationContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LawPlatform.DataAccess.Migrations
 {
     [DbContext(typeof(LawPlatformContext))]
-    partial class LawPlatformContextModelSnapshot : ModelSnapshot
+    [Migration("20250914120449_AddProfileImage_AlterOfferToProposal")]
+    partial class AddProfileImage_AlterOfferToProposal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -364,10 +367,6 @@ namespace LawPlatform.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("ClientId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -375,20 +374,16 @@ namespace LawPlatform.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("LawyerId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ClientId")
-                        .IsUnique();
-
-                    b.HasIndex("LawyerId")
-                        .IsUnique()
-                        .HasFilter("[LawyerId] IS NOT NULL");
+                    b.HasIndex("UserId");
 
                     b.ToTable("profileImages");
                 });
@@ -627,19 +622,13 @@ namespace LawPlatform.DataAccess.Migrations
 
             modelBuilder.Entity("LawPlatform.Entities.Models.ProfileImage", b =>
                 {
-                    b.HasOne("LawPlatform.Entities.Models.Auth.Users.Client", "Client")
-                        .WithOne("ProfileImage")
-                        .HasForeignKey("LawPlatform.Entities.Models.ProfileImage", "ClientId")
+                    b.HasOne("LawPlatform.Entities.Models.Auth.Identity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("LawPlatform.Entities.Models.Auth.Users.Lawyer", "Lawyer")
-                        .WithOne("ProfileImage")
-                        .HasForeignKey("LawPlatform.Entities.Models.ProfileImage", "LawyerId");
-
-                    b.Navigation("Client");
-
-                    b.Navigation("Lawyer");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.Proposal", b =>
@@ -715,16 +704,10 @@ namespace LawPlatform.DataAccess.Migrations
             modelBuilder.Entity("LawPlatform.Entities.Models.Auth.Users.Client", b =>
                 {
                     b.Navigation("Consultations");
-
-                    b.Navigation("ProfileImage")
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.Auth.Users.Lawyer", b =>
                 {
-                    b.Navigation("ProfileImage")
-                        .IsRequired();
-
                     b.Navigation("Proposals");
                 });
 
