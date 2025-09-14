@@ -10,7 +10,13 @@ public interface IConsultationService
      int pageNumber = 1, int pageSize = 10);
     Task<Response<GetConsultationResponse>> GetConsultationByIdAsync(string consultationId);
 
-    Task<Response<Guid>> DeleteConsultationAsync(string consultationId);
+    //Task<Response<Guid>> DeleteConsultationAsync(string consultationId);
 
     Task<Response<List<GetConsultationResponse>>> GetConsultationsAsync(ConsultationFilterRequest filter);
+
+    Task<Response<List<GetConsultationResponse>>> GetMyLatestConsultationsAsync();
+
+    Task<Response<List<GetConsultationResponse>>> GetMyConsultationsInProgressAsync();
+
+    Task<List<LawyerSearchResponse>> SearchLawyersByNameAsync(string name);
 }

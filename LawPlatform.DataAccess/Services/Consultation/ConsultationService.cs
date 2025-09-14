@@ -254,34 +254,134 @@ public class ConsultationService :  IConsultationService
     }
 
 
-    public async Task<Response<Guid>> DeleteConsultationAsync(string consultationId)
+    //public async Task<Response<Guid>> DeleteConsultationAsync(string consultationId)
+    //{
+    //    try
+    //    {
+    //        _logger.LogInformation("Starting DeleteConsultationAsync for ConsultationId: {ConsultationId}", consultationId);
+    //        if (!Guid.TryParse(consultationId, out var consultationGuid))
+    //        {
+    //            _logger.LogWarning("Invalid ConsultationId format: {ConsultationId}", consultationId);
+    //            return _responseHandler.BadRequest<Guid>("Invalid ConsultationId format.");
+    //        }
+    //        var consultation = await _context.consultations
+    //            .Include(c => c.Files)
+    //            .FirstOrDefaultAsync(c => c.Id == consultationGuid);
+    //        if (consultation == null)
+    //        {
+    //            _logger.LogWarning("Consultation not found: {ConsultationId}", consultationId);
+    //            return _responseHandler.NotFound<Guid>("Consultation not found.");
+    //        }
+         
+    //        _context.consultations.Remove(consultation);
+    //        await _context.SaveChangesAsync();
+    //        _logger.LogInformation("Successfully deleted consultation: {ConsultationId}", consultationId);
+    //        return _responseHandler.Success(consultation.Id, "Consultation deleted successfully.");
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Error occurred while deleting consultation: {ConsultationId}", consultationId);
+    //        return _responseHandler.ServerError<Guid>("An error occurred while deleting the consultation.");
+    //    }
+    //}
+
+    public async Task<Response<List<GetConsultationResponse>>> GetMyLatestConsultationsAsync()
     {
         try
         {
-            _logger.LogInformation("Starting DeleteConsultationAsync for ConsultationId: {ConsultationId}", consultationId);
-            if (!Guid.TryParse(consultationId, out var consultationGuid))
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+            if (string.IsNullOrEmpty(userId))
             {
-                _logger.LogWarning("Invalid ConsultationId format: {ConsultationId}", consultationId);
-                return _responseHandler.BadRequest<Guid>("Invalid ConsultationId format.");
+                _logger.LogWarning("User not authenticated.");
+                return _responseHandler.Unauthorized<List<GetConsultationResponse>>("User not authenticated.");
             }
-            var consultation = await _context.consultations
+            var consultations = await _context.consultations
+                .Where(c => c.ClientId == userId)
                 .Include(c => c.Files)
-                .FirstOrDefaultAsync(c => c.Id == consultationGuid);
-            if (consultation == null)
+                .OrderByDescending(c => c.CreatedAt)
+                .Take(5)
+                .ToListAsync();
+            var consultationResponses = consultations.Select(c => new GetConsultationResponse
             {
-                _logger.LogWarning("Consultation not found: {ConsultationId}", consultationId);
-                return _responseHandler.NotFound<Guid>("Consultation not found.");
-            }
-         
-            _context.consultations.Remove(consultation);
-            await _context.SaveChangesAsync();
-            _logger.LogInformation("Successfully deleted consultation: {ConsultationId}", consultationId);
-            return _responseHandler.Success(consultation.Id, "Consultation deleted successfully.");
+                Id = c.Id,
+                Title = c.Title,
+                Description = c.Description,
+                CreatedAt = c.CreatedAt,
+                UpdatedAt = c.UpdatedAt,
+                ClientId = c.ClientId,
+                budget = c.budget,
+                duration = c.duration,
+                Status = c.Status,
+                UrlFiles = c.Files.Select(f => f.FilePath).ToList()
+            }).ToList();
+            return _responseHandler.Success(consultationResponses, "Latest consultations retrieved successfully.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while deleting consultation: {ConsultationId}", consultationId);
-            return _responseHandler.ServerError<Guid>("An error occurred while deleting the consultation.");
+            _logger.LogError(ex, "Error occurred while retrieving latest consultations.");
+            return _responseHandler.ServerError<List<GetConsultationResponse>>("An error occurred while retrieving latest consultations.");
         }
     }
+
+    public async Task<Response<List<GetConsultationResponse>>> GetMyConsultationsInProgressAsync()
+    {
+        try
+        {
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("User not authenticated.");
+                return _responseHandler.Unauthorized<List<GetConsultationResponse>>("User not authenticated.");
+            }
+            var consultations = await _context.consultations
+                .Where(c => c.ClientId == userId && c.Status == ConsultationStatus.InProgress)
+                .Include(c => c.Files)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+            var consultationResponses = consultations.Select(c => new GetConsultationResponse
+            {
+                Id = c.Id,
+                Title = c.Title,
+                Description = c.Description,
+                CreatedAt = c.CreatedAt,
+                UpdatedAt = c.UpdatedAt,
+                ClientId = c.ClientId,
+                budget = c.budget,
+                duration = c.duration,
+                Status = c.Status,
+                UrlFiles = c.Files.Select(f => f.FilePath).ToList()
+            }).ToList();
+            return _responseHandler.Success(consultationResponses, "In-progress consultations retrieved successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while retrieving in-progress consultations.");
+            return _responseHandler.ServerError<List<GetConsultationResponse>>("An error occurred while retrieving in-progress consultations.");
+        }
+    }
+
+
+    public async Task<List<LawyerSearchResponse>> SearchLawyersByNameAsync(string name)
+    {
+        return await _context.Lawyers
+            .Where(l => l.Status == ApprovalStatus.Approved &&
+                       (l.FirstName.Contains(name) || l.LastName.Contains(name)))
+            .Select(l => new LawyerSearchResponse
+            {
+                Id = l.Id,
+                FullName = l.FirstName + " " + l.LastName,
+                Bio = l.Bio,
+                Experiences = l.Experiences,
+                Qualifications = l.Qualifications,
+                YearsOfExperience = l.YearsOfExperience,
+                Age = l.Age,
+                Address = l.Address,
+                Specialization = l.Specialization,
+                Country = l.Country
+            })
+            .ToListAsync();
+    }
+
 }

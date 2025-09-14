@@ -10,8 +10,9 @@ namespace LawPlatform.Entities.Models.Auth.Users
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
+        public string UserId { get; set; }
+        [ForeignKey(nameof(UserId))]
         public User User { get; set; }
-
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Address { get; set; }
