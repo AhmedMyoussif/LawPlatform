@@ -123,10 +123,11 @@ namespace LawPlatform.DataAccess.Services.Auth
 
                 var client = new Client
                 {
-                    Id = user.Id,
+                    
                     FirstName = model.FirstName,
                     LastName = model.LastName,
                     User = user,
+                    UserId = user.Id,
                     CreatedAt = DateTime.UtcNow,
                     Address = model.Address
                   
@@ -209,10 +210,11 @@ namespace LawPlatform.DataAccess.Services.Auth
 
                 var lawyer = new Lawyer
                 {
-                    UserId = user.Id,
+                    
                     FirstName = model.FirstName,
                     LastName = model.LastName,
                     User = user,
+                    UserId = user.Id,
                     Bio = model.Bio,
                     Experiences = model.Experiences,
                     Qualifications = model.Qualifications,

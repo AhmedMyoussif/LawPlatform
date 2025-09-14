@@ -8,7 +8,7 @@ using LawPlatform.Entities.Shared.Bases;
 
 namespace LawPlatform.DataAccess.Services.Profile
 {
-    public interface IClientProfileService
+    public interface IProfileService
     {
         Task<Response<ClientProfileResponse>> GetProfileAsync(string userId);
         Task<Response<bool>>UpdateProfileAsync(string userId, UpdateClientProfileRequest dto);

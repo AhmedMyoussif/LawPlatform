@@ -89,7 +89,6 @@ namespace LawPlatform.API.Controllers
 
 
         [HttpGet]
-        [Authorize(Roles =("Lawyer , Admin"))]
         public async Task<ActionResult<Response<List<GetConsultationResponse>>>> GetConsultations(
             [FromQuery] ConsultationFilterRequest filter)
         {

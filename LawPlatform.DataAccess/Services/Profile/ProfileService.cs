@@ -15,24 +15,21 @@ using Microsoft.Extensions.Logging;
 
 namespace LawPlatform.DataAccess.Services.Profile
 {
-    public class ClientProfileService : IClientProfileService
+    public class ProfileService : IProfileService
     {
-        private readonly IClientProfileService _clientProfileService;
-        private readonly ILogger<ClientProfileService> _logger;
+        private readonly IProfileService _clientProfileService;
+        private readonly ILogger<ProfileService> _logger;
         private readonly LawPlatformContext _context;
         private readonly ResponseHandler _responseHandler;
         private readonly IImageUploadService _imageUploadService;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly CloudinarySettings _cloudinarySettings;
-        public ClientProfileService(IClientProfileService clientProfileService, ILogger<ClientProfileService> logger, LawPlatformContext context, ResponseHandler responseHandler, IImageUploadService imageUploadService, IHttpContextAccessor httpContextAccessor, CloudinarySettings cloudinarySettings)
+        public ProfileService(ILogger<ProfileService> logger, LawPlatformContext context, ResponseHandler responseHandler, IImageUploadService imageUploadService, IHttpContextAccessor httpContextAccessor)
         {
-            _clientProfileService = clientProfileService;
             _logger = logger;
             _context = context;
             _responseHandler = responseHandler;
             _imageUploadService = imageUploadService;
             _httpContextAccessor = httpContextAccessor;
-            _cloudinarySettings = cloudinarySettings;
         }
         public async Task<Response<ClientProfileResponse>> GetProfileAsync(string userId)
         {
