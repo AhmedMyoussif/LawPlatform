@@ -15,7 +15,7 @@ namespace LawPlatform.DataAccess.EntitiesConfigurations
         {
             builder.HasKey(o => o.Id);
 
-            builder.Property(o => o.OfferAmount)
+            builder.Property(o => o.Amount)
                    .IsRequired();
 
             builder.Property(o => o.Description)
@@ -36,7 +36,7 @@ namespace LawPlatform.DataAccess.EntitiesConfigurations
             // Enum as string
             builder.Property(o => o.Status)
                    .HasConversion<string>()
-                   .HasDefaultValue(LawPlatform.Utilities.Enums.OfferStatus.Pending);
+                   .HasDefaultValue(LawPlatform.Utilities.Enums.ProposalStatus.Pending);
         }
     }
 }

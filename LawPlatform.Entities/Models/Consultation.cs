@@ -25,9 +25,9 @@ namespace LawPlatform.Entities.Models
 
         public string? LawyerId { get; set; }  
         public Lawyer Lawyer { get; set; }        
-        public decimal budget { get; set; }
+        public decimal Budget { get; set; }
         
-        public int duration { get; set; }
+        public int Duration { get; set; }
         public ConsultationStatus Status { get; set; } = ConsultationStatus.Active;     
         public Specialization Specialization { get; set; }
         public ICollection<ConsultationFile> Files { get; set; } = new List<ConsultationFile>();

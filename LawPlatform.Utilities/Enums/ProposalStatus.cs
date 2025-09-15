@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LawPlatform.Utilities.Enums
 {
-    public enum OfferStatus
+    public enum ProposalStatus
     {
         Pending,
         Accepted,

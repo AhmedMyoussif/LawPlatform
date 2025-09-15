@@ -16,7 +16,7 @@ namespace LawPlatform.Entities.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
         [Range(0.01, double.MaxValue, ErrorMessage = "Offer amount must be positive")]
-        public decimal OfferAmount { get; set; }
+        public decimal Amount { get; set; }
         public string Description { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
@@ -28,7 +28,7 @@ namespace LawPlatform.Entities.Models
         public Consultation Consultation { get; set; }
 
 
-        public OfferStatus Status { get; set; }
+        public ProposalStatus Status { get; set; }
 
 
     }

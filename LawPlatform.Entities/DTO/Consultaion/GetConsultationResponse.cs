@@ -11,9 +11,9 @@ public class GetConsultationResponse
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public string ClientId { get; set; }
-    public decimal budget { get; set; }
+    public decimal Budget { get; set; }
     public string? LawyerId { get; set; }
-    public int duration { get; set; }
+    public int Duration { get; set; }
     public ConsultationStatus Status { get; set; }
     public Specialization Specialization { get; set; }
     public List<string> UrlFiles { get; set; }

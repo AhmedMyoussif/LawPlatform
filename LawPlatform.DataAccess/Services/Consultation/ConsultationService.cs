@@ -60,8 +60,8 @@ public class ConsultationService :  IConsultationService
                 LawyerId = request.LawyerId,
                 Specialization = request.Specialization,
                 CreatedAt = DateTime.UtcNow,
-                budget = request.budget,
-                duration = request.duration,
+                Budget = request.budget,
+                Duration = request.duration,
                 Status = ConsultationStatus.Active,
                 Files = new List<ConsultationFile>()
                
@@ -102,8 +102,8 @@ public class ConsultationService :  IConsultationService
                 ClientId =  consultation.ClientId,
                 Specialization = consultation.Specialization,
                 LawyerId = consultation.LawyerId,
-                budget = consultation.budget,
-                duration = consultation.duration,
+                Budget = consultation.Budget,
+                Duration = consultation.Duration,
                 UrlFiles = uploadedFiles
             };
 
@@ -148,8 +148,8 @@ public class ConsultationService :  IConsultationService
             CreatedAt = c.CreatedAt,
             UpdatedAt = c.UpdatedAt,
             ClientId = c.ClientId,
-            budget = c.budget,
-            duration = c.duration,
+            Budget = c.Budget,
+            Duration = c.Duration,
             Status = c.Status,
             UrlFiles = c.Files.Select(f => f.FilePath).ToList()
         }).ToList();
@@ -205,8 +205,8 @@ public class ConsultationService :  IConsultationService
                 ClientId = consultation.ClientId,
                 LawyerId = consultation.LawyerId,
                 Specialization = consultation.Specialization,
-                budget = consultation.budget,
-                duration = consultation.duration,
+                Budget = consultation.Budget,
+                Duration = consultation.Duration,
                 Status = consultation.Status,
                 UrlFiles = consultation.Files.Select(f => f.FilePath).ToList()
             };
@@ -230,10 +230,10 @@ public class ConsultationService :  IConsultationService
             query = query.Where(c => c.Specialization == filter.Specialization);
 
         if (filter.MinBudget.HasValue)
-            query = query.Where(c => c.budget >= filter.MinBudget.Value);
+            query = query.Where(c => c.Budget >= filter.MinBudget.Value);
 
         if (filter.MaxBudget.HasValue)
-            query = query.Where(c => c.budget <= filter.MaxBudget.Value);
+            query = query.Where(c => c.Budget <= filter.MaxBudget.Value);
 
         if (!string.IsNullOrEmpty(filter.Sort))
         {
@@ -252,8 +252,8 @@ public class ConsultationService :  IConsultationService
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt,
                 ClientId = c.ClientId,
-                budget = c.budget,
-                duration = c.duration,
+                Budget = c.Budget,
+                Duration = c.Duration,
                 Status = c.Status,
                 UrlFiles = c.Files.Select(f => f.FilePath).ToList()
             })
@@ -320,8 +320,8 @@ public class ConsultationService :  IConsultationService
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt,
                 ClientId = c.ClientId,
-                budget = c.budget,
-                duration = c.duration,
+                Budget = c.Budget,
+                Duration = c.Duration,
                 Status = c.Status,
                 //UrlFiles = c.Files.Select(f => f.FilePath).ToList()
             }).ToList();
@@ -360,8 +360,8 @@ public class ConsultationService :  IConsultationService
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt,
                 ClientId = c.ClientId,
-                budget = c.budget,
-                duration = c.duration,
+                Budget = c.Budget,
+                Duration = c.Duration,
                 Status = c.Status,
                 UrlFiles = c.Files.Select(f => f.FilePath).ToList()
             }).ToList();
@@ -423,8 +423,8 @@ public class ConsultationService :  IConsultationService
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt,
                 ClientId = c.ClientId,
-                budget = c.budget,
-                duration = c.duration,
+                Budget = c.Budget,
+                Duration = c.Duration,
                 Status = c.Status,
                //UrlFiles = c.Files.Select(f => f.FilePath).ToList()
             }).ToList();
