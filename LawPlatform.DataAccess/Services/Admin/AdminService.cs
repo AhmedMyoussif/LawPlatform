@@ -32,17 +32,19 @@ namespace LawPlatform.DataAccess.Services.Admin
 
 
         #region Get Lawyers by Status
-        public async Task<Response<List<GetLawyerResponse>>> GetLawyersByStatusAsync(ApprovalStatus? status = null)
+        public async Task<Response<List<GetLawyerResponse>>> GetLawyersByStatusAsync(ApprovalStatus? status = ApprovalStatus.Pending)
         {
             var query = _context.Lawyers
                 .Where(l => !status.HasValue || l.Status == status.Value)
                 .Join(_userManager.Users,
-                      lawyer => lawyer.Id,
+                      lawyer => lawyer.UserId,
                       user => user.Id,
                       (lawyer, user) => new GetLawyerResponse
                       {
                           Id = lawyer.Id,
-                          FullName = user.UserName,
+                          FirstName = lawyer.FirstName,
+                          LastName = lawyer.LastName,
+                          UserName = user.UserName,
                           Email = user.Email,
                           PhoneNumber = user.PhoneNumber,
                           QualificationDocumentUrl = lawyer.QualificationDocumentPath,
@@ -68,7 +70,9 @@ namespace LawPlatform.DataAccess.Services.Admin
                       (l, u) => new GetLawyerResponse
                       {
                           Id = l.Id,
-                          FullName = u.UserName,
+                          UserName = u.UserName,
+                          FirstName = l.FirstName,
+                          LastName = l.LastName,
                           Email = u.Email,
                           PhoneNumber = u.PhoneNumber,
                           QualificationDocumentUrl = l.QualificationDocumentPath,

@@ -10,7 +10,7 @@ namespace LawPlatform.DataAccess.Services.Profile
 {
     public interface IProfileService
     {
-        Task<Response<ClientProfileResponse>> GetProfileAsync(string userId);
+        Task<Response<object>> GetProfileAsync();
         Task<Response<bool>>UpdateProfileAsync(string userId, UpdateClientProfileRequest dto);
        // Task<Response<bool>>UpdateProfilePictureAsync(string userId, UpdateClientProfileRequest dto);
     }

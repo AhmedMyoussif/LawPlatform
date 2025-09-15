@@ -18,6 +18,7 @@ using LawPlatform.DataAccess.Services.Consultation;
 using LawPlatform.DataAccess.Services.OAuth;
 using CloudinaryDotNet;
 using LawPlatform.DataAccess.Services.Profile;
+using LawPlatform.DataAccess.Services.Proposal;
 
 
 namespace LawPlatform.DataAccess.Extensions
@@ -42,6 +43,7 @@ namespace LawPlatform.DataAccess.Extensions
             services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<IConsultationService, ConsultationService>();
             services.AddScoped<IProfileService, ProfileService>();
+            services.AddScoped<IProposalService,ProposalService>();
 
 
             var cloudinarySettings = configuration.GetSection("Cloudinary").Get<CloudinarySettings>();

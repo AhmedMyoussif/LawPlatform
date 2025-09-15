@@ -68,7 +68,7 @@ namespace LawPlatform.DataAccess.Services.Auth
 
             if (roles.Contains("Lawyer"))
             {
-                var lawyer = await _context.Lawyers.FirstOrDefaultAsync(l => l.Id == user.Id);
+                var lawyer = await _context.Lawyers.FirstOrDefaultAsync(l => l.UserId == user.Id);
                 if (lawyer == null || lawyer.Status != ApprovalStatus.Approved)
                     return _responseHandler.BadRequest<LoginResponse>("Lawyer account is not approved by admin.");
             }

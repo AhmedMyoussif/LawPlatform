@@ -4,6 +4,7 @@ using FluentValidation;
 using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.ImageUploading;
 using LawPlatform.Entities.DTO.Consultaion;
+using LawPlatform.Entities.DTO.Proposal;
 using LawPlatform.Entities.Models;
 using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Shared.Bases;
@@ -168,33 +169,47 @@ public class ConsultationService :  IConsultationService
         return _responseHandler.Success(result, "Consultations retrieved successfully.");
     }
 
-    public async Task<Response<GetConsultationResponse>> GetConsultationByIdAsync(string ConsultationId)
+    public async Task<Response<GetConsultationResponse>> GetConsultationByIdAsync(string consultationId)
     {
-        // TODO: Get Offers That Related to This Consultation And Insure That Only The Owner(Client Who Created The Con Or The Lawyer Who Made The Offer) Can Access It
         try
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                  ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+
             if (string.IsNullOrEmpty(userId))
             {
                 _logger.LogWarning("User not authenticated.");
                 return _responseHandler.Unauthorized<GetConsultationResponse>("User not authenticated.");
             }
-                _logger.LogInformation("Starting GetConsultationByIdAsync for ConsultationId: {ConsultationId}", ConsultationId);
-            if (!Guid.TryParse(ConsultationId, out var consultationGuid))
+
+            _logger.LogInformation("Starting GetConsultationByIdAsync for ConsultationId: {ConsultationId}", consultationId);
+
+            if (!Guid.TryParse(consultationId, out var consultationGuid))
             {
-                _logger.LogWarning("Invalid ConsultationId format: {ConsultationId}", ConsultationId);
+                _logger.LogWarning("Invalid ConsultationId format: {ConsultationId}", consultationId);
                 return _responseHandler.BadRequest<GetConsultationResponse>("Invalid ConsultationId format.");
             }
+
             var consultation = await _context.consultations
-                .Where(c => c.ClientId == userId || c.LawyerId == userId)
                 .Include(c => c.Files)
+                .Include(c => c.Proposals)
                 .FirstOrDefaultAsync(c => c.Id == consultationGuid);
+
             if (consultation == null)
             {
-                _logger.LogWarning("Consultation not found: {ConsultationId}", ConsultationId);
+                _logger.LogWarning("Consultation not found: {ConsultationId}", consultationId);
                 return _responseHandler.NotFound<GetConsultationResponse>("Consultation not found.");
             }
+
+            bool isOwner = consultation.ClientId == userId;
+            bool isProposalSender = consultation.Proposals.Any(p => p.Lawyer.UserId == userId);
+
+            if (!isOwner && !isProposalSender)
+            {
+                _logger.LogWarning("User {UserId} is not authorized to view consultation {ConsultationId}", userId, consultationId);
+                return _responseHandler.Unauthorized<GetConsultationResponse>("You are not authorized to view this consultation.");
+            }
+
             var consultationResponse = new GetConsultationResponse
             {
                 Id = consultation.Id,
@@ -208,18 +223,30 @@ public class ConsultationService :  IConsultationService
                 Budget = consultation.Budget,
                 Duration = consultation.Duration,
                 Status = consultation.Status,
-                UrlFiles = consultation.Files.Select(f => f.FilePath).ToList()
+                UrlFiles = consultation.Files.Select(f => f.FilePath).ToList(),
+
+                Proposals = consultation.Proposals.Select(p => new GetProposalResponse
+                {
+                    Id = p.Id,
+                    LawyerId = p.LawyerId,
+                    Amount = p.Amount,
+                    Description = p.Description,
+                    DurationTime = p.DurationTime,
+                    CreatedAt = p.CreatedAt,
+                    Status = p.Status
+                }).ToList()
             };
-            _logger.LogInformation("Successfully retrieved consultation: {ConsultationId}", ConsultationId);
+
+            _logger.LogInformation("Successfully retrieved consultation: {ConsultationId}", consultationId);
             return _responseHandler.Success(consultationResponse, "Consultation retrieved successfully.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while retrieving consultation: {ConsultationId}", ConsultationId);
+            _logger.LogError(ex, "Error occurred while retrieving consultation: {ConsultationId}", consultationId);
             return _responseHandler.ServerError<GetConsultationResponse>("An error occurred while retrieving the consultation.");
         }
-
     }
+
 
     // For Filtering Consultations Based on Specialization, Budget Range, and Sorting by Newest or Oldest
     public async Task<Response<List<GetConsultationResponse>>> GetConsultationsAsync(ConsultationFilterRequest filter)

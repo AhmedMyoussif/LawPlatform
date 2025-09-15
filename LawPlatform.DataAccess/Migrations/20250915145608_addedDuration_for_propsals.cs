@@ -13,7 +13,7 @@ namespace LawPlatform.DataAccess.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "DurationTime",
                 table: "Proposals",
-                type: "nvarchar(max)",
+                type: "nvarchar(200)",
                 nullable: false,
                 defaultValue: "");
         }

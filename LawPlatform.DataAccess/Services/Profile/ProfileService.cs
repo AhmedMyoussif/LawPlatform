@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.ImageUploading;
 using LawPlatform.Entities.DTO.Profile;
 using LawPlatform.Entities.Models;
+using LawPlatform.Entities.Models.Auth.Users;
 using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Utilities.Configurations;
 using Microsoft.AspNetCore.Http;
@@ -31,28 +33,64 @@ namespace LawPlatform.DataAccess.Services.Profile
             _imageUploadService = imageUploadService;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<Response<ClientProfileResponse>> GetProfileAsync(string userId)
+        public async Task<Response<object>> GetProfileAsync()
         {
-            var client = await _context.Clients
-                .Include(c => c.User)
-                .FirstOrDefaultAsync(c => c.User.Id == userId);
+            var userIdFromToken = _httpContextAccessor.HttpContext.User
+                .Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            if (client == null)
+
+            if (userIdFromToken == null)
             {
-                _logger.LogWarning("Client with UserId {UserId} not found", userId);
-                return _responseHandler.BadRequest<ClientProfileResponse>("Client not found");
+                _logger.LogWarning("Unauthorized access attempt for UserId {UserId}", userIdFromToken);
+                return _responseHandler.Unauthorized<object>("You are not authorized to view this profile.");
             }
 
-            var response = new ClientProfileResponse
-            {
-                FirstName = client.FirstName,
-                LastName = client.LastName,
-                Address = client.Address,
-                Email = client.User?.Email,
-               ProfileImageUrl = client.ProfileImage?.ImageUrl,
-            };
+            var client = await _context.Clients
+                .Include(c => c.User)
+                .Include(c => c.ProfileImage)
+                .FirstOrDefaultAsync(c => c.User.Id == userIdFromToken);
 
-            return _responseHandler.Success(response, "Profile fetched successfully");
+            if (client != null)
+            {
+                var clientresponse = new ClientProfileResponse
+                {
+                    
+                    FirstName = client.FirstName,
+                    LastName = client.LastName,
+                    Address = client.Address,
+                    Email = client.User?.Email,
+                    Role = "Client",
+                    ProfileImageUrl = client.ProfileImage?.ImageUrl,
+                };
+
+                return _responseHandler.Success<object>(clientresponse, "Profile fetched successfully");
+            }
+
+            var lawyer = await _context.Lawyers
+                .Include(l => l.User)
+                .Include(l => l.ProfileImage)
+                .FirstOrDefaultAsync(l => l.User.Id == userIdFromToken);
+
+            if (lawyer != null)
+            {
+                var lawyerresponse = new LawyerProfileResponse
+                {
+                    Id = lawyer.Id,
+                    FullName = lawyer.FirstName + " " + lawyer.LastName,
+                    Role = "Lawyer",
+                    UserName = lawyer.User.UserName,
+                    Age = lawyer.Age,
+                    Address = lawyer.Address,
+                    Email = lawyer.User?.Email,
+                    Specialization = lawyer.Specialization,
+                    ProfileImageUrl = lawyer.ProfileImage?.ImageUrl,
+                };
+
+                return _responseHandler.Success<object>(lawyerresponse, "Profile fetched successfully");
+            }
+
+            _logger.LogWarning("User with UserId {UserId} not found as Client or Lawyer", userIdFromToken);
+            return _responseHandler.NotFound<object>("User not found as Client or Lawyer");
         }
 
         public async Task<Response<bool>> UpdateProfileAsync(string userId, UpdateClientProfileRequest dto)

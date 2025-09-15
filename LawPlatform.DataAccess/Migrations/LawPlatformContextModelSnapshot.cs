@@ -137,7 +137,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserRefreshTokens");
+                    b.ToTable("UserRefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.Auth.Users.Client", b =>
@@ -330,7 +330,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("LawyerId");
 
-                    b.ToTable("consultations");
+                    b.ToTable("consultations", (string)null);
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.ConsultationFile", b =>
@@ -355,7 +355,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("ConsultationId");
 
-                    b.ToTable("ConsultationFiles");
+                    b.ToTable("ConsultationFiles", (string)null);
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.ProfileImage", b =>
@@ -390,7 +390,7 @@ namespace LawPlatform.DataAccess.Migrations
                         .IsUnique()
                         .HasFilter("[LawyerId] IS NOT NULL");
 
-                    b.ToTable("profileImages");
+                    b.ToTable("profileImages", (string)null);
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.Proposal", b =>
@@ -440,7 +440,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("LawyerId");
 
-                    b.ToTable("Proposals");
+                    b.ToTable("Proposals", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
@@ -459,7 +459,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DataProtectionKeys");
+                    b.ToTable("DataProtectionKeys", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

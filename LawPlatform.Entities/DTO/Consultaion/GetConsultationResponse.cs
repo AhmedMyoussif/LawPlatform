@@ -1,3 +1,4 @@
+using LawPlatform.Entities.DTO.Proposal;
 using LawPlatform.Entities.Models;
 using LawPlatform.Utilities.Enums;
 
@@ -17,4 +18,5 @@ public class GetConsultationResponse
     public ConsultationStatus Status { get; set; }
     public Specialization Specialization { get; set; }
     public List<string> UrlFiles { get; set; }
+    public List<GetProposalResponse> Proposals { get; set; }
 }

@@ -30,7 +30,7 @@ namespace LawPlatform.API.Controllers
             if (userId == null)
                 return Unauthorized();
 
-            var result = await _ProfileService.GetProfileAsync(userId);
+            var result = await _ProfileService.GetProfileAsync();
             return StatusCode((int)result.StatusCode, result);
         }
         
