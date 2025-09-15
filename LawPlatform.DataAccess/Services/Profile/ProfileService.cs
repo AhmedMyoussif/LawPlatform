@@ -49,7 +49,7 @@ namespace LawPlatform.DataAccess.Services.Profile
                 LastName = client.LastName,
                 Address = client.Address,
                 Email = client.User?.Email,
-               ProfileImageUrl = client.ProfileImage.ToString(),
+               ProfileImageUrl = client.ProfileImage?.ImageUrl,
             };
 
             return _responseHandler.Success(response, "Profile fetched successfully");
