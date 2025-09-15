@@ -21,6 +21,8 @@ namespace LawPlatform.Entities.Models
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
+        public string DurationTime { get; set; }
+
         public string LawyerId { get; set; }
         public Lawyer Lawyer { get; set; }
 
