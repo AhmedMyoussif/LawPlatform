@@ -18,7 +18,7 @@ namespace LawPlatform.Entities.Models
         [Range(0.01, double.MaxValue, ErrorMessage = "Offer amount must be positive")]
         public decimal Amount { get; set; }
         public string Description { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; }
 
         public string DurationTime { get; set; }
@@ -30,7 +30,7 @@ namespace LawPlatform.Entities.Models
         public Consultation Consultation { get; set; }
 
 
-        public ProposalStatus Status { get; set; }
+        public ProposalStatus Status { get; set; } = ProposalStatus.Pending;
 
 
     }
