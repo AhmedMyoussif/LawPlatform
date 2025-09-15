@@ -66,8 +66,8 @@ public class ConsultationService :  IConsultationService
                 Files = new List<ConsultationFile>()
                
             };
-           
 
+            // For Refactor : Make It in Helper Method 
             var uploadedFiles = new List<string>();
             if (request.Files != null && request.Files.Count > 0)
             {
@@ -85,7 +85,7 @@ public class ConsultationService :  IConsultationService
                     uploadedFiles.Add(uploadResult.Url);
                 }
             }
-
+            
 
             await _context.consultations.AddAsync(consultation);
             await _context.SaveChangesAsync();
@@ -170,15 +170,24 @@ public class ConsultationService :  IConsultationService
 
     public async Task<Response<GetConsultationResponse>> GetConsultationByIdAsync(string ConsultationId)
     {
+        // TODO: Get Offers That Related to This Consultation And Insure That Only The Owner(Client Who Created The Con Or The Lawyer Who Made The Offer) Can Access It
         try
         {
-            _logger.LogInformation("Starting GetConsultationByIdAsync for ConsultationId: {ConsultationId}", ConsultationId);
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("User not authenticated.");
+                return _responseHandler.Unauthorized<GetConsultationResponse>("User not authenticated.");
+            }
+                _logger.LogInformation("Starting GetConsultationByIdAsync for ConsultationId: {ConsultationId}", ConsultationId);
             if (!Guid.TryParse(ConsultationId, out var consultationGuid))
             {
                 _logger.LogWarning("Invalid ConsultationId format: {ConsultationId}", ConsultationId);
                 return _responseHandler.BadRequest<GetConsultationResponse>("Invalid ConsultationId format.");
             }
             var consultation = await _context.consultations
+                .Where(c => c.ClientId == userId || c.LawyerId == userId)
                 .Include(c => c.Files)
                 .FirstOrDefaultAsync(c => c.Id == consultationGuid);
             if (consultation == null)
@@ -212,7 +221,7 @@ public class ConsultationService :  IConsultationService
 
     }
 
-
+    // For Filtering Consultations Based on Specialization, Budget Range, and Sorting by Newest or Oldest
     public async Task<Response<List<GetConsultationResponse>>> GetConsultationsAsync(ConsultationFilterRequest filter)
     {
         var query = _context.consultations.AsQueryable();
@@ -253,7 +262,7 @@ public class ConsultationService :  IConsultationService
         return _responseHandler.Success(consultationResponses, "Consultations retrieved successfully");
     }
 
-
+    // It is Not Allowed To Delete Consultation By Client 
     //public async Task<Response<Guid>> DeleteConsultationAsync(string consultationId)
     //{
     //    try
@@ -272,7 +281,7 @@ public class ConsultationService :  IConsultationService
     //            _logger.LogWarning("Consultation not found: {ConsultationId}", consultationId);
     //            return _responseHandler.NotFound<Guid>("Consultation not found.");
     //        }
-         
+
     //        _context.consultations.Remove(consultation);
     //        await _context.SaveChangesAsync();
     //        _logger.LogInformation("Successfully deleted consultation: {ConsultationId}", consultationId);
@@ -285,6 +294,7 @@ public class ConsultationService :  IConsultationService
     //    }
     //}
 
+    // Insure That You Will Retrive The Consultations For The Current Logged In Client Only
     public async Task<Response<List<GetConsultationResponse>>> GetMyLatestConsultationsAsync()
     {
         try
@@ -298,7 +308,7 @@ public class ConsultationService :  IConsultationService
             }
             var consultations = await _context.consultations
                 .Where(c => c.ClientId == userId)
-                .Include(c => c.Files)
+                
                 .OrderByDescending(c => c.CreatedAt)
                 .Take(5)
                 .ToListAsync();
@@ -313,7 +323,7 @@ public class ConsultationService :  IConsultationService
                 budget = c.budget,
                 duration = c.duration,
                 Status = c.Status,
-                UrlFiles = c.Files.Select(f => f.FilePath).ToList()
+                //UrlFiles = c.Files.Select(f => f.FilePath).ToList()
             }).ToList();
             return _responseHandler.Success(consultationResponses, "Latest consultations retrieved successfully.");
         }
@@ -323,6 +333,7 @@ public class ConsultationService :  IConsultationService
             return _responseHandler.ServerError<List<GetConsultationResponse>>("An error occurred while retrieving latest consultations.");
         }
     }
+    // Insure That You Will Retrive The Consultations For The Current Logged In Client Only
 
     public async Task<Response<List<GetConsultationResponse>>> GetMyConsultationsInProgressAsync()
     {

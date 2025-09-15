@@ -14,11 +14,14 @@ namespace LawPlatform.API.Controllers
     {
         private readonly IConsultationService _consultationService;
         private readonly ILogger<ConsultationController> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ConsultationController(IConsultationService consultationService, ILogger<ConsultationController> logger)
+
+        public ConsultationController(IConsultationService consultationService, ILogger<ConsultationController> logger, IHttpContextAccessor httpContextAccessor)
         {
             _consultationService = consultationService;
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         [HttpPost("Client")]
@@ -61,9 +64,14 @@ namespace LawPlatform.API.Controllers
             var result = await _consultationService.GetAllConsultationsAsync(pageNumber, pageSize);
             return Ok(result);
         }
+        
         [HttpGet("{id}")]
         public async Task<IActionResult> GetConsultationById(string id)
         {
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return Unauthorized();
+
             var result = await _consultationService.GetConsultationByIdAsync(id);
             if (!result.Succeeded)
             {
