@@ -307,7 +307,7 @@ public class ConsultationService :  IConsultationService
                 return _responseHandler.Unauthorized<List<GetConsultationResponse>>("User not authenticated.");
             }
             var consultations = await _context.consultations
-                .Where(c => c.ClientId == userId)
+                .Where(c => c.ClientId == userId || c.LawyerId == userId)
                 
                 .OrderByDescending(c => c.CreatedAt)
                 .Take(5)
@@ -346,8 +346,9 @@ public class ConsultationService :  IConsultationService
                 _logger.LogWarning("User not authenticated.");
                 return _responseHandler.Unauthorized<List<GetConsultationResponse>>("User not authenticated.");
             }
+           
             var consultations = await _context.consultations
-                .Where(c => c.ClientId == userId && c.Status == ConsultationStatus.InProgress)
+                .Where(c => c.ClientId == userId && c.Status == ConsultationStatus.InProgress || c.LawyerId == userId && c.Status == ConsultationStatus.InProgress)
                 .Include(c => c.Files)
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
@@ -374,9 +375,9 @@ public class ConsultationService :  IConsultationService
     }
 
 
-    public async Task<List<LawyerSearchResponse>> SearchLawyersByNameAsync(string name)
+    public async Task<Response<List<LawyerSearchResponse>>> SearchLawyersByNameAsync(string name)
     {
-        return await _context.Lawyers
+        var lawyers = await _context.Lawyers
             .Where(l => l.Status == ApprovalStatus.Approved &&
                        (l.FirstName.Contains(name) || l.LastName.Contains(name)))
             .Select(l => new LawyerSearchResponse
@@ -393,6 +394,46 @@ public class ConsultationService :  IConsultationService
                 Country = l.Country
             })
             .ToListAsync();
+
+        return _responseHandler.Success(lawyers, "Lawyers fetched successfully");
     }
 
-}
+
+
+    public async Task<Response<List<GetConsultationResponse>>> GetMyConsultationsAsync()
+    {
+        try
+        {
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("User not authenticated.");
+                return _responseHandler.Unauthorized<List<GetConsultationResponse>>("User not authenticated.");
+            }
+            var consultations = await _context.consultations
+                .Where(c => c.ClientId == userId || c.LawyerId == userId) 
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+            var consultationResponses = consultations.Select(c => new GetConsultationResponse
+            {
+                Id = c.Id,
+                Title = c.Title,
+                Description = c.Description,
+                CreatedAt = c.CreatedAt,
+                UpdatedAt = c.UpdatedAt,
+                ClientId = c.ClientId,
+                budget = c.budget,
+                duration = c.duration,
+                Status = c.Status,
+               //UrlFiles = c.Files.Select(f => f.FilePath).ToList()
+            }).ToList();
+            return _responseHandler.Success(consultationResponses, "All consultations retrieved successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while retrieving all consultations.");
+            return _responseHandler.ServerError<List<GetConsultationResponse>>("An error occurred while retrieving all consultations.");
+        }
+    }
+ }

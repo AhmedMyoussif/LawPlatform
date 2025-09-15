@@ -105,8 +105,7 @@ namespace LawPlatform.API.Controllers
         }
 
         [HttpGet("MyLatestConsultations")]
-        [Authorize(Roles = "Client")]
-
+        [Authorize(Roles = "Client , Lawyer")]
         public async Task<ActionResult<Response<List<GetConsultationResponse>>>> GetMyLatestConsultations()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
@@ -118,7 +117,7 @@ namespace LawPlatform.API.Controllers
         }
 
         [HttpGet("MyConsultationsInProgress")]
-        [Authorize (Roles = "Client")]
+        [Authorize (Roles = "Client , Lawyer")]
         public async Task<ActionResult<Response<List<GetConsultationResponse>>>> GetMyConsultationsInProgress()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
@@ -130,17 +129,34 @@ namespace LawPlatform.API.Controllers
         }
 
         [HttpPost("SearchLawyersByName")]
-        
-        public async Task<ActionResult<List<LawyerSearchResponse>>> SearchLawyersByName([FromQuery] string name)
+        public async Task<ActionResult<Response<List<LawyerSearchResponse>>>> SearchLawyersByName([FromQuery] string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
                 return BadRequest("Name parameter is required.");
             }
+
             var result = await _consultationService.SearchLawyersByNameAsync(name);
-            if (result == null || !result.Any())
+
+            if (result == null || result.Data == null || !result.Data.Any())
                 return NotFound("No lawyers found.");
+
             return Ok(result);
         }
+
+        [HttpGet("MyConsultations")]
+        public async Task<ActionResult<Response<List<GetConsultationResponse>>>> GetMyConsultations()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst("nameid")?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("User not authenticated.");
+
+            var result = await _consultationService.GetMyConsultationsAsync();
+
+            return Ok(result);
+        }
+
     }
 }

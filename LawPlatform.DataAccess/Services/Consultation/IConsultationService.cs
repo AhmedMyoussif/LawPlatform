@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using LawPlatform.Entities.DTO.Consultaion;
 using LawPlatform.Entities.Shared.Bases;
 
@@ -17,6 +18,6 @@ public interface IConsultationService
     Task<Response<List<GetConsultationResponse>>> GetMyLatestConsultationsAsync();
 
     Task<Response<List<GetConsultationResponse>>> GetMyConsultationsInProgressAsync();
-
-    Task<List<LawyerSearchResponse>> SearchLawyersByNameAsync(string name);
+    Task<Response<List<GetConsultationResponse>>> GetMyConsultationsAsync();
+    Task<Response<List<LawyerSearchResponse>>> SearchLawyersByNameAsync(string name);
 }
