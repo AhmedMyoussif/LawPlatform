@@ -147,12 +147,14 @@ public class ConsultationService :  IConsultationService
             Title = c.Title,
             Description = c.Description,
             CreatedAt = c.CreatedAt,
-            UpdatedAt = c.UpdatedAt,
-            ClientId = c.ClientId,
+            Status = c.Status,
             Budget = c.Budget,
             Duration = c.Duration,
-            Status = c.Status,
-            UrlFiles = c.Files.Select(f => f.FilePath).ToList()
+            UrlFiles = c.Files.Select(f => f.FilePath).ToList(),
+            LawyerId = c.LawyerId,
+            Specialization = c.Specialization,
+            ClientId = c.ClientId,
+      
         }).ToList();
 
         var result = new PaginatedResult<GetConsultationResponse>
@@ -216,7 +218,6 @@ public class ConsultationService :  IConsultationService
                 Title = consultation.Title,
                 Description = consultation.Description,
                 CreatedAt = consultation.CreatedAt,
-                UpdatedAt = consultation.UpdatedAt,
                 ClientId = consultation.ClientId,
                 LawyerId = consultation.LawyerId,
                 Specialization = consultation.Specialization,
@@ -249,7 +250,7 @@ public class ConsultationService :  IConsultationService
 
 
     // For Filtering Consultations Based on Specialization, Budget Range, and Sorting by Newest or Oldest
-    public async Task<Response<List<GetConsultationResponse>>> GetConsultationsAsync(ConsultationFilterRequest filter)
+    public async Task<Response<List<ShowAllConsultaionWithoutDetails>>> GetConsultationsAsync(ConsultationFilterRequest filter)
     {
         var query = _context.consultations.AsQueryable();
 
@@ -271,18 +272,12 @@ public class ConsultationService :  IConsultationService
 
         var consultationResponses = await query
             .Include(c => c.Files)
-            .Select(c => new GetConsultationResponse
+            .Select(c => new ShowAllConsultaionWithoutDetails
             {
                 Id = c.Id,
                 Title = c.Title,
-                Description = c.Description,
-                CreatedAt = c.CreatedAt,
-                UpdatedAt = c.UpdatedAt,
                 ClientId = c.ClientId,
-                Budget = c.Budget,
-                Duration = c.Duration,
-                Status = c.Status,
-                UrlFiles = c.Files.Select(f => f.FilePath).ToList()
+              
             })
             .ToListAsync();
 
@@ -345,7 +340,6 @@ public class ConsultationService :  IConsultationService
                 Title = c.Title,
                 Description = c.Description,
                 CreatedAt = c.CreatedAt,
-                UpdatedAt = c.UpdatedAt,
                 ClientId = c.ClientId,
                 Budget = c.Budget,
                 Duration = c.Duration,
@@ -385,7 +379,6 @@ public class ConsultationService :  IConsultationService
                 Title = c.Title,
                 Description = c.Description,
                 CreatedAt = c.CreatedAt,
-                UpdatedAt = c.UpdatedAt,
                 ClientId = c.ClientId,
                 Budget = c.Budget,
                 Duration = c.Duration,
@@ -427,7 +420,7 @@ public class ConsultationService :  IConsultationService
 
 
 
-    public async Task<Response<List<GetConsultationResponse>>> GetMyConsultationsAsync()
+    public async Task<Response<List<ShowAllConsultaionWithoutDetails>>> GetMyConsultationsAsync()
     {
         try
         {
@@ -436,23 +429,17 @@ public class ConsultationService :  IConsultationService
             if (string.IsNullOrEmpty(userId))
             {
                 _logger.LogWarning("User not authenticated.");
-                return _responseHandler.Unauthorized<List<GetConsultationResponse>>("User not authenticated.");
+                return _responseHandler.Unauthorized<List<ShowAllConsultaionWithoutDetails>>("User not authenticated.");
             }
             var consultations = await _context.consultations
                 .Where(c => c.ClientId == userId || c.LawyerId == userId) 
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
-            var consultationResponses = consultations.Select(c => new GetConsultationResponse
+            var consultationResponses = consultations.Select(c => new ShowAllConsultaionWithoutDetails
             {
                 Id = c.Id,
                 Title = c.Title,
-                Description = c.Description,
-                CreatedAt = c.CreatedAt,
-                UpdatedAt = c.UpdatedAt,
                 ClientId = c.ClientId,
-                Budget = c.Budget,
-                Duration = c.Duration,
-                Status = c.Status,
                //UrlFiles = c.Files.Select(f => f.FilePath).ToList()
             }).ToList();
             return _responseHandler.Success(consultationResponses, "All consultations retrieved successfully.");
@@ -460,7 +447,7 @@ public class ConsultationService :  IConsultationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while retrieving all consultations.");
-            return _responseHandler.ServerError<List<GetConsultationResponse>>("An error occurred while retrieving all consultations.");
+            return _responseHandler.ServerError<List<ShowAllConsultaionWithoutDetails>>("An error occurred while retrieving all consultations.");
         }
     }
  }

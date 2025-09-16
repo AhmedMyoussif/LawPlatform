@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using LawPlatform.Entities.DTO.Proposal;
 using LawPlatform.Entities.Models;
 using LawPlatform.Utilities.Enums;
@@ -10,7 +12,6 @@ public class GetConsultationResponse
     public string Title { get; set; }
     public string Description { get; set; }
     public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
     public string ClientId { get; set; }
     public decimal Budget { get; set; }
     public string? LawyerId { get; set; }
@@ -19,4 +20,18 @@ public class GetConsultationResponse
     public Specialization Specialization { get; set; }
     public List<string> UrlFiles { get; set; }
     public List<GetProposalResponse> Proposals { get; set; }
+    [JsonInclude]
+    public string Slug
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(Title))
+                return "";
+
+            var slug = Regex.Replace(Title.Trim(), @"[^\p{L}\p{N}\s-]", "");
+            slug = Regex.Replace(slug, @"\s+", "-");
+            slug = Regex.Replace(slug, "-{2,}", "-");
+            return slug;
+        }
+    }
 }

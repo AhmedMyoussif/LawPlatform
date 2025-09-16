@@ -13,11 +13,11 @@ public interface IConsultationService
 
     //Task<Response<Guid>> DeleteConsultationAsync(string consultationId);
 
-    Task<Response<List<GetConsultationResponse>>> GetConsultationsAsync(ConsultationFilterRequest filter);
+    Task<Response<List<ShowAllConsultaionWithoutDetails>>> GetConsultationsAsync(ConsultationFilterRequest filter);
 
     Task<Response<List<GetConsultationResponse>>> GetMyLatestConsultationsAsync();
 
     Task<Response<List<GetConsultationResponse>>> GetMyConsultationsInProgressAsync();
-    Task<Response<List<GetConsultationResponse>>> GetMyConsultationsAsync();
+    Task<Response<List<ShowAllConsultaionWithoutDetails>>> GetMyConsultationsAsync();
     Task<Response<List<LawyerSearchResponse>>> SearchLawyersByNameAsync(string name);
 }

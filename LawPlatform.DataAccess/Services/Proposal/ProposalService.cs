@@ -18,7 +18,7 @@ using Microsoft.Extensions.Logging;
 
 namespace LawPlatform.DataAccess.Services.Proposal
 {
-    public class ProposalService: IProposalService
+    public class ProposalService : IProposalService
     {
         private readonly LawPlatformContext _context;
         private readonly ResponseHandler _responseHandler;
@@ -79,5 +79,146 @@ namespace LawPlatform.DataAccess.Services.Proposal
             }
         }
 
+        public async Task<Response<List<GetProposalResponse>>> GetProposalsByConsultationIdAsync(Guid consultationId)
+        {
+            _logger.LogInformation("Fetching proposals for consultation ID: {ConsultationId}", consultationId);
+            try
+            {
+                var proposals = await _context.Proposals
+                    .Where(p => p.ConsultationId == consultationId)
+                    .Select(p => new GetProposalResponse
+                    {
+                        Id = p.Id,
+                        Amount = p.Amount,
+                        Description = p.Description,
+                        CreatedAt = p.CreatedAt,
+                        UpdatedAt = p.UpdatedAt,
+                        DurationTime = p.DurationTime,
+                        LawyerId = p.LawyerId,
+                        ConsultationId = p.ConsultationId,
+                        Status = p.Status
+                    })
+                    .ToListAsync();
+                if (proposals == null || !proposals.Any())
+                {
+                    _logger.LogWarning("No proposals found for consultation ID: {ConsultationId}", consultationId);
+                    return _responseHandler.NotFound<List<GetProposalResponse>>("No proposals found for the given consultation ID.");
+                }
+                return _responseHandler.Success(proposals, "Proposals fetched successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while fetching proposals for consultation ID: {ConsultationId}", consultationId);
+                return _responseHandler.BadRequest<List<GetProposalResponse>>("An error occurred while fetching proposals");
+            }
+        }
+
+        public async Task<Response<GetProposalResponse>> GetProposalByIdAsync(Guid proposalId)
+        {
+            _logger.LogInformation("Fetching proposal by ID: {ProposalId}", proposalId);
+
+            var userId = _httpContextAccessor.HttpContext.User.Claims
+                .FirstOrDefault(c => c.Type == "nameid")?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return _responseHandler.Unauthorized<GetProposalResponse>("User not logged in.");
+
+            try
+            {
+                var lawyer = await _context.Lawyers.FirstOrDefaultAsync(l => l.UserId == userId);
+                var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == userId);
+
+                IQueryable<LawPlatform.Entities.Models.Proposal> query = _context.Proposals;
+
+                if (lawyer != null)
+                {
+                    query = query.Where(p => p.Id == proposalId && p.LawyerId == lawyer.Id);
+                }
+                else if (client != null)
+                {
+                    query = query.Where(p => p.Id == proposalId && p.Consultation.ClientId == client.Id);
+                }
+                else
+                {
+                    return _responseHandler.BadRequest<GetProposalResponse>("Only lawyers or clients can access proposals.");
+                }
+
+                var proposal = await query
+                    .Select(p => new GetProposalResponse
+                    {
+                        Id = p.Id,
+                        Amount = p.Amount,
+                        Description = p.Description,
+                        CreatedAt = p.CreatedAt,
+                        UpdatedAt = p.UpdatedAt,
+                        DurationTime = p.DurationTime,
+                        LawyerId = p.LawyerId,
+                        ConsultationId = p.ConsultationId,
+                        Status = p.Status
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (proposal == null)
+                {
+                    _logger.LogWarning("Proposal not found or not accessible by user: {ProposalId}", proposalId);
+                    return _responseHandler.NotFound<GetProposalResponse>("Proposal not found or not accessible.");
+                }
+
+                return _responseHandler.Success(proposal, "Proposal fetched successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while fetching proposal by ID: {ProposalId}", proposalId);
+                return _responseHandler.BadRequest<GetProposalResponse>("An error occurred while fetching the proposal");
+            }
+        }
+
+        public async Task<Response<AcceptProposalResponse>> AcceptProposalAsync(Guid proposalId)
+        {
+            _logger.LogInformation("Accepting proposal ID: {ProposalId}", proposalId);
+            var userId = _httpContextAccessor.HttpContext.User.Claims
+                .FirstOrDefault(c => c.Type == "nameid")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return _responseHandler.Unauthorized<AcceptProposalResponse>("User not logged in.");
+            try
+            {
+                var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == userId);
+                if (client == null)
+                    return _responseHandler.BadRequest<AcceptProposalResponse>("Only clients can accept proposals.");
+                var proposal = await _context.Proposals
+                    .Include(p => p.Consultation)
+                    .FirstOrDefaultAsync(p => p.Id == proposalId && p.Consultation.ClientId == client.Id);
+                if (proposal == null)
+                {
+                    _logger.LogWarning("Proposal not found or not accessible by client: {ProposalId}", proposalId);
+                    return _responseHandler.NotFound<AcceptProposalResponse>("Proposal not found or not accessible.");
+                }
+               
+                proposal.Status = ProposalStatus.Accepted;
+                proposal.UpdatedAt = DateTime.UtcNow;
+                proposal.Consultation.Status = ConsultationStatus.InProgress;
+                proposal.Consultation.UpdatedAt = DateTime.UtcNow;
+                //var otherProposals = await _context.Proposals
+                //    .Where(p => p.ConsultationId == proposal.ConsultationId && p.Id != proposalId && p.Status == ProposalStatus.Pending)
+                //    .ToListAsync();
+                //foreach (var otherProposal in otherProposals)
+                //{
+                //    otherProposal.Status = ProposalStatus.Rejected;
+                //    otherProposal.UpdatedAt = DateTime.UtcNow;
+                //}
+                await _context.SaveChangesAsync();
+                var result = new AcceptProposalResponse
+                {
+                    Status = proposal.Status
+                };
+                return _responseHandler.Success(result, "Proposal accepted successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while accepting proposal ID: {ProposalId}", proposalId);
+                return _responseHandler.BadRequest<AcceptProposalResponse>("An error occurred while accepting the proposal");
+            }
+        }
     }
+
 }
