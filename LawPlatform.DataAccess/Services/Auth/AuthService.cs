@@ -414,7 +414,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                 await _tokenStoreService.InvalidateOldTokensAsync(user.Id);
 
                 _logger.LogInformation("Generating new access and refresh tokens for user: {UserId}", user.Id);
-                var userTokens = await _tokenStoreService.GenerateAndStoreTokensAsync(user.Id, user);
+                var userTokens = await GenerateAndStoreTokensAsync(user.Id, user);
                 
                 await _tokenStoreService.SaveRefreshTokenAsync(user.Id, userTokens.RefreshToken);
                 _logger.LogInformation("New refresh token saved for user: {UserId}", user.Id);
