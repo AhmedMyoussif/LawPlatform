@@ -16,7 +16,6 @@ namespace LawPlatform.Entities.DTO.Proposal
         public DateTime UpdatedAt { get; set; }
         public string DurationTime { get; set; }
         public string LawyerId { get; set; }
-        public Guid ConsultationId { get; set; }
         public ProposalStatus Status { get; set; }
 
     }

@@ -1,4 +1,5 @@
-﻿using LawPlatform.DataAccess.Services.Consultation;
+﻿using System.Security.Claims;
+using LawPlatform.DataAccess.Services.Consultation;
 using LawPlatform.DataAccess.Services.Proposal;
 using LawPlatform.Entities.DTO.Proposal;
 using LawPlatform.Entities.Shared.Bases;
@@ -13,14 +14,16 @@ namespace LawPlatform.API.Controllers
     public class ProposalController : ControllerBase
     {
         private readonly ResponseHandler _responseHandler;
-        private readonly ILogger<ConsultationService> _logger;
+        private readonly ILogger<ProposalService> _logger;
         private readonly IProposalService _ProposalService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ProposalController(ResponseHandler responseHandler, ILogger<ConsultationService> logger, IProposalService proposalService)
+        public ProposalController(ResponseHandler responseHandler, ILogger<ProposalService> logger, IProposalService proposalService, IHttpContextAccessor httpContextAccessor)
         {
             _responseHandler = responseHandler;
             _logger = logger;
             _ProposalService = proposalService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         [HttpPost]
@@ -42,10 +45,12 @@ namespace LawPlatform.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{consultationId}")]
+        [HttpGet("by-consultation/{consultationId}")]
         public async Task<ActionResult<List<GetProposalResponse>>> GetProposalsByConsultationIdAsync(Guid consultationId)
+
         {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 _logger.LogWarning("Unauthorized access attempt to GetProposalsByConsultationIdAsync");
@@ -59,21 +64,23 @@ namespace LawPlatform.API.Controllers
             var result = await _ProposalService.GetProposalsByConsultationIdAsync(consultationId);
             return Ok(result);
         }
-        [HttpGet("{proposalId}")]
-        public async Task<ActionResult<GetProposalResponse>> GetProposalByIdAsync(Guid proposalId)
+        
+        [HttpGet("by-id/{id}")]
+        public async Task<ActionResult<GetProposalResponse>> GetProposalByIdAsync(Guid id)
         {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 _logger.LogWarning("Unauthorized access attempt to GetProposalByIdAsync");
                 return Unauthorized(_responseHandler.Unauthorized<string>("User is not authenticated."));
             }
-            if (proposalId == Guid.Empty)
+            if (id == Guid.Empty)
             {
                 _logger.LogWarning("Invalid proposalId for GetProposalByIdAsync");
                 return BadRequest(_responseHandler.BadRequest<string>("Invalid proposalId."));
             }
-            var result = await _ProposalService.GetProposalByIdAsync(proposalId);
+            var result = await _ProposalService.GetProposalByIdAsync(id);
             if (!result.Succeeded)
                 return BadRequest(result);
 
@@ -85,7 +92,8 @@ namespace LawPlatform.API.Controllers
 
         public async Task<ActionResult<AcceptProposalResponse>> AcceptProposalAsync(Guid proposalId)
         {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                            ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 _logger.LogWarning("Unauthorized access attempt to AcceptProposalAsync");

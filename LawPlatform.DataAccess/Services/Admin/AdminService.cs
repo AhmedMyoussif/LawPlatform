@@ -92,21 +92,29 @@ namespace LawPlatform.DataAccess.Services.Admin
             if (string.IsNullOrEmpty(model.LawyerId))
                 return _responseHandler.BadRequest<UpdateLawyerAccountStatusResponse>("LawyerId is required.");
 
-            var lawyer = await _context.Lawyers.FirstOrDefaultAsync(l => l.Id == model.LawyerId);
+            var lawyer = await _context.Lawyers
+            .Include(l => l.User)
+            .FirstOrDefaultAsync(l => l.Id == model.LawyerId);
+
             if (lawyer == null)
                 return _responseHandler.NotFound<UpdateLawyerAccountStatusResponse>("Lawyer not found.");
 
+            lawyer.Status = model.ApprovalStatus;
 
             await _context.SaveChangesAsync();
 
             var response = new UpdateLawyerAccountStatusResponse
             {
                 LawyerId = lawyer.Id,
+                FullName = lawyer.FirstName + " " + lawyer.LastName,
+                Email = lawyer.User.Email,           
+                PhoneNumber = lawyer.User.PhoneNumber, 
                 Status = lawyer.Status,
             };
 
             return _responseHandler.Success(response, "Lawyer account status updated successfully.");
         }
+
 
         #endregion
 

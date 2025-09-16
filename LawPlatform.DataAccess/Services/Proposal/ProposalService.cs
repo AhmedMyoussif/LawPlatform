@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using FluentValidation;
@@ -22,10 +23,10 @@ namespace LawPlatform.DataAccess.Services.Proposal
     {
         private readonly LawPlatformContext _context;
         private readonly ResponseHandler _responseHandler;
-        private readonly ILogger<ConsultationService> _logger;
+        private readonly ILogger<ProposalService> _logger;
         private readonly IValidator<CreateConsultationRequest> _validator;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public ProposalService(IHttpContextAccessor httpContextAccessor, IValidator<CreateConsultationRequest> validator, ILogger<ConsultationService> logger, ResponseHandler responseHandler, LawPlatformContext context)
+        public ProposalService(IHttpContextAccessor httpContextAccessor, IValidator<CreateConsultationRequest> validator, ILogger<ProposalService> logger, ResponseHandler responseHandler, LawPlatformContext context)
         {
             _httpContextAccessor = httpContextAccessor;
             _validator = validator;
@@ -36,8 +37,8 @@ namespace LawPlatform.DataAccess.Services.Proposal
         public async Task<Response<GetProposalResponse>> SubmitProposalAsync(SubmitPropsalRequest dto)
         {
             _logger.LogInformation("Submitting proposal...");
-            var userId = _httpContextAccessor.HttpContext.User
-            .Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
 
             var lawyer = await _context.Lawyers.FirstOrDefaultAsync(l => l.UserId == userId);
             if (lawyer == null)
@@ -95,7 +96,7 @@ namespace LawPlatform.DataAccess.Services.Proposal
                         UpdatedAt = p.UpdatedAt,
                         DurationTime = p.DurationTime,
                         LawyerId = p.LawyerId,
-                        ConsultationId = p.ConsultationId,
+                        //ConsultationId = p.ConsultationId,
                         Status = p.Status
                     })
                     .ToListAsync();
@@ -117,8 +118,8 @@ namespace LawPlatform.DataAccess.Services.Proposal
         {
             _logger.LogInformation("Fetching proposal by ID: {ProposalId}", proposalId);
 
-            var userId = _httpContextAccessor.HttpContext.User.Claims
-                .FirstOrDefault(c => c.Type == "nameid")?.Value;
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
 
             if (string.IsNullOrEmpty(userId))
                 return _responseHandler.Unauthorized<GetProposalResponse>("User not logged in.");
@@ -153,7 +154,7 @@ namespace LawPlatform.DataAccess.Services.Proposal
                         UpdatedAt = p.UpdatedAt,
                         DurationTime = p.DurationTime,
                         LawyerId = p.LawyerId,
-                        ConsultationId = p.ConsultationId,
+                        //ConsultationId = p.ConsultationId,
                         Status = p.Status
                     })
                     .FirstOrDefaultAsync();
@@ -176,8 +177,8 @@ namespace LawPlatform.DataAccess.Services.Proposal
         public async Task<Response<AcceptProposalResponse>> AcceptProposalAsync(Guid proposalId)
         {
             _logger.LogInformation("Accepting proposal ID: {ProposalId}", proposalId);
-            var userId = _httpContextAccessor.HttpContext.User.Claims
-                .FirstOrDefault(c => c.Type == "nameid")?.Value;
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
             if (string.IsNullOrEmpty(userId))
                 return _responseHandler.Unauthorized<AcceptProposalResponse>("User not logged in.");
             try
