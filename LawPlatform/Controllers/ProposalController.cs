@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.Consultation;
 using LawPlatform.DataAccess.Services.Proposal;
 using LawPlatform.Entities.DTO.Proposal;
@@ -6,6 +7,7 @@ using LawPlatform.Entities.Shared.Bases;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace LawPlatform.API.Controllers
 {
@@ -17,13 +19,15 @@ namespace LawPlatform.API.Controllers
         private readonly ILogger<ProposalService> _logger;
         private readonly IProposalService _ProposalService;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly LawPlatformContext _context;
 
-        public ProposalController(ResponseHandler responseHandler, ILogger<ProposalService> logger, IProposalService proposalService, IHttpContextAccessor httpContextAccessor)
+        public ProposalController(ResponseHandler responseHandler, ILogger<ProposalService> logger, IProposalService proposalService, IHttpContextAccessor httpContextAccessor, LawPlatformContext context)
         {
             _responseHandler = responseHandler;
             _logger = logger;
             _ProposalService = proposalService;
             _httpContextAccessor = httpContextAccessor;
+            _context = context;
         }
 
         [HttpPost]
@@ -109,5 +113,31 @@ namespace LawPlatform.API.Controllers
                 return BadRequest(result);
             return Ok(result);
         }
+
+        [HttpGet("HasProposal")]
+        public async Task<Response<bool>> HasProposalAsync([FromQuery] string consultationId, [FromQuery] string lawyerId)
+        {
+            try
+            {
+                if (!Guid.TryParse(consultationId, out var consultationGuid))
+                    return _responseHandler.BadRequest<bool>("Invalid ConsultationId format.");
+
+                if (string.IsNullOrEmpty(lawyerId))
+                    return _responseHandler.BadRequest<bool>("LawyerId is required.");
+
+                var hasProposal = await _context.Proposals
+                    .AnyAsync(p => p.ConsultationId == consultationGuid && p.LawyerId == lawyerId);
+
+                return _responseHandler.Success(hasProposal, hasProposal
+                    ? "Lawyer has already submitted a proposal for this consultation."
+                    : "Lawyer has not submitted any proposal for this consultation.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while checking proposal for ConsultationId: {ConsultationId} and LawyerId: {LawyerId}", consultationId, lawyerId);
+                return _responseHandler.ServerError<bool>("An error occurred while checking the proposal.");
+            }
+        }
+
     }
 }

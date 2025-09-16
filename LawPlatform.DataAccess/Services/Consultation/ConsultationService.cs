@@ -36,8 +36,19 @@ public class ConsultationService :  IConsultationService
 
     public async Task<Response<GetConsultationResponse>> CreateConsultationAsync(CreateConsultationRequest request,string clientid)
     {
+        
         try
         {
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+
+            var client = await _context.Clients
+           .FirstOrDefaultAsync(c => c.UserId == userId);
+            if (client == null)
+            {
+                _logger.LogWarning("Client not found for UserId: {UserId}", userId);
+                return _responseHandler.BadRequest<GetConsultationResponse>("Client does not exist.");
+            }
             _logger.LogInformation("Starting CreateConsultationAsync for Client");
 
             
@@ -55,7 +66,7 @@ public class ConsultationService :  IConsultationService
             var consultation = new Entities.Models.Consultation
             {
              
-                ClientId = clientid,
+                ClientId = client.Id,
                 Title = request.Title,
                 Description = request.Description,
                 LawyerId = request.LawyerId,
@@ -176,7 +187,7 @@ public class ConsultationService :  IConsultationService
         try
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+                         ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -195,6 +206,7 @@ public class ConsultationService :  IConsultationService
             var consultation = await _context.consultations
                 .Include(c => c.Files)
                 .Include(c => c.Proposals)
+                .ThenInclude(p => p.Lawyer)
                 .FirstOrDefaultAsync(c => c.Id == consultationGuid);
 
             if (consultation == null)
@@ -203,14 +215,11 @@ public class ConsultationService :  IConsultationService
                 return _responseHandler.NotFound<GetConsultationResponse>("Consultation not found.");
             }
 
-            bool isOwner = consultation.ClientId == userId;
-            bool isProposalSender = consultation.Proposals.Any(p => p.Lawyer.UserId == userId);
+            bool isClientOwner = consultation.ClientId == userId;
 
-            if (!isOwner && !isProposalSender)
-            {
-                _logger.LogWarning("User {UserId} is not authorized to view consultation {ConsultationId}", userId, consultationId);
-                return _responseHandler.Unauthorized<GetConsultationResponse>("You are not authorized to view this consultation.");
-            }
+            var visibleProposals = isClientOwner
+                ? consultation.Proposals
+                : consultation.Proposals.Where(p => p.Lawyer.UserId == userId).ToList();
 
             var consultationResponse = new GetConsultationResponse
             {
@@ -226,10 +235,9 @@ public class ConsultationService :  IConsultationService
                 Status = consultation.Status,
                 UrlFiles = consultation.Files.Select(f => f.FilePath).ToList(),
 
-                Proposals = consultation.Proposals.Select(p => new GetProposalResponse
+                Proposals = visibleProposals.Select(p => new GetProposalResponse
                 {
                     Id = p.Id,
-                    LawyerId = p.LawyerId,
                     Amount = p.Amount,
                     Description = p.Description,
                     DurationTime = p.DurationTime,
@@ -329,7 +337,7 @@ public class ConsultationService :  IConsultationService
                 return _responseHandler.Unauthorized<List<GetConsultationResponse>>("User not authenticated.");
             }
             var consultations = await _context.consultations
-                .Where(c => c.ClientId == userId || c.LawyerId == userId)
+                .Where(c => c.Client.UserId == userId || c.LawyerId == userId)
                 
                 .OrderByDescending(c => c.CreatedAt)
                 .Take(5)
@@ -369,7 +377,7 @@ public class ConsultationService :  IConsultationService
             }
            
             var consultations = await _context.consultations
-                .Where(c => c.ClientId == userId && c.Status == ConsultationStatus.InProgress || c.LawyerId == userId && c.Status == ConsultationStatus.InProgress)
+                .Where(c => c.Client.UserId == userId && c.Status == ConsultationStatus.InProgress || c.LawyerId == userId && c.Status == ConsultationStatus.InProgress)
                 .Include(c => c.Files)
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
@@ -432,9 +440,14 @@ public class ConsultationService :  IConsultationService
                 return _responseHandler.Unauthorized<List<ShowAllConsultaionWithoutDetails>>("User not authenticated.");
             }
             var consultations = await _context.consultations
-                .Where(c => c.ClientId == userId || c.LawyerId == userId) 
-                .OrderByDescending(c => c.CreatedAt)
-                .ToListAsync();
+                 .Include(c => c.Files)
+                 .Include(c => c.Proposals)
+                 .Include(c => c.Client)
+                 .Where(c => c.Client.UserId == userId || c.LawyerId == userId)
+                 .OrderByDescending(c => c.CreatedAt)
+                 .Take(5)
+                 .ToListAsync();
+
             var consultationResponses = consultations.Select(c => new ShowAllConsultaionWithoutDetails
             {
                 Id = c.Id,

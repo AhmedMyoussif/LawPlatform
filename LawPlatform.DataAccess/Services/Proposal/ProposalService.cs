@@ -67,8 +67,8 @@ namespace LawPlatform.DataAccess.Services.Proposal
                     Description = proposal.Description,
                     Status = proposal.Status,
                     DurationTime = proposal.DurationTime,
-                    LawyerId = proposal.LawyerId,
-                    CreatedAt = proposal.CreatedAt
+                    CreatedAt = proposal.CreatedAt,
+                    //lawyer = new GetLawyerResponse
                 };
 
                 return _responseHandler.Success(result, "Proposal submitted successfully");
@@ -95,7 +95,7 @@ namespace LawPlatform.DataAccess.Services.Proposal
                         CreatedAt = p.CreatedAt,
                         UpdatedAt = p.UpdatedAt,
                         DurationTime = p.DurationTime,
-                        LawyerId = p.LawyerId,
+                        //LawyerId = p.LawyerId,
                         //ConsultationId = p.ConsultationId,
                         Status = p.Status
                     })
@@ -153,7 +153,7 @@ namespace LawPlatform.DataAccess.Services.Proposal
                         CreatedAt = p.CreatedAt,
                         UpdatedAt = p.UpdatedAt,
                         DurationTime = p.DurationTime,
-                        LawyerId = p.LawyerId,
+                        //LawyerId = p.LawyerId,
                         //ConsultationId = p.ConsultationId,
                         Status = p.Status
                     })

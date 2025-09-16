@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LawPlatform.Entities.Models.Auth.Users;
 using LawPlatform.Utilities.Enums;
 
 namespace LawPlatform.Entities.DTO.Proposal
@@ -15,7 +16,7 @@ namespace LawPlatform.Entities.DTO.Proposal
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public string DurationTime { get; set; }
-        public string LawyerId { get; set; }
+        public Lawyer lawyer { get; set; }
         public ProposalStatus Status { get; set; }
 
     }
