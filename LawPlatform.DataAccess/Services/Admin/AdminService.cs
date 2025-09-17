@@ -37,7 +37,7 @@ namespace LawPlatform.DataAccess.Services.Admin
             var query = _context.Lawyers
                 .Where(l => !status.HasValue || l.Status == status.Value)
                 .Join(_userManager.Users,
-                      lawyer => lawyer.UserId,
+                      lawyer => lawyer.Id,
                       user => user.Id,
                       (lawyer, user) => new GetLawyerResponse
                       {

@@ -64,7 +64,7 @@ namespace LawPlatform.DataAccess.Services.OAuth
 
                     await _userManager.AddToRoleAsync(user, "USER");
                     // Generate token for the user
-                    var userTokens = await _tokenService.GenerateAndStoreTokensAsync(user.Id, user);
+                    var userTokens = await _tokenService.GenerateAndStoreTokensAsync(user);
 
                     var userRoles = await _userManager.GetRolesAsync(user);
                     var response = new GoogleRegisterResponse
@@ -83,7 +83,7 @@ namespace LawPlatform.DataAccess.Services.OAuth
                 {
                     //if user != null its mean the user is found or already signed in with google
                     // Generate token for the user
-                    var userTokens = await _tokenService.GenerateAndStoreTokensAsync(user.Id, user);
+                    var userTokens = await _tokenService.GenerateAndStoreTokensAsync(user);
 
                     var userRoles = await _userManager.GetRolesAsync(user);
                     var response = new GoogleRegisterResponse

@@ -8,11 +8,8 @@ namespace LawPlatform.Entities.Models.Auth.Users
 {
     public class Client
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
-        public string UserId { get; set; }
-        [ForeignKey(nameof(UserId))]
+        [ForeignKey(nameof(Id))]
         public User User { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
