@@ -29,7 +29,7 @@ namespace LawPlatform.DataAccess.Extensions
         {
             services.AddDbContext<LawPlatformContext>(options =>
                 options.UseSqlServer(
-                    configuration.GetConnectionString("DevCS")));
+                    configuration.GetConnectionString("ProdCS")));
 
             return services;
         }
@@ -41,9 +41,9 @@ namespace LawPlatform.DataAccess.Extensions
             services.AddScoped<IImageUploadService, CloudinaryImageUploadService>();
             services.AddScoped<ITokenStoreService, TokenStoreService>();
             services.AddScoped<IAdminService, AdminService>();
-            //services.AddScoped<IConsultationService, ConsultationService>();
-            //services.AddScoped<IProfileService, ProfileService>();
-            //services.AddScoped<IProposalService, ProposalService>();
+            services.AddScoped<IConsultationService, ConsultationService>();
+            services.AddScoped<IProfileService, ProfileService>();
+            services.AddScoped<IProposalService, ProposalService>();
 
 
             var cloudinarySettings = configuration.GetSection("Cloudinary").Get<CloudinarySettings>();
