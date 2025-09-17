@@ -7,7 +7,7 @@ using LawPlatform.Entities.Models.Auth.Users;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 
-namespace LawPrlatform.DataAccess.EntitiesConfigurations
+namespace LawPlatform.DataAccess.EntitiesConfigurations
 {
     public class ClientConfiguration : IEntityTypeConfiguration<Client>
     {
@@ -17,7 +17,7 @@ namespace LawPrlatform.DataAccess.EntitiesConfigurations
 
             builder.HasOne(c => c.User)
                    .WithOne()
-                   .HasForeignKey<Client>(c => c.UserId)
+                   .HasForeignKey<Client>(c => c.Id)
                    .OnDelete(DeleteBehavior.Cascade);
             
             builder.Property(b => b.FirstName)

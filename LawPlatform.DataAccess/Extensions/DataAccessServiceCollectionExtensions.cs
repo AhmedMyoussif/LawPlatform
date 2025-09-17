@@ -43,7 +43,7 @@ namespace LawPlatform.DataAccess.Extensions
             services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<IConsultationService, ConsultationService>();
             services.AddScoped<IProfileService, ProfileService>();
-            services.AddScoped<IProposalService,ProposalService>();
+            services.AddScoped<IProposalService, ProposalService>();
 
 
             var cloudinarySettings = configuration.GetSection("Cloudinary").Get<CloudinarySettings>();
