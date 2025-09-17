@@ -443,7 +443,7 @@ public class ConsultationService :  IConsultationService
                  .Include(c => c.Files)
                  .Include(c => c.Proposals)
                  .Include(c => c.Client)
-                 .Where(c => c.Client.Id == userId || c.LawyerId == userId)
+                 .Where(c => c.Client.Id == userId)
                  .OrderByDescending(c => c.CreatedAt)
                  .Take(5)
                  .ToListAsync();

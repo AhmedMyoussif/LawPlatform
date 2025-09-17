@@ -8,8 +8,6 @@ namespace LawPlatform.Entities.Models.Auth.Users
 {
     public class Lawyer
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
         [ForeignKey(nameof(Id))]
         public User User { get; set; }
