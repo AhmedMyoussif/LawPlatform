@@ -13,7 +13,7 @@ namespace LawPlatform.DataAccess.EntitiesConfigurations
 
             builder.HasOne(l => l.User)
                    .WithOne()
-                   .HasForeignKey<Lawyer>(l => l.UserId)
+                   .HasForeignKey<Lawyer>(l => l.Id)
                    .OnDelete(DeleteBehavior.Cascade);
 
             builder.Property(l => l.FirstName)

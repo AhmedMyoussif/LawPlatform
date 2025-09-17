@@ -4,6 +4,7 @@ using LawPlatform.DataAccess.ApplicationContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LawPlatform.DataAccess.Migrations
 {
     [DbContext(typeof(LawPlatformContext))]
-    partial class LawPlatformContextModelSnapshot : ModelSnapshot
+    [Migration("20250917182211_Add_EntryId_to_UserRefreshToken")]
+    partial class Add_EntryId_to_UserRefreshToken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -171,7 +174,14 @@ namespace LawPlatform.DataAccess.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Clients", (string)null);
                 });
@@ -263,10 +273,17 @@ namespace LawPlatform.DataAccess.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("YearsOfExperience")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Lawyers", (string)null);
                 });
@@ -575,7 +592,7 @@ namespace LawPlatform.DataAccess.Migrations
                 {
                     b.HasOne("LawPlatform.Entities.Models.Auth.Identity.User", "User")
                         .WithOne()
-                        .HasForeignKey("LawPlatform.Entities.Models.Auth.Users.Client", "Id")
+                        .HasForeignKey("LawPlatform.Entities.Models.Auth.Users.Client", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -586,7 +603,7 @@ namespace LawPlatform.DataAccess.Migrations
                 {
                     b.HasOne("LawPlatform.Entities.Models.Auth.Identity.User", "User")
                         .WithOne()
-                        .HasForeignKey("LawPlatform.Entities.Models.Auth.Users.Lawyer", "Id")
+                        .HasForeignKey("LawPlatform.Entities.Models.Auth.Users.Lawyer", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

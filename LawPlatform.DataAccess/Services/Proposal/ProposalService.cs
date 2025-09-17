@@ -40,7 +40,7 @@ namespace LawPlatform.DataAccess.Services.Proposal
             var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                  ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
 
-            var lawyer = await _context.Lawyers.FirstOrDefaultAsync(l => l.UserId == userId);
+            var lawyer = await _context.Lawyers.FirstOrDefaultAsync(l => l.Id == userId);
             if (lawyer == null)
                 return _responseHandler.BadRequest<GetProposalResponse>("Only lawyers can submit proposals.");
 
@@ -126,8 +126,8 @@ namespace LawPlatform.DataAccess.Services.Proposal
 
             try
             {
-                var lawyer = await _context.Lawyers.FirstOrDefaultAsync(l => l.UserId == userId);
-                var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == userId);
+                var lawyer = await _context.Lawyers.FirstOrDefaultAsync(l => l.Id == userId);
+                var client = await _context.Clients.FirstOrDefaultAsync(c => c.Id == userId);
 
                 IQueryable<LawPlatform.Entities.Models.Proposal> query = _context.Proposals;
 
@@ -183,7 +183,7 @@ namespace LawPlatform.DataAccess.Services.Proposal
                 return _responseHandler.Unauthorized<AcceptProposalResponse>("User not logged in.");
             try
             {
-                var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == userId);
+                var client = await _context.Clients.FirstOrDefaultAsync(c => c.Id == userId);
                 if (client == null)
                     return _responseHandler.BadRequest<AcceptProposalResponse>("Only clients can accept proposals.");
                 var proposal = await _context.Proposals

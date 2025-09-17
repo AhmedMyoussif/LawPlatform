@@ -43,7 +43,7 @@ public class ConsultationService :  IConsultationService
                  ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
 
             var client = await _context.Clients
-           .FirstOrDefaultAsync(c => c.UserId == userId);
+           .FirstOrDefaultAsync(c => c.Id == userId);
             if (client == null)
             {
                 _logger.LogWarning("Client not found for UserId: {UserId}", userId);
@@ -219,7 +219,7 @@ public class ConsultationService :  IConsultationService
 
             var visibleProposals = isClientOwner
                 ? consultation.Proposals
-                : consultation.Proposals.Where(p => p.Lawyer.UserId == userId).ToList();
+                : consultation.Proposals.Where(p => p.Lawyer.Id == userId).ToList();
 
             var consultationResponse = new GetConsultationResponse
             {
@@ -337,7 +337,7 @@ public class ConsultationService :  IConsultationService
                 return _responseHandler.Unauthorized<List<GetConsultationResponse>>("User not authenticated.");
             }
             var consultations = await _context.consultations
-                .Where(c => c.Client.UserId == userId || c.LawyerId == userId)
+                .Where(c => c.Client.Id == userId || c.LawyerId == userId)
                 
                 .OrderByDescending(c => c.CreatedAt)
                 .Take(5)
@@ -377,7 +377,7 @@ public class ConsultationService :  IConsultationService
             }
            
             var consultations = await _context.consultations
-                .Where(c => c.Client.UserId == userId && c.Status == ConsultationStatus.InProgress || c.LawyerId == userId && c.Status == ConsultationStatus.InProgress)
+                .Where(c => c.Client.Id == userId && c.Status == ConsultationStatus.InProgress || c.LawyerId == userId && c.Status == ConsultationStatus.InProgress)
                 .Include(c => c.Files)
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
@@ -443,7 +443,7 @@ public class ConsultationService :  IConsultationService
                  .Include(c => c.Files)
                  .Include(c => c.Proposals)
                  .Include(c => c.Client)
-                 .Where(c => c.Client.UserId == userId || c.LawyerId == userId)
+                 .Where(c => c.Client.Id == userId || c.LawyerId == userId)
                  .OrderByDescending(c => c.CreatedAt)
                  .Take(5)
                  .ToListAsync();
