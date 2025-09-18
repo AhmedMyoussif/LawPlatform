@@ -19,6 +19,7 @@ using LawPlatform.DataAccess.Services.OAuth;
 using CloudinaryDotNet;
 using LawPlatform.DataAccess.Services.Profile;
 using LawPlatform.DataAccess.Services.Proposal;
+using LawPlatform.DataAccess.Services.Chat;
 
 
 namespace LawPlatform.DataAccess.Extensions
@@ -29,7 +30,7 @@ namespace LawPlatform.DataAccess.Extensions
         {
             services.AddDbContext<LawPlatformContext>(options =>
                 options.UseSqlServer(
-                    configuration.GetConnectionString("ProdCS")));
+                    configuration.GetConnectionString("DevCS")));
 
             return services;
         }
@@ -44,6 +45,8 @@ namespace LawPlatform.DataAccess.Extensions
             services.AddScoped<IConsultationService, ConsultationService>();
             services.AddScoped<IProfileService, ProfileService>();
             services.AddScoped<IProposalService, ProposalService>();
+            services.AddScoped<IChatService, ChatService>();
+
 
 
             var cloudinarySettings = configuration.GetSection("Cloudinary").Get<CloudinarySettings>();
