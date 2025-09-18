@@ -39,74 +39,43 @@ namespace LawPlatform.DataAccess.Services.Profile
         #region Helpers
 
 
-        private (string? UserIdClaim, string? EntityIdClaim) GetClaimsIdentifiers()
+        private string? GetUserIdClaim()
         {
             var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null) return (null, null);
+            if (user == null) return null;
 
             var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
                          ?? user.FindFirst("nameid")?.Value;
 
-            var entityId = user.FindFirst("EntityId")?.Value
-                           ?? user.FindFirst("entityid")?.Value;
-
-            return (userId, entityId);
+            return userId;
         }
-
-
-        private async Task<string?> ResolveAspNetUserIdAsync(string? userIdClaim, string? entityIdClaim)
+        private async Task<bool> UserExistsAsync(string userId)
         {
-            // If the claim likely contains the actual AspNetUsers.Id, try check existence quickly:
-            if (!string.IsNullOrEmpty(userIdClaim))
-            {
-                var exists = await _context.Users.AnyAsync(u => u.Id == userIdClaim);
-                if (exists) return userIdClaim;
-            }
-
-            // If we have entity id, try to resolve to the related user
-            if (!string.IsNullOrEmpty(entityIdClaim))
-            {
-                var client = await _context.Clients.AsNoTracking()
-                    .FirstOrDefaultAsync(c => c.Id == entityIdClaim);
-                if (client != null) return client.Id;
-
-                var lawyer = await _context.Lawyers.AsNoTracking()
-                    .FirstOrDefaultAsync(l => l.Id == entityIdClaim);
-                if (lawyer != null) return lawyer.Id;
-            }
-
-            // fallback: if userIdClaim exists but not found in AspNetUsers, return null
-            return null;
+            return await _context.Users.AnyAsync(u => u.Id == userId);
         }
 
         #endregion
 
         public async Task<Response<object>> GetProfileAsync()
         {
-            var (userIdClaim, entityIdClaim) = GetClaimsIdentifiers();
+            var userId = GetUserIdClaim();
 
-            if (string.IsNullOrEmpty(userIdClaim) && string.IsNullOrEmpty(entityIdClaim))
-            {
-                _logger.LogWarning("Unauthorized access attempt to GetProfile (no claims).");
+            if (string.IsNullOrEmpty(userId))
                 return _responseHandler.Unauthorized<object>("You are not authorized to view this profile.");
-            }
 
-            var resolvedUserId = await ResolveAspNetUserIdAsync(userIdClaim, entityIdClaim);
-            if (string.IsNullOrEmpty(resolvedUserId))
-            {
-                _logger.LogWarning("Could not resolve AspNet UserId from claims. NameId: {NameId}, EntityId: {EntityId}", userIdClaim, entityIdClaim);
+            var userExists = await UserExistsAsync(userId);
+            if (!userExists)
                 return _responseHandler.Unauthorized<object>("You are not authorized to view this profile.");
-            }
 
             // Try client first
             var client = await _context.Clients
                 .Include(c => c.User)
                 .Include(c => c.ProfileImage)
-                .FirstOrDefaultAsync(c => c.Id == resolvedUserId);
+                .FirstOrDefaultAsync(c => c.Id == userId);
 
             if (client != null)
             {
-                var clientresponse = new ClientProfileResponse
+                var clientResponse = new ClientProfileResponse
                 {
                     FirstName = client.FirstName,
                     LastName = client.LastName,
@@ -116,18 +85,18 @@ namespace LawPlatform.DataAccess.Services.Profile
                     ProfileImageUrl = client.ProfileImage?.ImageUrl,
                 };
 
-                return _responseHandler.Success<object>(clientresponse, "Profile fetched successfully");
+                return _responseHandler.Success<object>(clientResponse, "Profile fetched successfully");
             }
 
             // Then try lawyer
             var lawyer = await _context.Lawyers
                 .Include(l => l.User)
                 .Include(l => l.ProfileImage)
-                .FirstOrDefaultAsync(l => l.Id == resolvedUserId);
+                .FirstOrDefaultAsync(l => l.Id == userId);
 
             if (lawyer != null)
             {
-                var lawyerresponse = new LawyerProfileResponse
+                var lawyerResponse = new LawyerProfileResponse
                 {
                     Id = lawyer.Id,
                     FullName = lawyer.FirstName + " " + lawyer.LastName,
@@ -140,29 +109,25 @@ namespace LawPlatform.DataAccess.Services.Profile
                     ProfileImageUrl = lawyer.ProfileImage?.ImageUrl,
                 };
 
-                return _responseHandler.Success<object>(lawyerresponse, "Profile fetched successfully");
+                return _responseHandler.Success<object>(lawyerResponse, "Profile fetched successfully");
             }
 
-            _logger.LogWarning("User with resolved UserId {UserId} not found as Client or Lawyer", resolvedUserId);
             return _responseHandler.NotFound<object>("User not found as Client or Lawyer");
         }
 
-        public async Task<Response<bool>> UpdateProfileAsync(string userId, UpdateClientProfileRequest dto)
+        public async Task<Response<bool>> UpdateProfileAsync(UpdateClientProfileRequest dto)
         {
-            // Ensure the caller is authorized to update this profile:
-            var (userIdClaim, entityIdClaim) = GetClaimsIdentifiers();
-            var resolvedCallerUserId = await ResolveAspNetUserIdAsync(userIdClaim, entityIdClaim);
-
-            if (string.IsNullOrEmpty(resolvedCallerUserId))
+            var userId = GetUserIdClaim();
+            if (string.IsNullOrEmpty(userId))
             {
-                _logger.LogWarning("Unauthorized attempt to update profile (could not resolve caller).");
+                _logger.LogWarning("Unauthorized attempt to update profile (no UserId claim).");
                 return _responseHandler.Unauthorized<bool>("You are not authorized to update this profile.");
             }
 
-            // caller can update only their own profile (or extend here to allow admins)
-            if (!string.Equals(resolvedCallerUserId, userId, StringComparison.OrdinalIgnoreCase))
+            var userExists = await UserExistsAsync(userId);
+            if (!userExists)
             {
-                _logger.LogWarning("User {Caller} attempted to update profile of {Target}", resolvedCallerUserId, userId);
+                _logger.LogWarning("UserId {UserId} not found.", userId);
                 return _responseHandler.Unauthorized<bool>("You are not authorized to update this profile.");
             }
 
@@ -182,8 +147,6 @@ namespace LawPlatform.DataAccess.Services.Profile
                 client.LastName = dto.LastName;
                 client.Address = dto.Address;
 
-                // EF is tracking client; calling Update is optional but harmless
-                _context.Clients.Update(client);
                 await _context.SaveChangesAsync();
 
                 return _responseHandler.Success(true, "Profile updated successfully");
