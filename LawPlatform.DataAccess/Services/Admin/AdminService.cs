@@ -21,9 +21,9 @@ namespace LawPlatform.DataAccess.Services.Admin
         private readonly LawPlatformContext _context;
         private readonly ResponseHandler _responseHandler;
         private readonly ILogger<AdminService> _logger;
-        private readonly NotificationService _notificationService;
+        private readonly INotificationService _notificationService;
 
-        public AdminService(UserManager<User> userManager, LawPlatformContext context, ResponseHandler responseHandler, ILogger<AdminService> logger, NotificationService notificationService)
+        public AdminService(UserManager<User> userManager, LawPlatformContext context, ResponseHandler responseHandler, ILogger<AdminService> logger, INotificationService notificationService)
         {
 
             _context = context;

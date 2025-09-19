@@ -31,7 +31,7 @@ namespace LawPlatform.DataAccess.Services.Auth
         private readonly IImageUploadService _imageUploadService;
         private readonly ITokenStoreService _tokenStoreService;
         private readonly ILogger<AuthService> _logger;
-        private readonly NotificationService _notificationService;
+        private readonly INotificationService _notificationService;
         public AuthService(
             UserManager<User> userManager,
             LawPlatformContext context,
@@ -40,7 +40,7 @@ namespace LawPlatform.DataAccess.Services.Auth
             IImageUploadService imageUploadService,
             ITokenStoreService tokenStoreService,
             ILogger<AuthService> logger,
-            NotificationService notificationService)
+            INotificationService notificationService)
         {
             _userManager = userManager;
             _context = context;
