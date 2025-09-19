@@ -13,4 +13,3 @@ namespace LawPlatform.Entities.DTO.Notification
         public string Message { get; set; }
     }
 }
-}
