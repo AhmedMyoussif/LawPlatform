@@ -27,16 +27,6 @@ public class NotificationsController : ControllerBase
         _httpContextAccessor = httpContextAccessor;
     }
 
-    [HttpPost("send")]
-    public async Task<IActionResult> SendNotification([FromBody] NotificationDto dto)
-    {
-        await _notificationService.NotifyUserAsync(dto.UserId, dto.Title, dto.Message);
-
-        await _hubContext.Clients.User(dto.UserId).SendAsync("ReceiveNotification", dto.Title, dto.Message);
-
-        return Ok(new { Message = "Notification sent." });
-    }
-
     [HttpGet("my-notifications")]
     public async Task<IActionResult> GetMyNotifications()
     {
