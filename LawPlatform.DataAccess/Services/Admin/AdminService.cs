@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LawPlatform.DataAccess.ApplicationContext;
+using LawPlatform.DataAccess.Services.Notification;
 using LawPlatform.Entities.DTO.Account.Auth.Admin;
 using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Shared.Bases;
@@ -20,14 +21,16 @@ namespace LawPlatform.DataAccess.Services.Admin
         private readonly LawPlatformContext _context;
         private readonly ResponseHandler _responseHandler;
         private readonly ILogger<AdminService> _logger;
+        private readonly NotificationService _notificationService;
 
-        public AdminService(UserManager<User> userManager, LawPlatformContext context, ResponseHandler responseHandler, ILogger<AdminService> logger)
+        public AdminService(UserManager<User> userManager, LawPlatformContext context, ResponseHandler responseHandler, ILogger<AdminService> logger, NotificationService notificationService)
         {
 
             _context = context;
             _responseHandler = responseHandler;
             _userManager = userManager;
             _logger = logger;
+            _notificationService = notificationService;
         }
 
 
@@ -111,6 +114,24 @@ namespace LawPlatform.DataAccess.Services.Admin
                 PhoneNumber = lawyer.User.PhoneNumber, 
                 Status = lawyer.Status,
             };
+            if (lawyer.Status == ApprovalStatus.Approved)
+            {
+                await _notificationService.NotifyUserAsync(
+                    lawyer.Id,
+                    "Account Approved",
+                    "Your lawyer account has been approved. You can now log in."
+                );
+            }
+
+            if (lawyer.Status == ApprovalStatus.Rejected)
+            {
+                await _notificationService.NotifyUserAsync(
+                    lawyer.Id,
+                    "Account Rejected",
+                    "Sorry Your Lawyer Account Has Been Rejected From Admin."
+                );
+            }
+
 
             return _responseHandler.Success(response, "Lawyer account status updated successfully.");
         }

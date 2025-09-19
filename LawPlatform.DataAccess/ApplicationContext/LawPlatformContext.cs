@@ -36,5 +36,6 @@ namespace LawPlatform.DataAccess.ApplicationContext
         public DbSet<ProfileImage> profileImages { get; set; }
 
         public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
     }
 }

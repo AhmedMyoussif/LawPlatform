@@ -88,6 +88,7 @@ namespace EcommercePlatform
             builder.Services.AddSignalR();
             builder.Services.AddSingleton<IUserIdProvider, NameIdentifierUserIdProvider>();
 
+
             var app = builder.Build();
 
             #region Seed User,Role Data
@@ -118,6 +119,7 @@ namespace EcommercePlatform
             app.UseStaticFiles(); 
 
             app.MapHub<LawPlatform.API.Hubs.ChatHub>("/hubs/chat");
+            app.MapHub<NotificationHub>("/notificationHub");
 
             app.Run();
         }

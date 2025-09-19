@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using LawPlatform.DataAccess.Services.Notification;
 
 namespace LawPlatform.DataAccess.Services.Auth
 {
@@ -30,7 +31,7 @@ namespace LawPlatform.DataAccess.Services.Auth
         private readonly IImageUploadService _imageUploadService;
         private readonly ITokenStoreService _tokenStoreService;
         private readonly ILogger<AuthService> _logger;
-
+        private readonly NotificationService _notificationService;
         public AuthService(
             UserManager<User> userManager,
             LawPlatformContext context,
@@ -38,7 +39,8 @@ namespace LawPlatform.DataAccess.Services.Auth
             ResponseHandler responseHandler,
             IImageUploadService imageUploadService,
             ITokenStoreService tokenStoreService,
-            ILogger<AuthService> logger)
+            ILogger<AuthService> logger,
+            NotificationService notificationService)
         {
             _userManager = userManager;
             _context = context;
@@ -47,6 +49,7 @@ namespace LawPlatform.DataAccess.Services.Auth
             _imageUploadService = imageUploadService;
             _tokenStoreService = tokenStoreService;
             _logger = logger;
+            _notificationService = notificationService;
         }
 
         #region Login
@@ -256,6 +259,11 @@ namespace LawPlatform.DataAccess.Services.Auth
                     Address = lawyer.Address,
                     Age = lawyer.Age
                 };
+
+                await _notificationService.NotifyUserAsync(lawyer.Id,
+                        "Pending Approval",
+                        "Your lawyer account is pending approval by the admin.");
+
 
                 return _responseHandler.Created(response, "Lawyer registered successfully and is pending admin approval.");
             }
