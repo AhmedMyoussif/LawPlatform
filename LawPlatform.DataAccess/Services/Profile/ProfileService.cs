@@ -143,9 +143,19 @@ namespace LawPlatform.DataAccess.Services.Profile
 
             try
             {
-                client.FirstName = dto.FirstName;
-                client.LastName = dto.LastName;
-                client.Address = dto.Address;
+               
+                if(!string.IsNullOrEmpty(client.FirstName))
+                {
+                    client.FirstName = dto.FirstName;
+                }
+                if (!string.IsNullOrEmpty(client.LastName))
+                {
+                    client.LastName = dto.LastName;
+                }
+                if (!string.IsNullOrEmpty(client.Address))
+                {
+                    client.Address = dto.Address;
+                }
 
                 await _context.SaveChangesAsync();
 
@@ -158,6 +168,46 @@ namespace LawPlatform.DataAccess.Services.Profile
             }
         }
 
-        // (Optional) Add UpdateProfileImageAsync here similar to your commented method, using the same claims resolution.
+        public async Task<Response<bool>> UpdateProfileImageAsync(IFormFile profileImage)
+        {
+            var userId = GetUserIdClaim();
+            if (string.IsNullOrEmpty(userId))
+                return _responseHandler.Unauthorized<bool>("You are not authorized to update this profile image.");
+
+            var client = await _context.Clients
+                .Include(c => c.ProfileImage)
+                .FirstOrDefaultAsync(c => c.Id == userId);
+
+            if (client == null)
+                return _responseHandler.BadRequest<bool>("Client not found");
+
+            try
+            {
+                var uploadResult = await _imageUploadService.UploadAsync(profileImage);
+
+                if (client.ProfileImage == null)
+                {
+                    client.ProfileImage = new ProfileImage
+                    {
+                        ImageUrl = uploadResult.Url,
+                        Id = Guid.Parse(client.Id)
+                    };
+                }
+                else
+                {
+                    client.ProfileImage.ImageUrl = uploadResult.Url;
+                }
+
+                await _context.SaveChangesAsync();
+
+                return _responseHandler.Success(true, "Profile image updated successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating profile image for UserId {UserId}", userId);
+                return _responseHandler.ServerError<bool>("An error occurred while updating the profile image");
+            }
+        }
+
     }
 }
