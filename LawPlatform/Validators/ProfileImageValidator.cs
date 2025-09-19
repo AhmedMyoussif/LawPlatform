@@ -3,7 +3,7 @@
 namespace LawPlatform.API.Validators
 {
    
-        public class ProductImageFileValidator : AbstractValidator<IFormFile>
+        public class ProfileImageFileValidator : AbstractValidator<IFormFile>
         {
             private const int MAX_FILE_SIZE = 5 * 1024 * 1024;
             private static readonly string[] AllowedExtensions = [".jpg", ".jpeg", ".png"];
