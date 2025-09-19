@@ -4,6 +4,7 @@ using FluentValidation;
 using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.ImageUploading;
 using LawPlatform.Entities.DTO.Consultaion;
+using LawPlatform.Entities.DTO.ImageUploading;
 using LawPlatform.Entities.DTO.Proposal;
 using LawPlatform.Entities.Models;
 using LawPlatform.Entities.Models.Auth.Identity;
@@ -34,13 +35,11 @@ public class ConsultationService :  IConsultationService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<Response<GetConsultationResponse>> CreateConsultationAsync(CreateConsultationRequest request,string clientid)
+    public async Task<Response<GetConsultationResponse>> CreateConsultationAsync(CreateConsultationRequest request)
     {
-        
         try
         {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+            var userId = ConsultationServiceHelper.GetCurrentUserId(_httpContextAccessor);
 
             var client = await _context.Clients
            .FirstOrDefaultAsync(c => c.Id == userId);
@@ -79,27 +78,16 @@ public class ConsultationService :  IConsultationService
                
             };
 
-            // For Refactor : Make It in Helper Method 
-            var uploadedFiles = new List<string>();
-            if (request.Files != null && request.Files.Count > 0)
-            {
-                foreach (var file in request.Files)
-                {
-                    var uploadResult = await _imageUploadService.UploadAsync(file);
-
-                    consultation.Files.Add(new ConsultationFile
-                    {
-                        ConsultationId = consultation.Id,
-                        FileName = file.FileName,
-                        FilePath = uploadResult.Url 
-                    });
-
-                    uploadedFiles.Add(uploadResult.Url);
-                }
-            }
-            
-
             await _context.consultations.AddAsync(consultation);
+            await _context.SaveChangesAsync();
+
+            var (consultationFiles, uploadedFiles) =
+                 await UploadFilesAsync(request.Files, consultation.Id, _imageUploadService);
+
+            foreach (var file in consultationFiles)
+            {
+                consultation.Files.Add(file);
+            }
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Consultation {ConsultationId} created successfully for ClientId: {ClientId}",
@@ -186,8 +174,7 @@ public class ConsultationService :  IConsultationService
     {
         try
         {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                         ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+            var userId = ConsultationServiceHelper.GetCurrentUserId(_httpContextAccessor);
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -329,32 +316,22 @@ public class ConsultationService :  IConsultationService
     {
         try
         {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+            var userId = ConsultationServiceHelper.GetCurrentUserId(_httpContextAccessor);
             if (string.IsNullOrEmpty(userId))
-            {
-                _logger.LogWarning("User not authenticated.");
                 return _responseHandler.Unauthorized<List<GetConsultationResponse>>("User not authenticated.");
-            }
-            var consultations = await _context.consultations
-                .Where(c => c.Client.Id == userId || c.LawyerId == userId)
-                
-                .OrderByDescending(c => c.CreatedAt)
-                .Take(5)
-                .ToListAsync();
-            var consultationResponses = consultations.Select(c => new GetConsultationResponse
-            {
-                Id = c.Id,
-                Title = c.Title,
-                Description = c.Description,
-                CreatedAt = c.CreatedAt,
-                ClientId = c.ClientId,
-                Budget = c.Budget,
-                Duration = c.Duration,
-                Status = c.Status,
-                //UrlFiles = c.Files.Select(f => f.FilePath).ToList()
-            }).ToList();
-            return _responseHandler.Success(consultationResponses, "Latest consultations retrieved successfully.");
+
+            var consultations = await ConsultationServiceHelper.GetConsultationsAsync(
+                _context,
+                c => c.Client.Id == userId || c.LawyerId == userId,
+                includeFiles: false,
+                take: 5
+            );
+
+            var responses = consultations
+                .Select(ConsultationServiceHelper.ToConsultationResponse)
+                .ToList();
+
+            return _responseHandler.Success(responses, "Latest consultations retrieved successfully.");
         }
         catch (Exception ex)
         {
@@ -363,37 +340,26 @@ public class ConsultationService :  IConsultationService
         }
     }
     // Insure That You Will Retrive The Consultations For The Current Logged In Client Only
-
     public async Task<Response<List<GetConsultationResponse>>> GetMyConsultationsInProgressAsync()
     {
         try
         {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+            var userId = ConsultationServiceHelper.GetCurrentUserId(_httpContextAccessor);
             if (string.IsNullOrEmpty(userId))
-            {
-                _logger.LogWarning("User not authenticated.");
                 return _responseHandler.Unauthorized<List<GetConsultationResponse>>("User not authenticated.");
-            }
-           
-            var consultations = await _context.consultations
-                .Where(c => c.Client.Id == userId && c.Status == ConsultationStatus.InProgress || c.LawyerId == userId && c.Status == ConsultationStatus.InProgress)
-                .Include(c => c.Files)
-                .OrderByDescending(c => c.CreatedAt)
-                .ToListAsync();
-            var consultationResponses = consultations.Select(c => new GetConsultationResponse
-            {
-                Id = c.Id,
-                Title = c.Title,
-                Description = c.Description,
-                CreatedAt = c.CreatedAt,
-                ClientId = c.ClientId,
-                Budget = c.Budget,
-                Duration = c.Duration,
-                Status = c.Status,
-                UrlFiles = c.Files.Select(f => f.FilePath).ToList()
-            }).ToList();
-            return _responseHandler.Success(consultationResponses, "In-progress consultations retrieved successfully.");
+
+            var consultations = await ConsultationServiceHelper.GetConsultationsAsync(
+                _context,
+                c => (c.Client.Id == userId || c.LawyerId == userId)
+                    && c.Status == ConsultationStatus.InProgress,
+                includeFiles: true
+            );
+
+            var responses = consultations
+                .Select(ConsultationServiceHelper.ToConsultationResponse)
+                .ToList();
+
+            return _responseHandler.Success(responses, "In-progress consultations retrieved successfully.");
         }
         catch (Exception ex)
         {
@@ -401,7 +367,6 @@ public class ConsultationService :  IConsultationService
             return _responseHandler.ServerError<List<GetConsultationResponse>>("An error occurred while retrieving in-progress consultations.");
         }
     }
-
 
     public async Task<Response<List<LawyerSearchResponse>>> SearchLawyersByNameAsync(string name)
     {
@@ -426,35 +391,31 @@ public class ConsultationService :  IConsultationService
         return _responseHandler.Success(lawyers, "Lawyers fetched successfully");
     }
 
-
-
     public async Task<Response<List<ShowAllConsultaionWithoutDetails>>> GetMyConsultationsAsync()
     {
         try
         {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+            var userId = ConsultationServiceHelper.GetCurrentUserId(_httpContextAccessor);
             if (string.IsNullOrEmpty(userId))
             {
                 _logger.LogWarning("User not authenticated.");
                 return _responseHandler.Unauthorized<List<ShowAllConsultaionWithoutDetails>>("User not authenticated.");
             }
-            var consultations = await _context.consultations
-                 .Include(c => c.Files)
-                 .Include(c => c.Proposals)
-                 .Include(c => c.Client)
-                 .Where(c => c.Client.Id == userId)
-                 .OrderByDescending(c => c.CreatedAt)
-                 .Take(5)
-                 .ToListAsync();
+
+            var consultations = await ConsultationServiceHelper.GetConsultationsAsync(
+                _context,
+                c => c.Client.Id == userId,
+                includeFiles: true,
+                take: 5
+            );
 
             var consultationResponses = consultations.Select(c => new ShowAllConsultaionWithoutDetails
             {
                 Id = c.Id,
                 Title = c.Title,
-                ClientId = c.ClientId,
-               //UrlFiles = c.Files.Select(f => f.FilePath).ToList()
+                ClientId = c.ClientId
             }).ToList();
+
             return _responseHandler.Success(consultationResponses, "All consultations retrieved successfully.");
         }
         catch (Exception ex)
@@ -463,4 +424,35 @@ public class ConsultationService :  IConsultationService
             return _responseHandler.ServerError<List<ShowAllConsultaionWithoutDetails>>("An error occurred while retrieving all consultations.");
         }
     }
- }
+
+    #region Helpers
+    private async Task<(List<ConsultationFile> Files, List<string> Urls)> UploadFilesAsync(
+    List<IFormFile> files,
+    Guid consultationId,
+    IImageUploadService imageUploadService)
+    {
+        var uploadedFiles = new List<ConsultationFile>();
+        var uploadedUrls = new List<string>();
+
+        if (files != null && files.Count > 0)
+        {
+            foreach (var file in files)
+            {
+                var uploadResult = await imageUploadService.UploadAsync(file);
+
+                uploadedFiles.Add(new ConsultationFile
+                {
+                    ConsultationId = consultationId,
+                    FileName = file.FileName,
+                    FilePath = uploadResult.Url
+                });
+
+                uploadedUrls.Add(uploadResult.Url);
+            }
+        }
+
+        return (uploadedFiles, uploadedUrls);
+    }
+
+    #endregion
+}

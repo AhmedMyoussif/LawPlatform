@@ -6,7 +6,7 @@ namespace LawPlatform.DataAccess.Services.Consultation;
 
 public interface IConsultationService
 {
-    Task<Response<GetConsultationResponse>> CreateConsultationAsync(CreateConsultationRequest request,string clientid);
+    Task<Response<GetConsultationResponse>> CreateConsultationAsync(CreateConsultationRequest request);
     Task<Response<PaginatedResult<GetConsultationResponse>>> GetAllConsultationsAsync(
      int pageNumber = 1, int pageSize = 10);
     Task<Response<GetConsultationResponse>> GetConsultationByIdAsync(string consultationId);

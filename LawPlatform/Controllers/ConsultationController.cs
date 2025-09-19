@@ -45,7 +45,7 @@ namespace LawPlatform.API.Controllers
 
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized("User not authenticated.");
-            var result = await _consultationService.CreateConsultationAsync(request, userId);
+            var result = await _consultationService.CreateConsultationAsync(request);
 
             if (!result.Succeeded)
             {
@@ -81,21 +81,6 @@ namespace LawPlatform.API.Controllers
             }
             return Ok(result);
         }
-
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteConsultation(string id)
-        //{
-        //    var result = await _consultationService.DeleteConsultationAsync(id);
-        //    if (!result.Succeeded)
-        //    {
-        //        if (result.Message == "Consultation not found")
-        //            return NotFound(result);
-        //        return StatusCode(StatusCodes.Status500InternalServerError, result);
-        //    }
-        //    return Ok(result);
-        //}
-
-
         [HttpGet]
         public async Task<ActionResult<Response<List<GetConsultationResponse>>>> GetConsultations(
             [FromQuery] ConsultationFilterRequest filter)
