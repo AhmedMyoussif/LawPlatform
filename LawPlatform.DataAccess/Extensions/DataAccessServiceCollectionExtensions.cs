@@ -31,7 +31,7 @@ namespace LawPlatform.DataAccess.Extensions
         {
             services.AddDbContext<LawPlatformContext>(options =>
                 options.UseSqlServer(
-                    configuration.GetConnectionString("DevCS")));
+                    configuration.GetConnectionString("ProdCS")));
 
             return services;
         }

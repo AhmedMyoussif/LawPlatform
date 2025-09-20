@@ -16,8 +16,9 @@ namespace LawPlatform.Entities.DTO.Account.Auth.Admin
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public ApprovalStatus Status { get; set; }
-        public string? RejectionReason { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string Specialization { get; set; }
+        public string Experiences { get; set; }
         public string? QualificationDocumentUrl { get; set; }
     }
 }

@@ -196,6 +196,7 @@ namespace LawPlatform.DataAccess.Services.Auth
 
                 await _userManager.AddToRoleAsync(user, "Lawyer");
 
+                // ===== Upload Qualification Document =====
                 string? qualificationDocumentUrl = null;
                 if (model.QualificationDocument != null)
                 {
@@ -203,13 +204,20 @@ namespace LawPlatform.DataAccess.Services.Auth
                     qualificationDocumentUrl = uploadResult?.Url;
                 }
 
-                string? licenseDocumentUrl = null;
-                if (model.LicenseDocument != null)
+                // ===== Upload License Document (Required) =====
+                if (model.LicenseDocument == null)
                 {
-                    var uploadResult = await _imageUploadService.UploadAsync(model.LicenseDocument);
-                    licenseDocumentUrl = uploadResult?.Url;
+                    return _responseHandler.BadRequest<LawyerRegisterResponse>("License document is required.");
                 }
 
+                var licenseUploadResult = await _imageUploadService.UploadAsync(model.LicenseDocument);
+                if (licenseUploadResult == null || string.IsNullOrEmpty(licenseUploadResult.Url))
+                {
+                    return _responseHandler.BadRequest<LawyerRegisterResponse>("Failed to upload license document.");
+                }
+                string licenseDocumentUrl = licenseUploadResult.Url;
+
+                // ===== Create Lawyer =====
                 var lawyer = new Lawyer
                 {
                     FirstName = model.FirstName,
@@ -221,7 +229,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                     Qualifications = model.Qualifications,
                     YearsOfExperience = model.YearsOfExperience,
                     LicenseNumber = model.LicenseNumber,
-                    LicenseDocumentPath = licenseDocumentUrl,
+                    LicenseDocumentPath = licenseDocumentUrl, // Always not null
                     QualificationDocumentPath = qualificationDocumentUrl,
                     Specialization = model.Specialization,
                     Country = model.Country,
@@ -264,16 +272,23 @@ namespace LawPlatform.DataAccess.Services.Auth
                         "Pending Approval",
                         "Your lawyer account is pending approval by the admin.");
 
-
                 return _responseHandler.Created(response, "Lawyer registered successfully and is pending admin approval.");
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
+                try
+                {
+                    await transaction.RollbackAsync();
+                }
+                catch (InvalidOperationException rollbackEx)
+                {
+                    _logger.LogWarning(rollbackEx, "Rollback skipped because transaction already completed.");
+                }
                 _logger.LogError(ex, "Error occurred during RegisterLawyerAsync for Email: {Email}", model.Email);
                 return _responseHandler.BadRequest<LawyerRegisterResponse>("An error occurred during registration.");
             }
         }
+
         #endregion
 
         #region Forgot / Reset Password

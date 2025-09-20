@@ -42,7 +42,7 @@ namespace LawPlatform.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Response<UpdateLawyerAccountStatusResponse>>> UpdateLawyerAccountStatus(
            
-            [FromForm] UpdateLawyerAccountStatusRequest model)
+            [FromBody] UpdateLawyerAccountStatusRequest model)
         {
           
             var result = await _adminService.UpdateLawyerAccountStatusAsync(model);

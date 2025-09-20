@@ -52,7 +52,9 @@ namespace LawPlatform.DataAccess.Services.Admin
                           PhoneNumber = user.PhoneNumber,
                           QualificationDocumentUrl = lawyer.QualificationDocumentPath,
                           Status = lawyer.Status,
-                          CreatedAt = lawyer.CreatedAt                         
+                          CreatedAt = lawyer.CreatedAt,
+                          Specialization = lawyer.Specialization.ToString(),
+                          Experiences = lawyer.Experiences
                       });
 
             var lawyers = await query.ToListAsync();
