@@ -138,6 +138,21 @@ namespace LawPlatform.API.Controllers
                 return _responseHandler.ServerError<bool>("An error occurred while checking the proposal.");
             }
         }
+        [HttpGet("My-Proposals")]
+        [Authorize (Roles ="Lawyer")]
+
+        public async Task<ActionResult<List<GetProposalResponse>>> GetMyProposalsAsync()
+        {
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("Unauthorized access attempt to GetMyProposalsAsync");
+                return Unauthorized(_responseHandler.Unauthorized<string>("User is not authenticated."));
+            }
+            var result = await _ProposalService.GetMyProposalsAsync();
+            return Ok(result);
+        }
 
     }
 }
