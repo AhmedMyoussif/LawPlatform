@@ -13,6 +13,7 @@ using LawPlatform.Utilities.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace LawPlatform.DataAccess.Services.Consultation;
 
@@ -245,39 +246,82 @@ public class ConsultationService :  IConsultationService
 
 
     // For Filtering Consultations Based on Specialization, Budget Range, and Sorting by Newest or Oldest
-    public async Task<Response<List<ShowAllConsultaionWithoutDetails>>> GetConsultationsAsync(ConsultationFilterRequest filter)
+    public async Task<Response<PaginatedResult<ShowAllConsultaionWithoutDetails>>> GetConsultationsAsync(
+    ConsultationFilterRequest filter, int pageNumber = 1, int pageSize = 10)
     {
+        _logger.LogInformation("Retrieving consultations - Page {Page}, Size {Size}", pageNumber, pageSize);
+
+        if (pageNumber <= 0 || pageSize <= 0)
+            return _responseHandler.BadRequest<PaginatedResult<ShowAllConsultaionWithoutDetails>>("Invalid pagination parameters.");
+
         var query = _context.consultations.AsQueryable();
 
-        if (filter.Specialization != default)
-            query = query.Where(c => c.Specialization == filter.Specialization);
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        {
+            query = query.Where(c =>
+             EF.Functions.Contains(c.Title, $"\"{filter.SearchTerm}\"") ||
+             EF.Functions.Contains(c.Description, $"\"{filter.SearchTerm}\""));
 
+        }
+
+
+        // Specializations
+        if (filter.specialization.HasValue)
+            query = query.Where(c => c.Specialization == filter.specialization.Value);
+        // Budget
         if (filter.MinBudget.HasValue)
             query = query.Where(c => c.Budget >= filter.MinBudget.Value);
 
         if (filter.MaxBudget.HasValue)
             query = query.Where(c => c.Budget <= filter.MaxBudget.Value);
 
+        // Sorting
         if (!string.IsNullOrEmpty(filter.Sort))
         {
-            query = filter.Sort.ToLower() == "newest"
-                ? query.OrderByDescending(c => c.CreatedAt)
-                : query.OrderBy(c => c.CreatedAt);
+            query = filter.Sort.ToLower() switch
+            {
+                "newest" => query.OrderByDescending(c => c.CreatedAt),
+                "oldest" => query.OrderBy(c => c.CreatedAt),
+                "budgetasc" => query.OrderBy(c => c.Budget),
+                "budgetdesc" => query.OrderByDescending(c => c.Budget),
+                _ => query.OrderByDescending(c => c.CreatedAt)
+            };
         }
 
-        var consultationResponses = await query
-            .Include(c => c.Files)
+        // Count after filters
+        var totalCount = await query.CountAsync();
+        if (totalCount == 0)
+        {
+            _logger.LogWarning("No consultations found");
+            return _responseHandler.NotFound<PaginatedResult<ShowAllConsultaionWithoutDetails>>("No consultations found.");
+        }
+
+        // Pagination
+        var consultations = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .Select(c => new ShowAllConsultaionWithoutDetails
             {
                 Id = c.Id,
                 Title = c.Title,
                 ClientId = c.ClientId,
-              
+                Budget = c.Budget,
+                Specialization = c.Specialization.ToString()
             })
             .ToListAsync();
 
-        return _responseHandler.Success(consultationResponses, "Consultations retrieved successfully");
+        var result = new PaginatedResult<ShowAllConsultaionWithoutDetails>
+        {
+            Items = consultations,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+        };
+
+        return _responseHandler.Success(result, "Consultations retrieved successfully");
     }
+
 
     // It is Not Allowed To Delete Consultation By Client 
     //public async Task<Response<Guid>> DeleteConsultationAsync(string consultationId)

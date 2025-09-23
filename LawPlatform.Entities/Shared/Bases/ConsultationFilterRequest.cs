@@ -9,9 +9,10 @@ namespace LawPlatform.Entities.Shared.Bases
 {
     public class ConsultationFilterRequest
     {
-        public Specialization Specialization { get; set; }
         public string Sort { get; set; } // "Newest" or "Oldest"
         public decimal? MinBudget { get; set; }
         public decimal? MaxBudget { get; set; }
+        public string? SearchTerm { get; set; }
+        public Specialization? specialization { get; set; }
     }
 }

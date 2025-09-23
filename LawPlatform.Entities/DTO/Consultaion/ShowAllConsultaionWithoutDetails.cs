@@ -11,6 +11,9 @@ namespace LawPlatform.Entities.DTO.Consultaion
         public Guid Id { get; set; }
         public string Title { get; set; }
         public string ClientId { get; set; }
+        
+        public decimal Budget { get; set; }
+        public string Specialization { get; set; }
 
     }
 }
