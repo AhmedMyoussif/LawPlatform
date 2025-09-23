@@ -23,5 +23,10 @@ namespace LawPlatform.DataAccess.Services.Admin
         Task<Response<GetClientsResponse>> GetClientById(string clientid);
         #endregion
 
+        #region Statistics 
+        Task<Response<int>> GetTotalConsultationsCountAsync();
+        Task<Response<int>> GetTotalClientsCountAsync();
+        #endregion
+
     }
 }

@@ -224,5 +224,41 @@ namespace LawPlatform.DataAccess.Services.Admin
         }
 
         #endregion
+
+        #region Statistics
+        // count if clients 
+
+        public async Task<Response<int>> GetTotalClientsCountAsync()
+        {
+            try
+            {
+                var count = await _context.Clients.CountAsync();
+                return _responseHandler.Success(count, "Total clients count retrieved successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving total clients count.");
+                return _responseHandler.BadRequest<int>("An error occurred while retrieving total clients count.");
+            }
+        }
+
+        // count of  in progress consultaions
+        public async Task<Response<int>> GetTotalConsultationsCountAsync()
+        {
+            try
+            {
+                var count = await _context.consultations.Where(c=>c.Status == ConsultationStatus.InProgress).CountAsync();
+                return _responseHandler.Success(count, "Total consultations count retrieved successfully.");
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving total consultations count.");
+                return _responseHandler.BadRequest<int>("An error occurred while retrieving total consultations count.");
+            }
+        }
+
+        #endregion
+
     }
 }

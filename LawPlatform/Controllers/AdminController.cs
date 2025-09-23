@@ -12,7 +12,7 @@ namespace LawPlatform.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles ="Admin")]
+    [Authorize(Roles = "Admin")]
 
     public class AdminController : ControllerBase
     {
@@ -41,10 +41,10 @@ namespace LawPlatform.API.Controllers
         [HttpPut("lawyers/status")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Response<UpdateLawyerAccountStatusResponse>>> UpdateLawyerAccountStatus(
-           
+
             [FromBody] UpdateLawyerAccountStatusRequest model)
         {
-          
+
             var result = await _adminService.UpdateLawyerAccountStatusAsync(model);
             if (!result.Succeeded) return BadRequest(result);
             return Ok(result);
@@ -53,7 +53,7 @@ namespace LawPlatform.API.Controllers
 
         #region Get Lawyer by Id
         [HttpGet("lawyers/{lawyerId}")]
-         public async Task<ActionResult<Response<GetLawyerResponse>>> GetLawyerById(string lawyerId)
+        public async Task<ActionResult<Response<GetLawyerResponse>>> GetLawyerById(string lawyerId)
         {
             var result = await _adminService.GetLawyerByIdAsync(lawyerId);
             if (!result.Succeeded) return BadRequest(result);
@@ -87,6 +87,25 @@ namespace LawPlatform.API.Controllers
 
             return Ok(response);
         }
+        #endregion
+
+
+        #region Statistics
+        [HttpGet("GetTotalConsultationsCount")]
+        public async Task<IActionResult> GetTotalConsultationsCount()
+        {
+            var response = await _adminService.GetTotalConsultationsCountAsync();
+            if (!response.Succeeded) return BadRequest(response);
+            return Ok(response);
+        }
+        [HttpGet("GetTotalClientsCount")]
+        public async Task<IActionResult> GetTotalClientsCount()
+        {
+            var response = await _adminService.GetTotalClientsCountAsync();
+            if (!response.Succeeded) return BadRequest(response);
+            return Ok(response);
+        }
+
         #endregion
     }
 }
