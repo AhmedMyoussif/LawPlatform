@@ -59,9 +59,10 @@ namespace EcommercePlatform
                 options.AddPolicy("AllowAll", policy =>
                 {
                     policy
-                        .AllowAnyOrigin()
+                        .WithOrigins("http://localhost:3000")
                         .AllowAnyMethod()
-                        .AllowAnyHeader();
+                        .AllowAnyHeader()
+                        .AllowCredentials();
                 });
             });
 

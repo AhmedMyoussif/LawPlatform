@@ -105,7 +105,13 @@ namespace LawPlatform.API.Controllers
             if (!response.Succeeded) return BadRequest(response);
             return Ok(response);
         }
-
+        [HttpGet("GetApprovedLawyers")]
+        public async Task<IActionResult> GetApprovedLawyers()
+        {
+            var response = await _adminService.GetLawyersByStatusAsync(ApprovalStatus.Approved);
+            if (!response.Succeeded) return BadRequest(response);
+            return Ok(response);
+        }
         #endregion
     }
 }
