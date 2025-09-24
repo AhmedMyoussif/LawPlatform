@@ -13,7 +13,7 @@ public interface IConsultationService
 
     //Task<Response<Guid>> DeleteConsultationAsync(string consultationId);
 
-    Task<Response<PaginatedResult<ShowAllConsultaionWithoutDetails>>> GetConsultationsAsync(ConsultationFilterRequest filter, int pageNumber = 1, int pageSize = 10);
+    Task<Response<PaginatedResult<GetConsultationResponse>>> GetConsultationsAsync(ConsultationFilterRequest filter, int pageNumber = 1, int pageSize = 10);
 
     Task<Response<List<GetConsultationResponse>>> GetMyLatestConsultationsAsync();
 

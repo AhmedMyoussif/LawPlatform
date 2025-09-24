@@ -83,9 +83,9 @@ namespace LawPlatform.API.Controllers
         }
         [HttpGet]
         public async Task<ActionResult<Response<List<GetConsultationResponse>>>> GetConsultations(
-            [FromQuery] ConsultationFilterRequest filter)
+            [FromQuery] ConsultationFilterRequest filter , [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _consultationService.GetConsultationsAsync(filter);
+            var result = await _consultationService.GetConsultationsAsync(filter, pageNumber ,pageSize);
             return Ok(result);
         }
 

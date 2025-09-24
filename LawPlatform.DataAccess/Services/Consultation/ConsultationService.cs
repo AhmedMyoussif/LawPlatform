@@ -246,15 +246,17 @@ public class ConsultationService :  IConsultationService
 
 
     // For Filtering Consultations Based on Specialization, Budget Range, and Sorting by Newest or Oldest
-    public async Task<Response<PaginatedResult<ShowAllConsultaionWithoutDetails>>> GetConsultationsAsync(
+    public async Task<Response<PaginatedResult<GetConsultationResponse>>> GetConsultationsAsync(
     ConsultationFilterRequest filter, int pageNumber = 1, int pageSize = 10)
     {
         _logger.LogInformation("Retrieving consultations - Page {Page}, Size {Size}", pageNumber, pageSize);
 
         if (pageNumber <= 0 || pageSize <= 0)
-            return _responseHandler.BadRequest<PaginatedResult<ShowAllConsultaionWithoutDetails>>("Invalid pagination parameters.");
+            return _responseHandler.BadRequest<PaginatedResult<GetConsultationResponse>>("Invalid pagination parameters.");
 
-        var query = _context.consultations.AsQueryable();
+        var query = _context.consultations
+            .Include(c=>c.Client)
+            .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
         {
@@ -276,9 +278,8 @@ public class ConsultationService :  IConsultationService
             query = query.Where(c => c.Budget <= filter.MaxBudget.Value);
 
         // Sorting
-        if (!string.IsNullOrEmpty(filter.Sort))
-        {
-            query = filter.Sort.ToLower() switch
+       
+            query = (filter.Sort ?? string.Empty).ToLower() switch
             {
                 "newest" => query.OrderByDescending(c => c.CreatedAt),
                 "oldest" => query.OrderBy(c => c.CreatedAt),
@@ -286,31 +287,46 @@ public class ConsultationService :  IConsultationService
                 "budgetdesc" => query.OrderByDescending(c => c.Budget),
                 _ => query.OrderByDescending(c => c.CreatedAt)
             };
-        }
+        
 
         // Count after filters
         var totalCount = await query.CountAsync();
         if (totalCount == 0)
         {
             _logger.LogWarning("No consultations found");
-            return _responseHandler.NotFound<PaginatedResult<ShowAllConsultaionWithoutDetails>>("No consultations found.");
+            return _responseHandler.NotFound<PaginatedResult<GetConsultationResponse>>("No consultations found.");
         }
 
         // Pagination
         var consultations = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(c => new ShowAllConsultaionWithoutDetails
+            .Select(c => new GetConsultationResponse
             {
                 Id = c.Id,
                 Title = c.Title,
                 ClientId = c.ClientId,
                 Budget = c.Budget,
-                Specialization = c.Specialization.ToString()
+                Specialization = c.Specialization,
+                CreatedAt = c.CreatedAt,
+                Status = c.Status,
+                Duration = c.Duration,
+                UrlFiles = c.Files.Select(f => f.FilePath).ToList(),
+                Description = c.Description,
+                LawyerId = c.LawyerId,  
+                Client = new ClientInfo
+                {
+                    Id = c.Client.Id,
+                    ProfileImage = c.Client.ProfileImage.ImageUrl,
+                    FullName = c.Client.FirstName + " " + c.Client.LastName,
+
+                },
+               ProposalsCount = c.Proposals.Count
+
             })
             .ToListAsync();
 
-        var result = new PaginatedResult<ShowAllConsultaionWithoutDetails>
+        var result = new PaginatedResult<GetConsultationResponse>
         {
             Items = consultations,
             PageNumber = pageNumber,
