@@ -51,6 +51,12 @@ namespace LawPlatform.API.Controllers
         {
             var result = await _authService.LoginAsync(model);
             if (!result.Succeeded) return BadRequest(result);
+            Response.Cookies.Append("jwt", result.Data.AccessToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict
+            });
             return Ok(result);
         }
         
@@ -176,6 +182,7 @@ namespace LawPlatform.API.Controllers
         public async Task<IActionResult> Logout()
         {
             var response = await _authService.LogoutAsync(User);
+            Response.Cookies.Delete("jwt");
             return StatusCode((int)response.StatusCode, response);
         }
     }
