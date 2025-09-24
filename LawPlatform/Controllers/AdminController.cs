@@ -26,7 +26,7 @@ namespace LawPlatform.API.Controllers
             _logger = logger;
         }
 
-        #region Get Lawyers by Status
+
         [HttpGet("lawyers")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Response<List<GetLawyerResponse>>>> GetLawyersByStatus([FromQuery] ApprovalStatus? status)
@@ -35,9 +35,7 @@ namespace LawPlatform.API.Controllers
             if (!result.Succeeded) return BadRequest(result);
             return Ok(result);
         }
-        #endregion
 
-        #region Update Lawyer Account Status
         [HttpPut("lawyers/status")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Response<UpdateLawyerAccountStatusResponse>>> UpdateLawyerAccountStatus(
@@ -49,9 +47,7 @@ namespace LawPlatform.API.Controllers
             if (!result.Succeeded) return BadRequest(result);
             return Ok(result);
         }
-        #endregion
 
-        #region Get Lawyer by Id
         [HttpGet("lawyers/{lawyerId}")]
         public async Task<ActionResult<Response<GetLawyerResponse>>> GetLawyerById(string lawyerId)
         {
@@ -59,9 +55,7 @@ namespace LawPlatform.API.Controllers
             if (!result.Succeeded) return BadRequest(result);
             return Ok(result);
         }
-        #endregion
 
-        #region Get All Clients
         [HttpGet("all/clients")]
         public async Task<IActionResult> GetAllClients()
         {
@@ -87,10 +81,8 @@ namespace LawPlatform.API.Controllers
 
             return Ok(response);
         }
-        #endregion
 
 
-        #region Statistics
         [HttpGet("GetTotalConsultationsCount")]
         public async Task<IActionResult> GetTotalConsultationsCount()
         {
@@ -112,6 +104,6 @@ namespace LawPlatform.API.Controllers
             if (!response.Succeeded) return BadRequest(response);
             return Ok(response);
         }
-        #endregion
+
     }
 }
