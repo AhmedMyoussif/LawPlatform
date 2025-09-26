@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.Notification;
 using LawPlatform.Entities.DTO.Account.Auth.Admin;
+using LawPlatform.Entities.DTO.Consultaion;
 using LawPlatform.Entities.Models.Auth.Identity;
+using LawPlatform.Entities.Models.Auth.Users;
 using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Utilities.Enums;
 using Microsoft.AspNetCore.Identity;
@@ -35,8 +37,14 @@ namespace LawPlatform.DataAccess.Services.Admin
 
 
         #region Get Lawyers by Status
-        public async Task<Response<List<GetLawyerResponse>>> GetLawyersByStatusAsync(ApprovalStatus? status = ApprovalStatus.Pending)
+        public async Task<Response<PaginatedResult<GetLawyerResponse>>> GetLawyersByStatusAsync(
+         ApprovalStatus? status = ApprovalStatus.Pending,
+         int pageNumber = 1,
+         int pageSize = 10)
         {
+            if (pageNumber <= 0 || pageSize <= 0)
+                return _responseHandler.BadRequest<PaginatedResult<GetLawyerResponse>>("Invalid pagination parameters.");
+
             var query = _context.Lawyers
                 .Where(l => !status.HasValue || l.Status == status.Value)
                 .Join(_userManager.Users,
@@ -57,9 +65,24 @@ namespace LawPlatform.DataAccess.Services.Admin
                           Experiences = lawyer.Experiences
                       });
 
-            var lawyers = await query.ToListAsync();
-            return _responseHandler.Success(lawyers, "Lawyers retrieved successfully.");
+            var totalCount = await query.CountAsync();
+
+            var lawyers = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var result = new PaginatedResult<GetLawyerResponse>
+            {
+                Items = lawyers,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+
+            return _responseHandler.Success(result, "Lawyers retrieved successfully.");
         }
+
         #endregion
         #region Get Lawyer by Id
 
@@ -142,7 +165,7 @@ namespace LawPlatform.DataAccess.Services.Admin
         #endregion
 
         #region Get /  Client
-        public async Task<Response<List<GetClientsResponse>>> GetAllClients()
+        public async Task<Response<List<GetClientsResponse>>> GetAllClients(string? search)
         {
             _logger.LogInformation("Starting GetAllClients at {Time}", DateTime.UtcNow);
 
@@ -155,7 +178,7 @@ namespace LawPlatform.DataAccess.Services.Admin
                         (client, user) => new GetClientsResponse
                         {
                             Id = client.Id,
-                            FullName = user.UserName,
+                            FullName = client.FirstName + " " + client.LastName,
                             Email = user.Email,
                             PhoneNumber = user.PhoneNumber,
                             CreatedAt = client.CreatedAt,
@@ -163,6 +186,14 @@ namespace LawPlatform.DataAccess.Services.Admin
 
                         })
                     .ToListAsync();
+                if (!string.IsNullOrEmpty(search))
+                {
+                    clients = clients.Where(c =>
+                        c.FullName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                        c.Email.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                        c.PhoneNumber.Contains(search, StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+                }
 
                 if (clients == null || clients.Count == 0)
                 {
@@ -222,6 +253,59 @@ namespace LawPlatform.DataAccess.Services.Admin
                 return _responseHandler.BadRequest<GetClientsResponse>("An error occurred while retrieving client.");
             }
         }
+
+        #endregion
+
+        #region mentoring
+        public async Task<Response<PaginatedResult<ShowAllConsultaionWithoutDetails>>> MentorConsultationsync(
+     string consultation, int pageNumber = 1, int pageSize = 10)
+        {
+            if (pageNumber <= 0 || pageSize <= 0)
+                return _responseHandler.BadRequest<PaginatedResult<ShowAllConsultaionWithoutDetails>>("Invalid pagination parameters.");
+
+            var query = _context.consultations
+                .Include(c => c.Client)
+                .Include(c => c.Lawyer)
+                .Where(c=>c.Status != ConsultationStatus.Active)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(consultation))
+            {
+                query = query.Where(c => EF.Functions.Contains(c.Title, $"\"{consultation}\""));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var consultations = await query
+                .OrderByDescending(c => c.CreatedAt) 
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(c => new ShowAllConsultaionWithoutDetails
+                {
+                    Id = c.Id,
+                    Title = c.Title,
+                    Status = c.Status.ToString(),
+                    CreatedAt = c.CreatedAt,
+                    LawyerName = c.Lawyer.FirstName + " " + c.Lawyer.LastName,
+                    ClientName = c.Client.FirstName + " " + c.Client.LastName,
+                    Budget = c.Budget,
+                    LawyerId = c.LawyerId,                   
+                    ClientId = c.ClientId,
+                    Specialization = c.Specialization.ToString()
+                })
+                .ToListAsync();
+
+            var result = new PaginatedResult<ShowAllConsultaionWithoutDetails>
+            {
+                Items = consultations,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+
+            return _responseHandler.Success(result, "Consultations retrieved successfully.");
+        }
+
 
         #endregion
 

@@ -57,11 +57,11 @@ namespace LawPlatform.API.Controllers
         }
 
         [HttpGet("all/clients")]
-        public async Task<IActionResult> GetAllClients()
+        public async Task<IActionResult> GetAllClients(string?search)
         {
             _logger.LogInformation("HTTP GET /api/clients/all called");
 
-            var response = await _adminService.GetAllClients();
+            var response = await _adminService.GetAllClients(search);
 
             if (!response.Succeeded)
                 return BadRequest(response);
@@ -79,6 +79,14 @@ namespace LawPlatform.API.Controllers
             if (!response.Succeeded)
                 return BadRequest(response);
 
+            return Ok(response);
+        }
+
+        [HttpGet("MentorConsultations")]
+        public async Task<IActionResult> GetMentorConsultations(string consultation , int pageNumber = 1 , int pageSize = 10 )
+        {
+            var response = await _adminService.MentorConsultationsync(consultation , pageNumber , pageSize);
+            if (!response.Succeeded) return BadRequest(response);
             return Ok(response);
         }
 

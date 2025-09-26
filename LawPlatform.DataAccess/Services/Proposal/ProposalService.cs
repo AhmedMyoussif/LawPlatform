@@ -196,6 +196,7 @@ namespace LawPlatform.DataAccess.Services.Proposal
                 }
                
                 proposal.Status = ProposalStatus.Accepted;
+                proposal.Consultation.LawyerId = proposal.LawyerId;
                 proposal.UpdatedAt = DateTime.UtcNow;
                 proposal.Consultation.Status = ConsultationStatus.InProgress;
                 proposal.Consultation.UpdatedAt = DateTime.UtcNow;
