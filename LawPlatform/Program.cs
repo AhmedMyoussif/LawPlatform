@@ -59,7 +59,7 @@ namespace EcommercePlatform
                 options.AddPolicy("AllowAll", policy =>
                 {
                     policy
-                        .WithOrigins("http://localhost:3000")
+                        .WithOrigins("http://localhost:3000", "https://tajalsalam.vercel.app")
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials();
