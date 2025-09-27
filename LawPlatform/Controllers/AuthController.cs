@@ -55,7 +55,8 @@ namespace LawPlatform.API.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddMinutes(30) // Set the expiration time as needed
             });
             return Ok(result);
         }

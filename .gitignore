@@ -57,3 +57,4 @@ nunit-*.xml
 /LawPlatform/appsettings.Development.json
 .vs/
 /LawPlatform/Properties/PublishProfiles
+/LawPlatform/Properties/PublishProfiles/site36399-WebDeploy.pubxml.user
