@@ -18,6 +18,7 @@ using Microsoft.IdentityModel.Tokens;
 using LoginRequest = LawPlatform.Entities.DTO.Account.Auth.Login.LoginRequest;
 using ResetPasswordRequest = LawPlatform.Entities.DTO.Account.Auth.ResetPassword.ResetPasswordRequest;
 using LawPlatform.DataAccess.Services.OAuth;
+using Microsoft.AspNetCore.Http;
 
 namespace LawPlatform.API.Controllers
 {
@@ -51,14 +52,15 @@ namespace LawPlatform.API.Controllers
         {
             var result = await _authService.LoginAsync(model);
             if (!result.Succeeded) return BadRequest(result);
-            Response.Cookies.Append("jwt", result.Data.AccessToken, new CookieOptions
+            var response = new
             {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Expires = DateTimeOffset.UtcNow.AddMinutes(30) // Set the expiration time as needed
-            });
+                accessToken = result.Data.AccessToken,
+                refreshToken = result.Data.RefreshToken,
+                user = result.Data 
+            };
+
             return Ok(result);
+
         }
         
         
