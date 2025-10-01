@@ -61,18 +61,34 @@ namespace LawPlatform.DataAccess.Extensions
 
         }
 
+        //public static IServiceCollection AddEmailServices(this IServiceCollection services, IConfiguration configuration)
+        //{
+        //    var emailSettings = configuration.GetSection("EmailSettings").Get<EmailSettings>();
+
+        //    services.AddFluentEmail(emailSettings.FromEmail)
+        //        .AddSmtpSender(new SmtpClient(emailSettings.SmtpServer)
+        //        {
+        //            Port = emailSettings.SmtpPort,
+        //            Credentials = new NetworkCredential(emailSettings.Username, emailSettings.Password),
+        //            EnableSsl = emailSettings.EnableSsl
+        //        });
+        //    return services;
+        //}
         public static IServiceCollection AddEmailServices(this IServiceCollection services, IConfiguration configuration)
         {
             var emailSettings = configuration.GetSection("EmailSettings").Get<EmailSettings>();
 
             services.AddFluentEmail(emailSettings.FromEmail)
-                .AddSmtpSender(new SmtpClient(emailSettings.SmtpServer)
+                .AddSmtpSender(() => new SmtpClient(emailSettings.SmtpServer, emailSettings.SmtpPort)
                 {
-                    Port = emailSettings.SmtpPort,
                     Credentials = new NetworkCredential(emailSettings.Username, emailSettings.Password),
-                    EnableSsl = emailSettings.EnableSsl
+                    EnableSsl = emailSettings.EnableSsl,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = false
                 });
+
             return services;
         }
+
     }
 }

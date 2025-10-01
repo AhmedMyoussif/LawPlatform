@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LawPlatform.DataAccess.ApplicationContext;
+using LawPlatform.DataAccess.Services.Email;
 using LawPlatform.DataAccess.Services.Notification;
 using LawPlatform.Entities.DTO.Account.Auth.Admin;
 using LawPlatform.Entities.DTO.Consultaion;
@@ -24,8 +25,10 @@ namespace LawPlatform.DataAccess.Services.Admin
         private readonly ResponseHandler _responseHandler;
         private readonly ILogger<AdminService> _logger;
         private readonly INotificationService _notificationService;
+        private readonly IEmailService _emailService;
 
-        public AdminService(UserManager<User> userManager, LawPlatformContext context, ResponseHandler responseHandler, ILogger<AdminService> logger, INotificationService notificationService)
+
+        public AdminService(UserManager<User> userManager, LawPlatformContext context, ResponseHandler responseHandler, ILogger<AdminService> logger, INotificationService notificationService, IEmailService emailService)
         {
 
             _context = context;
@@ -33,6 +36,7 @@ namespace LawPlatform.DataAccess.Services.Admin
             _userManager = userManager;
             _logger = logger;
             _notificationService = notificationService;
+            _emailService = emailService;
         }
 
 
@@ -141,6 +145,12 @@ namespace LawPlatform.DataAccess.Services.Admin
             };
             if (lawyer.Status == ApprovalStatus.Approved)
             {
+                await _notificationService.NotifyUserAsync(
+                    lawyer.Id,
+                    "Account Approved",
+                    "Your lawyer account has been approved. You can now log in."
+                );
+                await _emailService.SendLawyerEmailAsync(lawyer, LawyerEmailType.Approved);
                 await _notificationService.NotifyUserAsync(
                     lawyer.Id,
                     "Account Approved",
