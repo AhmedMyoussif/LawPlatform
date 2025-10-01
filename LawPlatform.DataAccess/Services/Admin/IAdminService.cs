@@ -18,7 +18,7 @@ namespace LawPlatform.DataAccess.Services.Admin
         Task<Response<GetLawyerResponse>> GetLawyerByIdAsync(string lawyerId);
         #endregion
 
-        #region Get / Update Client
+        #region Get /  Client
 
         Task<Response<List<GetClientsResponse>>> GetAllClients(string? search);
         Task<Response<GetClientsResponse>> GetClientById(string clientid);

@@ -20,4 +20,6 @@ public interface IConsultationService
     Task<Response<List<GetConsultationResponse>>> GetMyConsultationsInProgressAsync();
     Task<Response<List<ShowAllConsultaionWithoutDetails>>> GetMyConsultationsAsync();
     Task<Response<List<LawyerSearchResponse>>> SearchLawyersByNameAsync(string name);
+    Task<Response<List<GetConsultationResponse>>> GetNewestOrders();
+
 }

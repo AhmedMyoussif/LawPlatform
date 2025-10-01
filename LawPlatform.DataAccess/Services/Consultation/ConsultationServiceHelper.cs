@@ -27,6 +27,7 @@ public static class ConsultationServiceHelper
             Budget = c.Budget,
             Duration = c.Duration,
             Status = c.Status,
+            LawyerId = c.LawyerId,
             UrlFiles = c.Files?.Select(f => f.FilePath).ToList() ?? new()
         };
     }

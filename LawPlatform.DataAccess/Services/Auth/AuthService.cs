@@ -78,6 +78,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                     Email = user.Email,
                     Role = roles.FirstOrDefault(),
                     IsEmailConfirmed = user.EmailConfirmed,
+                    PhoneNumber = user.PhoneNumber,
                     AccessToken = tokens.AccessToken,
                     RefreshToken = tokens.RefreshToken
                 };

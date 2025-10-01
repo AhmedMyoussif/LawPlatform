@@ -143,5 +143,13 @@ namespace LawPlatform.API.Controllers
             return Ok(result);
         }
 
+
+        [HttpGet("NewestOrders")]
+        [Authorize(Roles = "Lawyer")]
+        public async Task<ActionResult<Response<List<GetConsultationResponse>>>> GetNewestOrders()
+        {
+            return await _consultationService.GetNewestOrders();
+        }
+
     }
 }
