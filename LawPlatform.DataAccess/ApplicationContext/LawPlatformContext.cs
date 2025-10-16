@@ -34,5 +34,6 @@ namespace LawPlatform.DataAccess.ApplicationContext
         public DbSet<ConsultationFile> ConsultationFiles { get; set; }
 
         public DbSet<ProfileImage> profileImages { get; set; }
+        public DbSet<Review> Reviews { get; set; }
     }
 }
