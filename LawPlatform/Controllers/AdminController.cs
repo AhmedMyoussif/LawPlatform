@@ -88,5 +88,20 @@ namespace LawPlatform.API.Controllers
             return Ok(response);
         }
         #endregion
+
+        #region Delete Account  
+
+        [HttpDelete("delete/{userId}")]
+        //[Authorize("Admin")]
+        [Authorize]
+        public async Task<IActionResult> DeleteAccount(Guid userId, CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("HTTP DELETE /api/admin/delete/{UserId} called", userId);
+            var response = await _adminService.DeleteAccountAsync(userId, cancellationToken);
+            if (!response.Succeeded)
+                return BadRequest(response);
+            return Ok(response);
+        }
+        #endregion
     }
 }

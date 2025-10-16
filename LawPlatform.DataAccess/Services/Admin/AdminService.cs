@@ -201,5 +201,73 @@ namespace LawPlatform.DataAccess.Services.Admin
         }
 
         #endregion
+
+        #region Delete / Account
+
+        public async Task<Response<bool>> DeleteAccountAsync(Guid userId, CancellationToken cancellationToken = default)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+            {
+                _logger.LogWarning("User with id {UserId} not found.", userId);
+                return _responseHandler.NotFound<bool>("User not found.");
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+            try
+            {
+                // Mark related entities as deleted based on user role
+                if (roles != null && roles.Count > 0)
+                {
+                    if (roles.Contains("Lawyer"))
+                    {
+                        var lawyer = await _context.Lawyers.FirstOrDefaultAsync(l => l.Id == userId.ToString(), cancellationToken);
+                        if (lawyer == null)
+                        {
+                            _logger.LogWarning("Lawyer with id {UserId} not found.", userId);
+                            return _responseHandler.NotFound<bool>("Lawyer not found.");
+                        }
+                        lawyer.IsDeleted = true;
+                        lawyer.DeletedAt = DateTime.UtcNow;
+                    }
+                    else if (roles.Contains("Client"))
+                    {
+                        var client = await _context.Clients.FirstOrDefaultAsync(c => c.Id == userId.ToString(), cancellationToken);
+                        if (client == null)
+                        {
+                            _logger.LogWarning("Client with id {UserId} not found.", userId);
+                            return _responseHandler.NotFound<bool>("Client not found.");
+                         }
+                        client.IsDeleted = true;
+                        client.DeletedAt = DateTime.UtcNow;
+                    }
+                }
+
+
+                // Mark refresh tokens as deleted/revoked
+                var refreshTokens = await _context.UserRefreshTokens
+                    .Where(rt => rt.UserId == userId.ToString())
+                    .ToListAsync(cancellationToken);
+                
+                _context.UserRefreshTokens.RemoveRange(refreshTokens);
+
+                await _context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                
+                _logger.LogInformation("User account {UserId} and related data marked as deleted.", userId);
+                return _responseHandler.Success(true, "User account deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                _logger.LogError(ex, "An error occurred while deleting user {UserId}", userId);
+                return _responseHandler.InternalServerError<bool>("An error occurred while deleting user.");
+            }
+        }
+
+
+        #endregion
     }
 }
