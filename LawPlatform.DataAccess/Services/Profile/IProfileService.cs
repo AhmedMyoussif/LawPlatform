@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LawPlatform.Entities.DTO.Profile;
 using LawPlatform.Entities.Shared.Bases;
+using Microsoft.AspNetCore.Http;
 
 namespace LawPlatform.DataAccess.Services.Profile
 {
@@ -12,6 +13,6 @@ namespace LawPlatform.DataAccess.Services.Profile
     {
         Task<Response<object>> GetProfileAsync();
         Task<Response<bool>>UpdateProfileAsync(UpdateClientProfileRequest dto);
-       // Task<Response<bool>>UpdateProfilePictureAsync(string userId, UpdateClientProfileRequest dto);
+        Task<Response<bool>> UpdateProfileImageAsync(IFormFile profileImage);
     }
 }
