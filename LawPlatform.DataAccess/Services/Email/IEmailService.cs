@@ -10,5 +10,6 @@ namespace LawPlatform.DataAccess.Services.Email
     public interface IEmailService
     {
          Task SendLawyerApprovalEmailAsync(User lawyer);
+        Task SendClientRegstrationEmailAsync(User client);
     }
 }

@@ -14,8 +14,12 @@ namespace LawPlatform.Entities.Models.Auth.Users
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Address { get; set; }
+        public bool IsDeleted { get; set; } = false;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
+
 
         public ProfileImage ProfileImage { get; set; }
         public ICollection<Consultation> Consultations { get; set; } = new List<Consultation>();

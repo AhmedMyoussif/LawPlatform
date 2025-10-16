@@ -23,5 +23,9 @@ namespace LawPlatform.DataAccess.Services.Admin
         Task<Response<GetClientsResponse>> GetClientById(string clientid);
         #endregion
 
+        #region Delete / Delete Account
+        Task<Response<bool>> DeleteAccountAsync(Guid userId, CancellationToken cancellationToken = default);
+        #endregion
+
     }
 }
