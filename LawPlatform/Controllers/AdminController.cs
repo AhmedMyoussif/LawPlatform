@@ -89,7 +89,6 @@ namespace LawPlatform.API.Controllers
             if (!response.Succeeded) return BadRequest(response);
             return Ok(response);
         }
-        #endregion
 
         #region Delete Account  
 

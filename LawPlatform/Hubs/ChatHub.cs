@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using LawPlatform.DataAccess.Services.Chat;
 using LawPlatform.Entities.Models;
+using LawPlatform.Entities.DTO.chat;
 
 namespace LawPlatform.API.Hubs
 {
@@ -138,18 +139,19 @@ namespace LawPlatform.API.Hubs
                 await Clients.Caller.SendAsync("Error", "Failed to mark as read.");
             }
         }
-    
-        public async Task<List<ChatMessage>> GetConversation(string otherUserId, int take = 50)
+
+        public async Task<List<ChatMessageDto>> GetConversation(string otherUserId, Guid consultaionId, int take = 50)
         {
             var me = GetUserId();
             if (string.IsNullOrWhiteSpace(me) || string.IsNullOrWhiteSpace(otherUserId))
             {
-                return new List<ChatMessage>();
+                return new List<ChatMessageDto>();
             }
 
-            var msgs = await _chatService.GetConversationAsync(me, otherUserId, take);
+            var msgs = await _chatService.GetConversationAsync(me, otherUserId, consultaionId, take);
             return msgs.OrderBy(m => m.SentAt).ToList();
         }
+
 
         private async Task _hubSendToUser(string userId, string method, params object[] args)
         {

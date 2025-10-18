@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using LawPlatform.DataAccess.ApplicationContext;
+using LawPlatform.Entities.DTO.chat;
 using LawPlatform.Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,13 +20,26 @@ namespace LawPlatform.DataAccess.Services.Chat
             _context = context;
         }
 
-        public async Task<List<ChatMessage>> GetConversationAsync(string userA, string userB, int take = 50)
+        public async Task<List<ChatMessageDto>> GetConversationAsync(string userA, string userB, Guid consultaionId, int take = 50)
         {
             return await _context.ChatMessages
-                .Where(m => (m.SenderId == userA && m.ReceiverId == userB) || (m.SenderId == userB && m.ReceiverId == userA))
-                .OrderByDescending(m => m.SentAt)
-                .Take(take)
-                .ToListAsync();
+          .Where(m =>
+              m.ConsultationId == consultaionId &&
+              ((m.SenderId == userA && m.ReceiverId == userB) ||
+               (m.SenderId == userB && m.ReceiverId == userA))
+          )
+          .OrderByDescending(m => m.SentAt)
+          .Take(take)
+          .Select(m => new ChatMessageDto
+          {
+              Id = m.Id,
+              SenderId = m.SenderId,
+              ReceiverId = m.ReceiverId,
+              Content = m.Content,
+              SentAt = m.SentAt.DateTime,
+              IsRead = m.IsRead
+          })
+          .ToListAsync();
         }
 
         public async Task MarkConversationAsReadAsync(string readerId, string otherUserId)
