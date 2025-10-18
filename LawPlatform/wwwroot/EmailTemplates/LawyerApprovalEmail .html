@@ -1,0 +1,386 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lawyer Account Approved - Tag Al-Salam</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+            .header h1 {
+                color: #ffffff;
+                margin: 0;
+                font-size: 28px;
+                font-weight: 600;
+            }
+
+        .badge {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            border: 4px solid #ffffff;
+        }
+
+        .badge-icon {
+            font-size: 48px;
+        }
+
+        .content {
+            padding: 40px 30px;
+            color: #333333;
+            line-height: 1.6;
+        }
+
+        .greeting {
+            font-size: 26px;
+            color: #2c5364;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .approval-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 25px 0;
+            font-size: 18px;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+        }
+
+        .message {
+            font-size: 16px;
+            color: #555555;
+            margin-bottom: 15px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 14px 32px;
+            margin: 25px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+        }
+
+            .cta-button:hover {
+                box-shadow: 0 6px 8px rgba(102, 126, 234, 0.4);
+                transform: translateY(-2px);
+            }
+
+        .features {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+
+        .features-title {
+            font-size: 18px;
+            color: #2c5364;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 12px;
+            background-color: #ffffff;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+            .feature-item:last-child {
+                margin-bottom: 0;
+            }
+
+        .feature-icon {
+            color: #667eea;
+            font-size: 20px;
+            margin-right: 12px;
+            font-weight: bold;
+            min-width: 24px;
+        }
+
+        .feature-text {
+            font-size: 14px;
+            color: #555555;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            color: #333333;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .stat-box {
+            flex: 1;
+            padding: 15px;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #888888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #e0e0e0, transparent);
+            margin: 30px 0;
+        }
+
+        .info-box {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffd54f;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+
+        .info-box-title {
+            font-weight: 600;
+            color: #f57f17;
+            margin-bottom: 8px;
+        }
+
+        .info-box-text {
+            font-size: 14px;
+            color: #666666;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #888888;
+            font-size: 13px;
+        }
+
+        .footer-links {
+            margin: 15px 0;
+        }
+
+        .footer-link {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+            .footer-link:hover {
+                text-decoration: underline;
+            }
+
+        .social-icons {
+            margin: 20px 0;
+        }
+
+        .social-icon {
+            display: inline-block;
+            width: 36px;
+            height: 36px;
+            background-color: #667eea;
+            color: #ffffff;
+            border-radius: 50%;
+            line-height: 36px;
+            margin: 0 5px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+
+            .greeting {
+                font-size: 22px;
+            }
+
+            .message {
+                font-size: 14px;
+            }
+
+            .cta-button {
+                display: block;
+                text-align: center;
+            }
+
+            .stats-container {
+                flex-direction: column;
+            }
+
+            .stat-box {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Account Approved!</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">Congratulations, {Username}! </div>
+
+            <div class="approval-message">
+                Your lawyer account has been approved by our Admin team!
+            </div>
+
+            <p class="message">
+                We're excited to welcome you to the Tag Al-Salam legal professionals community. After a thorough review of your credentials and qualifications, we're pleased to confirm that your account is now fully activated.
+            </p>
+
+            <p class="message">
+                You can now access your professional dashboard and start connecting with clients who need your expertise.
+            </p>
+
+            <div class="stats-container">
+                <div class="stat-box">
+                    <span class="stat-number">500+</span>
+                    <span class="stat-label">Active Clients</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">1000+</span>
+                    <span class="stat-label">Cases Handled</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">4.8★</span>
+                    <span class="stat-label">Avg Rating</span>
+                </div>
+            </div>
+
+            <div class="features">
+                <div class="features-title">What You Can Do Now</div>
+
+                <div class="feature-item">
+                    <span class="feature-icon">📋</span>
+                    <div class="feature-text">
+                        <span class="feature-title">Receive Consultation Requests</span>
+                        Get notified instantly when clients request your services
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <span class="feature-icon">💼</span>
+                    <div class="feature-text">
+                        <span class="feature-title">Manage Your Cases</span>
+                        Track all your consultations and proposals in one place
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <span class="feature-icon">⭐</span>
+                    <div class="feature-text">
+                        <span class="feature-title">Build Your Reputation</span>
+                        Receive reviews and ratings from satisfied clients
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <span class="feature-icon">💬</span>
+                    <div class="feature-text">
+                        <span class="feature-title">Direct Communication</span>
+                        Connect securely with clients through our platform
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <span class="feature-icon">📊</span>
+                    <div class="feature-text">
+                        <span class="feature-title">Analytics & Insights</span>
+                        Monitor your performance and client satisfaction
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-box-title">💡 Next Steps</div>
+                <div class="info-box-text">
+                    Complete your profile, set your availability, and define your specializations to start receiving consultation requests from clients.
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <p class="message" style="font-size: 14px; color: #888888;">
+                If you have any questions or need assistance getting started, our support team is available 24/7 to help you succeed.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="social-icons">
+                <a href="#" class="social-icon">f</a>
+                <a href="#" class="social-icon">t</a>
+                <a href="#" class="social-icon">in</a>
+            </div>
+
+            <div class="footer-links">
+                <a href="#" class="footer-link">Lawyer Resources</a>
+                <a href="#" class="footer-link">Help Center</a>
+                <a href="#" class="footer-link">Privacy Policy</a>
+                <a href="#" class="footer-link">Terms of Service</a>
+            </div>
+
+            <p style="margin: 15px 0 5px 0;">© {CurrentYear} Tag Al-Salam. All rights reserved.</p>
+            <p style="margin: 5px 0; font-size: 12px;">Professional Legal Services Platform</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -107,7 +107,7 @@ namespace LawPlatform.DataAccess.Services.Auth
             {
                 var user = new User
                 {
-                    UserName = model.Email.Trim().ToLower(),
+                    UserName = model.FirstName,
                     Email = model.Email.Trim().ToLower(),
                     PhoneNumber = model.PhoneNumber,
                     EmailConfirmed = true
@@ -135,6 +135,8 @@ namespace LawPlatform.DataAccess.Services.Auth
 
                 _context.Clients.Add(client);
                 await _context.SaveChangesAsync();
+
+                await _emailService.SendClientRegstrationEmailAsync(user);
 
                 // generate & store tokens (stored with user.Id)
                 var tokens = await _tokenStoreService.GenerateAndStoreTokensAsync(user);

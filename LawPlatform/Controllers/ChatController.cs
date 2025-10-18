@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using LawPlatform.DataAccess.Services.Chat;
 using LawPlatform.Entities.Models;
 using LawPlatform.API.Hubs;
+using LawPlatform.Entities.DTO.chat;
 
 namespace LawPlatform.API.Controllers
 {
@@ -36,12 +37,12 @@ namespace LawPlatform.API.Controllers
         }
 
         [HttpGet("private/{otherUserId}")]
-        public async Task<IActionResult> GetConversation(string otherUserId)
+        public async Task<IActionResult> GetConversation(string otherUserId , Guid consultaionId)
         {
             var me = GetCurrentUserId();
             if (string.IsNullOrEmpty(me)) return Unauthorized();
 
-            var msgs = await _chatService.GetConversationAsync(me, otherUserId);
+            var msgs = await _chatService.GetConversationAsync(me, otherUserId , consultaionId);
             var ordered = msgs.OrderBy(m => m.SentAt);
             return Ok(ordered);
         }
@@ -109,12 +110,12 @@ namespace LawPlatform.API.Controllers
             }
         }
 
-        #region DTOs
-        public class SendMessageRequest
+        [HttpGet("conversation")]
+        public async Task<IActionResult> GetConversation([FromQuery] string user1Id, [FromQuery] string user2Id, [FromQuery] Guid consultationId)
         {
-            public string ReceiverId { get; set; } = null!;
-            public string Content { get; set; } = null!;
+            var messages = await _chatService.GetConversationAsync(user1Id, user2Id, consultationId);
+            return Ok(messages);
         }
-        #endregion
+
     }
 }

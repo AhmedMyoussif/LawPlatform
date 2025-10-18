@@ -24,6 +24,10 @@ namespace LawPlatform.DataAccess.Services.Admin
         Task<Response<GetClientsResponse>> GetClientById(string clientid);
         #endregion
 
+        #region Delete / Delete Account
+        Task<Response<bool>> DeleteAccountAsync(Guid userId, CancellationToken cancellationToken = default);
+        #endregion
+
         #region Mentoring 
         Task<Response<PaginatedResult<ShowAllConsultaionWithoutDetails>>> MentorConsultationsync( string consultation , int pageNumber = 1 , int pageSize = 10);
         #endregion

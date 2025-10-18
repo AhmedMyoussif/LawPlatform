@@ -56,8 +56,11 @@ namespace LawPlatform.Entities.Models.Auth.Users
 
         public ApprovalStatus Status { get; set; } = ApprovalStatus.Pending;
 
+        public bool IsDeleted { get; set; } = false;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
         public ProfileImage ProfileImage { get; set; }
         public ICollection<Proposal> Proposals { get; set; } = new List<Proposal>();
     }

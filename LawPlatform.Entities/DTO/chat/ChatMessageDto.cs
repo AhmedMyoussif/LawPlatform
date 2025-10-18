@@ -4,17 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LawPlatform.Entities.Models
+namespace LawPlatform.Entities.DTO.chat
 {
-    public class ChatMessage
+    public class ChatMessageDto
     {
         public int Id { get; set; }
         public string SenderId { get; set; } = null!;
         public string? ReceiverId { get; set; }
         public string Content { get; set; } = null!;
-        public DateTimeOffset SentAt { get; set; } = DateTimeOffset.UtcNow;
-        public bool IsRead { get; set; } = false;
+        public DateTimeOffset SentAt { get; set; }
+        public bool IsRead { get; set; }
         public Guid ConsultationId { get; set; }
-        public Consultation Consultation { get; set; }
     }
 }
