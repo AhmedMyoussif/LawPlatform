@@ -6,12 +6,11 @@ using System.Threading.Tasks;
 
 namespace LawPlatform.Entities.DTO.chat
 {
-
-
-    public class SendMessageRequest
+    public class GetChatResponse
     {
-        public string ReceiverId { get; set; } = null!;
-        public string Content { get; set; } = null!;
+        public string UserAId { get; set; } = null!;
+        public string UserBId { get; set; } = null!;
         public Guid ConsultationId { get; set; }
+        public Guid ChatId { get; set; }
     }
 }

@@ -16,5 +16,7 @@ namespace LawPlatform.Entities.Models
         public bool IsRead { get; set; } = false;
         public Guid ConsultationId { get; set; }
         public Consultation Consultation { get; set; }
+        public Guid ChatId { get; set; }        
+        public Chat Chat { get; set; } = null!;
     }
 }
