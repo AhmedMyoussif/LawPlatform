@@ -18,6 +18,7 @@ using Microsoft.IdentityModel.Tokens;
 using LoginRequest = LawPlatform.Entities.DTO.Account.Auth.Login.LoginRequest;
 using ResetPasswordRequest = LawPlatform.Entities.DTO.Account.Auth.ResetPassword.ResetPasswordRequest;
 using LawPlatform.DataAccess.Services.OAuth;
+using Microsoft.AspNetCore.Http;
 
 namespace LawPlatform.API.Controllers
 {
@@ -51,7 +52,15 @@ namespace LawPlatform.API.Controllers
         {
             var result = await _authService.LoginAsync(model);
             if (!result.Succeeded) return BadRequest(result);
+            var response = new
+            {
+                accessToken = result.Data.AccessToken,
+                refreshToken = result.Data.RefreshToken,
+                user = result.Data 
+            };
+
             return Ok(result);
+
         }
         
         
@@ -176,6 +185,7 @@ namespace LawPlatform.API.Controllers
         public async Task<IActionResult> Logout()
         {
             var response = await _authService.LogoutAsync(User);
+            Response.Cookies.Delete("jwt");
             return StatusCode((int)response.StatusCode, response);
         }
     }

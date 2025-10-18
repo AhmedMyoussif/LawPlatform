@@ -65,8 +65,10 @@ namespace Ecommerce.API.Extensions
                     ValidateAudience = !string.IsNullOrEmpty(jwtSettings.Audience),
                     ValidAudience = jwtSettings.Audience,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SigningKey))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SigningKey)),
+                    ValidateLifetime = true
                 };
+               
             });
 
             return services;

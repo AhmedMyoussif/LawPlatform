@@ -3,6 +3,9 @@ using FluentEmail.Core;
 using LawPlatform.Entities.Models.Auth.Users;
 using CloudinaryDotNet;
 using LawPlatform.Entities.Models.Auth.Identity;
+using LawPlatform.Utilities.Enums;
+using LawPlatform.Entities.Models.Auth.Users;
+
 namespace LawPlatform.DataAccess.Services.Email
 {
     public class EmailService : IEmailService
@@ -16,42 +19,59 @@ namespace LawPlatform.DataAccess.Services.Email
             _logger = logger;
         }
 
-        public async Task SendLawyerApprovalEmailAsync(User lawyer)
+        public async Task SendLawyerEmailAsync(Lawyer lawyer, LawyerEmailType emailType)
         {
+            var user = lawyer.User;
+
             try
             {
                 var rootPath = Directory.GetCurrentDirectory();
-                var templatePath = Path.Combine(rootPath, "wwwroot", "EmailTemplates", "LawyerApprovalEmail.html");
+                string templateFile = emailType switch
+                {
+                    LawyerEmailType.Pending => "LawyerRegisterEmail.html",
+                    LawyerEmailType.Approved => "LawyerApprovalEmail.html",
+                    _ => throw new ArgumentException("Invalid email type")
+                };
+
+                var templatePath = Path.Combine(rootPath, "wwwroot", "EmailTemplates", templateFile);
+
 
                 if (!File.Exists(templatePath))
                 {
-                    _logger.LogError($"Lawyer Approval Email Template not found at path: {templatePath}");
-                    throw new FileNotFoundException("Lawyer Approval Email Template not found.", templatePath);
+                    _logger.LogError($"Email template not found at path: {templatePath}");
+                    throw new FileNotFoundException("Email template not found.", templatePath);
                 }
 
                 var emailTemplate = await File.ReadAllTextAsync(templatePath);
 
                 emailTemplate = emailTemplate
-                    .Replace("{Username}", lawyer.UserName)
+                    .Replace("{Username}", user.UserName ?? user.Email ?? "Lawyer")
                     .Replace("{CurrentYear}", DateTime.UtcNow.Year.ToString());
 
+                string subject = emailType switch
+                {
+                    LawyerEmailType.Pending => "Your Lawyer Account Is Pending Approval",
+                    LawyerEmailType.Approved => "Your Lawyer Account Has Been Approved",
+                    _ => "Lawyer Account Update"
+                };
+
                 var sendResult = await _fluentEmail
-                    .To(lawyer.Email)
-                    .Subject("Your Lawyer Account Has Been Approved")
+                    .To(user.Email)
+                    .Subject(subject)
                     .Body(emailTemplate, isHtml: true)
                     .SendAsync();
 
                 if (!sendResult.Successful)
                 {
-                    _logger.LogError($"Failed to send approval email to {lawyer.Email}. Errors: {string.Join(", ", sendResult.ErrorMessages)}");
-                    throw new Exception("Failed to send lawyer approval email.");
+                    _logger.LogError($"Failed to send {emailType} email to {user.Email}. Errors: {string.Join(", ", sendResult.ErrorMessages)}");
+                    throw new Exception($"Failed to send {emailType} email.");
                 }
 
-                _logger.LogInformation($"Lawyer approval email successfully sent to {lawyer.Email}");
+                _logger.LogInformation($"{emailType} email successfully sent to {user.Email}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred while sending lawyer approval email to {lawyer.Email}");
+                _logger.LogError(ex, $"An error occurred while sending {emailType} email to {user.Email}");
                 throw;
             }
         }

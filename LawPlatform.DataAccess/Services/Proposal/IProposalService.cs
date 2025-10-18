@@ -14,5 +14,6 @@ namespace LawPlatform.DataAccess.Services.Proposal
         Task<Response<List<GetProposalResponse>>> GetProposalsByConsultationIdAsync(Guid consultationId);
         Task<Response<GetProposalResponse>> GetProposalByIdAsync(Guid proposalId); // For Lawyer who has this proposal , Client who post the consultation  
         Task<Response<AcceptProposalResponse>> AcceptProposalAsync(Guid proposalId); // Only Client who post the consultation
+        Task<Response<GetProposalResponse>> GetMyProposalsAsync(); // for lawyers To retrieve theire Proposals they have sent 
     }
 }

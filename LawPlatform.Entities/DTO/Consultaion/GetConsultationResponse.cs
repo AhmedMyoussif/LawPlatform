@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using LawPlatform.Entities.DTO.Proposal;
 using LawPlatform.Entities.Models;
+using LawPlatform.Entities.Models.Auth.Users;
 using LawPlatform.Utilities.Enums;
 
 namespace LawPlatform.Entities.DTO.Consultaion;
@@ -13,12 +14,17 @@ public class GetConsultationResponse
     public string Description { get; set; }
     public DateTime CreatedAt { get; set; }
     public string ClientId { get; set; }
+
     public decimal Budget { get; set; }
     public string? LawyerId { get; set; }
     public int Duration { get; set; }
     public ConsultationStatus Status { get; set; }
     public Specialization Specialization { get; set; }
     public List<string> UrlFiles { get; set; }
+    public ClientInfo Client { get; set; }
+    public int ProposalsCount { get; set; }
+
+
     public List<GetProposalResponse> Proposals { get; set; }
     [JsonInclude]
     public string Slug

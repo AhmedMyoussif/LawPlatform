@@ -4,6 +4,7 @@ using FluentValidation;
 using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.ImageUploading;
 using LawPlatform.Entities.DTO.Consultaion;
+using LawPlatform.Entities.DTO.ImageUploading;
 using LawPlatform.Entities.DTO.Proposal;
 using LawPlatform.Entities.Models;
 using LawPlatform.Entities.Models.Auth.Identity;
@@ -12,6 +13,7 @@ using LawPlatform.Utilities.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace LawPlatform.DataAccess.Services.Consultation;
 
@@ -34,13 +36,12 @@ public class ConsultationService :  IConsultationService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<Response<GetConsultationResponse>> CreateConsultationAsync(CreateConsultationRequest request,string clientid)
+    // for Client Only
+    public async Task<Response<GetConsultationResponse>> CreateConsultationAsync(CreateConsultationRequest request)
     {
-        
         try
         {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+            var userId = ConsultationServiceHelper.GetCurrentUserId(_httpContextAccessor);
 
             var client = await _context.Clients
            .FirstOrDefaultAsync(c => c.Id == userId);
@@ -79,27 +80,16 @@ public class ConsultationService :  IConsultationService
                
             };
 
-            // For Refactor : Make It in Helper Method 
-            var uploadedFiles = new List<string>();
-            if (request.Files != null && request.Files.Count > 0)
-            {
-                foreach (var file in request.Files)
-                {
-                    var uploadResult = await _imageUploadService.UploadAsync(file);
-
-                    consultation.Files.Add(new ConsultationFile
-                    {
-                        ConsultationId = consultation.Id,
-                        FileName = file.FileName,
-                        FilePath = uploadResult.Url 
-                    });
-
-                    uploadedFiles.Add(uploadResult.Url);
-                }
-            }
-            
-
             await _context.consultations.AddAsync(consultation);
+            await _context.SaveChangesAsync();
+
+            var (consultationFiles, uploadedFiles) =
+                 await UploadFilesAsync(request.Files, consultation.Id, _imageUploadService);
+
+            foreach (var file in consultationFiles)
+            {
+                consultation.Files.Add(file);
+            }
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Consultation {ConsultationId} created successfully for ClientId: {ClientId}",
@@ -127,7 +117,7 @@ public class ConsultationService :  IConsultationService
             return _responseHandler.ServerError<GetConsultationResponse>("An error occurred while creating consultation");
         }
     }
-    public async Task<Response<PaginatedResult<GetConsultationResponse>>> GetAllConsultationsAsync(
+    public async Task<Response<PaginatedResult<GetConsultationResponse>>> GetAllConsultationsAsync(  // with out sort we can remove it 
      int pageNumber = 1, int pageSize = 10)
     {
         _logger.LogInformation("Retrieving consultations - Page {Page}, Size {Size}", pageNumber, pageSize);
@@ -186,8 +176,7 @@ public class ConsultationService :  IConsultationService
     {
         try
         {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                         ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+            var userId = ConsultationServiceHelper.GetCurrentUserId(_httpContextAccessor);
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -254,107 +243,124 @@ public class ConsultationService :  IConsultationService
             _logger.LogError(ex, "Error occurred while retrieving consultation: {ConsultationId}", consultationId);
             return _responseHandler.ServerError<GetConsultationResponse>("An error occurred while retrieving the consultation.");
         }
-    }
+    }    
 
 
     // For Filtering Consultations Based on Specialization, Budget Range, and Sorting by Newest or Oldest
-    public async Task<Response<List<ShowAllConsultaionWithoutDetails>>> GetConsultationsAsync(ConsultationFilterRequest filter)
+    public async Task<Response<PaginatedResult<GetConsultationResponse>>> GetConsultationsAsync(
+    ConsultationFilterRequest filter, int pageNumber = 1, int pageSize = 10)
     {
-        var query = _context.consultations.AsQueryable();
+        _logger.LogInformation("Retrieving consultations - Page {Page}, Size {Size}", pageNumber, pageSize);
 
-        if (filter.Specialization != default)
-            query = query.Where(c => c.Specialization == filter.Specialization);
+        if (pageNumber <= 0 || pageSize <= 0)
+            return _responseHandler.BadRequest<PaginatedResult<GetConsultationResponse>>("Invalid pagination parameters.");
 
+        var query = _context.consultations
+            .Include(c=>c.Client)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        {
+            query = query.Where(c =>
+             EF.Functions.Contains(c.Title, $"\"{filter.SearchTerm}\"") ||
+             EF.Functions.Contains(c.Description, $"\"{filter.SearchTerm}\""));
+
+        }
+
+
+        // Specializations
+        if (filter.specialization.HasValue)
+            query = query.Where(c => c.Specialization == filter.specialization.Value);
+        // Budget
         if (filter.MinBudget.HasValue)
             query = query.Where(c => c.Budget >= filter.MinBudget.Value);
 
         if (filter.MaxBudget.HasValue)
             query = query.Where(c => c.Budget <= filter.MaxBudget.Value);
 
-        if (!string.IsNullOrEmpty(filter.Sort))
+        // Sorting
+       
+            query = (filter.Sort ?? string.Empty).ToLower() switch
+            {
+                "newest" => query.OrderByDescending(c => c.CreatedAt),
+                "oldest" => query.OrderBy(c => c.CreatedAt),
+                "budgetasc" => query.OrderBy(c => c.Budget),
+                "budgetdesc" => query.OrderByDescending(c => c.Budget),
+                _ => query.OrderByDescending(c => c.CreatedAt)
+            };
+        
+
+        // Count after filters
+        var totalCount = await query.CountAsync();
+        if (totalCount == 0)
         {
-            query = filter.Sort.ToLower() == "newest"
-                ? query.OrderByDescending(c => c.CreatedAt)
-                : query.OrderBy(c => c.CreatedAt);
+            _logger.LogWarning("No consultations found");
+            return _responseHandler.NotFound<PaginatedResult<GetConsultationResponse>>("No consultations found.");
         }
 
-        var consultationResponses = await query
-            .Include(c => c.Files)
-            .Select(c => new ShowAllConsultaionWithoutDetails
+        // Pagination
+        var consultations = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(c => new GetConsultationResponse
             {
                 Id = c.Id,
                 Title = c.Title,
                 ClientId = c.ClientId,
-              
+                Budget = c.Budget,
+                Specialization = c.Specialization,
+                CreatedAt = c.CreatedAt,
+                Status = c.Status,
+                Duration = c.Duration,
+                UrlFiles = c.Files.Select(f => f.FilePath).ToList(),
+                Description = c.Description,
+                LawyerId = c.LawyerId,  
+                Client = new ClientInfo
+                {
+                    Id = c.Client.Id,
+                    ProfileImage = c.Client.ProfileImage.ImageUrl,
+                    FullName = c.Client.FirstName + " " + c.Client.LastName,
+
+                },
+               ProposalsCount = c.Proposals.Count
+
             })
             .ToListAsync();
 
-        return _responseHandler.Success(consultationResponses, "Consultations retrieved successfully");
+        var result = new PaginatedResult<GetConsultationResponse>
+        {
+            Items = consultations,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+        };
+
+        return _responseHandler.Success(result, "Consultations retrieved successfully");
     }
 
-    // It is Not Allowed To Delete Consultation By Client 
-    //public async Task<Response<Guid>> DeleteConsultationAsync(string consultationId)
-    //{
-    //    try
-    //    {
-    //        _logger.LogInformation("Starting DeleteConsultationAsync for ConsultationId: {ConsultationId}", consultationId);
-    //        if (!Guid.TryParse(consultationId, out var consultationGuid))
-    //        {
-    //            _logger.LogWarning("Invalid ConsultationId format: {ConsultationId}", consultationId);
-    //            return _responseHandler.BadRequest<Guid>("Invalid ConsultationId format.");
-    //        }
-    //        var consultation = await _context.consultations
-    //            .Include(c => c.Files)
-    //            .FirstOrDefaultAsync(c => c.Id == consultationGuid);
-    //        if (consultation == null)
-    //        {
-    //            _logger.LogWarning("Consultation not found: {ConsultationId}", consultationId);
-    //            return _responseHandler.NotFound<Guid>("Consultation not found.");
-    //        }
 
-    //        _context.consultations.Remove(consultation);
-    //        await _context.SaveChangesAsync();
-    //        _logger.LogInformation("Successfully deleted consultation: {ConsultationId}", consultationId);
-    //        return _responseHandler.Success(consultation.Id, "Consultation deleted successfully.");
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _logger.LogError(ex, "Error occurred while deleting consultation: {ConsultationId}", consultationId);
-    //        return _responseHandler.ServerError<Guid>("An error occurred while deleting the consultation.");
-    //    }
-    //}
-
-    // Insure That You Will Retrive The Consultations For The Current Logged In Client Only
+    // for Client and lawyer
     public async Task<Response<List<GetConsultationResponse>>> GetMyLatestConsultationsAsync()
     {
         try
         {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+            var userId = ConsultationServiceHelper.GetCurrentUserId(_httpContextAccessor);
             if (string.IsNullOrEmpty(userId))
-            {
-                _logger.LogWarning("User not authenticated.");
                 return _responseHandler.Unauthorized<List<GetConsultationResponse>>("User not authenticated.");
-            }
-            var consultations = await _context.consultations
-                .Where(c => c.Client.Id == userId || c.LawyerId == userId)
-                
-                .OrderByDescending(c => c.CreatedAt)
-                .Take(5)
-                .ToListAsync();
-            var consultationResponses = consultations.Select(c => new GetConsultationResponse
-            {
-                Id = c.Id,
-                Title = c.Title,
-                Description = c.Description,
-                CreatedAt = c.CreatedAt,
-                ClientId = c.ClientId,
-                Budget = c.Budget,
-                Duration = c.Duration,
-                Status = c.Status,
-                //UrlFiles = c.Files.Select(f => f.FilePath).ToList()
-            }).ToList();
-            return _responseHandler.Success(consultationResponses, "Latest consultations retrieved successfully.");
+
+            var consultations = await ConsultationServiceHelper.GetConsultationsAsync(
+                _context,
+                c => c.Client.Id == userId || c.LawyerId == userId,
+                includeFiles: false,
+                take: 5
+            );
+
+            var responses = consultations
+                .Select(ConsultationServiceHelper.ToConsultationResponse)
+                .ToList();
+
+            return _responseHandler.Success(responses, "Latest consultations retrieved successfully.");
         }
         catch (Exception ex)
         {
@@ -362,38 +368,27 @@ public class ConsultationService :  IConsultationService
             return _responseHandler.ServerError<List<GetConsultationResponse>>("An error occurred while retrieving latest consultations.");
         }
     }
-    // Insure That You Will Retrive The Consultations For The Current Logged In Client Only
-
     public async Task<Response<List<GetConsultationResponse>>> GetMyConsultationsInProgressAsync()
     {
         try
         {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+            var userId = ConsultationServiceHelper.GetCurrentUserId(_httpContextAccessor);
             if (string.IsNullOrEmpty(userId))
-            {
-                _logger.LogWarning("User not authenticated.");
                 return _responseHandler.Unauthorized<List<GetConsultationResponse>>("User not authenticated.");
-            }
-           
-            var consultations = await _context.consultations
-                .Where(c => c.Client.Id == userId && c.Status == ConsultationStatus.InProgress || c.LawyerId == userId && c.Status == ConsultationStatus.InProgress)
-                .Include(c => c.Files)
-                .OrderByDescending(c => c.CreatedAt)
-                .ToListAsync();
-            var consultationResponses = consultations.Select(c => new GetConsultationResponse
-            {
-                Id = c.Id,
-                Title = c.Title,
-                Description = c.Description,
-                CreatedAt = c.CreatedAt,
-                ClientId = c.ClientId,
-                Budget = c.Budget,
-                Duration = c.Duration,
-                Status = c.Status,
-                UrlFiles = c.Files.Select(f => f.FilePath).ToList()
-            }).ToList();
-            return _responseHandler.Success(consultationResponses, "In-progress consultations retrieved successfully.");
+
+            var consultations = await ConsultationServiceHelper.GetConsultationsAsync(
+                _context,
+                c => (c.Client.Id == userId || c.LawyerId == userId)
+                    && c.Status == ConsultationStatus.InProgress,
+                includeFiles: true
+            );
+
+            var responses = consultations
+                .Select(ConsultationServiceHelper.ToConsultationResponse)
+                .ToList();
+            var count = responses.Count;
+
+            return _responseHandler.Success(responses, "In-progress consultations retrieved successfully.");
         }
         catch (Exception ex)
         {
@@ -401,7 +396,6 @@ public class ConsultationService :  IConsultationService
             return _responseHandler.ServerError<List<GetConsultationResponse>>("An error occurred while retrieving in-progress consultations.");
         }
     }
-
 
     public async Task<Response<List<LawyerSearchResponse>>> SearchLawyersByNameAsync(string name)
     {
@@ -425,37 +419,72 @@ public class ConsultationService :  IConsultationService
 
         return _responseHandler.Success(lawyers, "Lawyers fetched successfully");
     }
-
-
-
+    // for Client and lawyer
     public async Task<Response<List<ShowAllConsultaionWithoutDetails>>> GetMyConsultationsAsync()
     {
         try
         {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                 ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+            var userId = ConsultationServiceHelper.GetCurrentUserId(_httpContextAccessor);
             if (string.IsNullOrEmpty(userId))
             {
                 _logger.LogWarning("User not authenticated.");
                 return _responseHandler.Unauthorized<List<ShowAllConsultaionWithoutDetails>>("User not authenticated.");
             }
-            var consultations = await _context.consultations
-                 .Include(c => c.Files)
-                 .Include(c => c.Proposals)
-                 .Include(c => c.Client)
-                 .Where(c => c.Client.Id == userId)
-                 .OrderByDescending(c => c.CreatedAt)
-                 .Take(5)
-                 .ToListAsync();
 
-            var consultationResponses = consultations.Select(c => new ShowAllConsultaionWithoutDetails
+            var clientConsultations = await ConsultationServiceHelper.GetConsultationsAsync(
+                _context,
+                c => c.Client.Id == userId,
+                includeFiles: true
+               
+            );
+            var lawyerConsultations = await ConsultationServiceHelper.GetConsultationsAsync(
+                _context,
+                c => c.Lawyer.Id == userId,
+                includeFiles: true
+                
+            );
+            var role = _httpContextAccessor.HttpContext.User.Claims
+             .FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+
+            if (string.IsNullOrEmpty(role))
             {
-                Id = c.Id,
-                Title = c.Title,
-                ClientId = c.ClientId,
-               //UrlFiles = c.Files.Select(f => f.FilePath).ToList()
-            }).ToList();
-            return _responseHandler.Success(consultationResponses, "All consultations retrieved successfully.");
+                return _responseHandler.Unauthorized<List<ShowAllConsultaionWithoutDetails>>("User role not found.");
+            }
+
+            List<ShowAllConsultaionWithoutDetails> consultationResponses;
+
+            if (role == "Client")
+            {
+                consultationResponses = clientConsultations.Select(c => new ShowAllConsultaionWithoutDetails
+                {
+                    Id = c.Id,
+                    Title = c.Title,
+                    ClientId = c.ClientId,
+                    ClientName = c.Client.FirstName + " " + c.Client.LastName,
+                    Status = c.Status.ToString(),
+                    Budget = c.Budget,
+                }).ToList();
+
+                return _responseHandler.Success(consultationResponses, "Consultations retrieved.");
+            }
+            else if (role == "Lawyer")
+            {
+                consultationResponses = lawyerConsultations.Select(c => new ShowAllConsultaionWithoutDetails
+                {
+                    Id = c.Id,
+                    Title = c.Title,
+                    ClientId = c.ClientId, 
+                    ClientName = c.Client.FirstName + " " + c.Client.LastName,
+                    Status = c.Status.ToString(),
+                    Budget = c.Budget,
+                }).ToList();
+
+                return _responseHandler.Success(consultationResponses, "Consultations retrieved.");
+            }
+            else
+            {
+                return _responseHandler.Success(new List<ShowAllConsultaionWithoutDetails>(), "No consultations found.");
+            }
         }
         catch (Exception ex)
         {
@@ -463,4 +492,65 @@ public class ConsultationService :  IConsultationService
             return _responseHandler.ServerError<List<ShowAllConsultaionWithoutDetails>>("An error occurred while retrieving all consultations.");
         }
     }
- }
+
+    public async Task<Response<List<GetConsultationResponse>>> GetNewestOrders()
+    {
+        try
+        {
+            var lawyerId = ConsultationServiceHelper.GetCurrentUserId(_httpContextAccessor);
+            if (string.IsNullOrEmpty(lawyerId))
+                return _responseHandler.Unauthorized<List<GetConsultationResponse>>("User not authenticated.");
+
+            var consultations = await ConsultationServiceHelper.GetConsultationsAsync(
+                _context,
+                c => c.LawyerId == lawyerId
+
+                    && c.Status == ConsultationStatus.Active,
+                includeFiles: true
+            );
+
+            var responses = consultations
+                .OrderByDescending(c => c.CreatedAt)
+                .Select(ConsultationServiceHelper.ToConsultationResponse)
+                .ToList();
+
+            return _responseHandler.Success(responses, "Newest orders retrieved successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while retrieving newest orders.");
+            return _responseHandler.ServerError<List<GetConsultationResponse>>("An error occurred while retrieving newest orders.");
+        }
+    }
+
+    #region Helpers
+    private async Task<(List<ConsultationFile> Files, List<string> Urls)> UploadFilesAsync(
+    List<IFormFile> files,
+    Guid consultationId,
+    IImageUploadService imageUploadService)
+    {
+        var uploadedFiles = new List<ConsultationFile>();
+        var uploadedUrls = new List<string>();
+
+        if (files != null && files.Count > 0)
+        {
+            foreach (var file in files)
+            {
+                var uploadResult = await imageUploadService.UploadAsync(file);
+
+                uploadedFiles.Add(new ConsultationFile
+                {
+                    ConsultationId = consultationId,
+                    FileName = file.FileName,
+                    FilePath = uploadResult.Url
+                });
+
+                uploadedUrls.Add(uploadResult.Url);
+            }
+        }
+
+        return (uploadedFiles, uploadedUrls);
+    }
+
+    #endregion
+}

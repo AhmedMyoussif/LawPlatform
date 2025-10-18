@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Identity;
 using StackExchange.Redis;
 using Ecommerce.API.Extensions;
 using LawPlatform.DataAccess.Extensions;
+using Microsoft.AspNetCore.SignalR;
+using LawPlatform.API.Hubs;
 
 namespace EcommercePlatform
 {
@@ -83,6 +85,9 @@ namespace EcommercePlatform
 
             builder.Services.AddSwagger();
             builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSignalR();
+            builder.Services.AddSingleton<IUserIdProvider, NameIdentifierUserIdProvider>();
+
 
             var app = builder.Build();
 
@@ -111,6 +116,10 @@ namespace EcommercePlatform
             app.UseAuthorization();
 
             app.MapControllers();
+            app.UseStaticFiles(); 
+
+            app.MapHub<LawPlatform.API.Hubs.ChatHub>("/hubs/chat");
+            app.MapHub<NotificationHub>("/notificationHub");
 
             app.Run();
         }

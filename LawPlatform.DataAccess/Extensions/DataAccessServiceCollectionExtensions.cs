@@ -20,6 +20,8 @@ using CloudinaryDotNet;
 using LawPlatform.DataAccess.Services.Profile;
 using LawPlatform.DataAccess.Services.Proposal;
 using LawPlatform.DataAccess.Services.Review;
+using LawPlatform.DataAccess.Services.Chat;
+using LawPlatform.DataAccess.Services.Notification;
 
 
 namespace LawPlatform.DataAccess.Extensions
@@ -46,6 +48,9 @@ namespace LawPlatform.DataAccess.Extensions
             services.AddScoped<IProfileService, ProfileService>();
             services.AddScoped<IProposalService, ProposalService>();
             services.AddScoped<IReviewService, ReviewService>();
+            services.AddScoped<IChatService, ChatService>();
+            services.AddScoped<INotificationService, NotificationService>();
+
 
 
             var cloudinarySettings = configuration.GetSection("Cloudinary").Get<CloudinarySettings>();
@@ -58,18 +63,34 @@ namespace LawPlatform.DataAccess.Extensions
 
         }
 
+        //public static IServiceCollection AddEmailServices(this IServiceCollection services, IConfiguration configuration)
+        //{
+        //    var emailSettings = configuration.GetSection("EmailSettings").Get<EmailSettings>();
+
+        //    services.AddFluentEmail(emailSettings.FromEmail)
+        //        .AddSmtpSender(new SmtpClient(emailSettings.SmtpServer)
+        //        {
+        //            Port = emailSettings.SmtpPort,
+        //            Credentials = new NetworkCredential(emailSettings.Username, emailSettings.Password),
+        //            EnableSsl = emailSettings.EnableSsl
+        //        });
+        //    return services;
+        //}
         public static IServiceCollection AddEmailServices(this IServiceCollection services, IConfiguration configuration)
         {
             var emailSettings = configuration.GetSection("EmailSettings").Get<EmailSettings>();
 
             services.AddFluentEmail(emailSettings.FromEmail)
-                .AddSmtpSender(new SmtpClient(emailSettings.SmtpServer)
+                .AddSmtpSender(() => new SmtpClient(emailSettings.SmtpServer, emailSettings.SmtpPort)
                 {
-                    Port = emailSettings.SmtpPort,
                     Credentials = new NetworkCredential(emailSettings.Username, emailSettings.Password),
-                    EnableSsl = emailSettings.EnableSsl
+                    EnableSsl = emailSettings.EnableSsl,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = false
                 });
+
             return services;
         }
+
     }
 }

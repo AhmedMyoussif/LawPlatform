@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using LawPlatform.DataAccess.Services.Notification;
 
 namespace LawPlatform.DataAccess.Services.Auth
 {
@@ -30,7 +31,7 @@ namespace LawPlatform.DataAccess.Services.Auth
         private readonly IImageUploadService _imageUploadService;
         private readonly ITokenStoreService _tokenStoreService;
         private readonly ILogger<AuthService> _logger;
-
+        private readonly INotificationService _notificationService;
         public AuthService(
             UserManager<User> userManager,
             LawPlatformContext context,
@@ -38,7 +39,8 @@ namespace LawPlatform.DataAccess.Services.Auth
             ResponseHandler responseHandler,
             IImageUploadService imageUploadService,
             ITokenStoreService tokenStoreService,
-            ILogger<AuthService> logger)
+            ILogger<AuthService> logger,
+            INotificationService notificationService)
         {
             _userManager = userManager;
             _context = context;
@@ -47,6 +49,7 @@ namespace LawPlatform.DataAccess.Services.Auth
             _imageUploadService = imageUploadService;
             _tokenStoreService = tokenStoreService;
             _logger = logger;
+            _notificationService = notificationService;
         }
 
         #region Login
@@ -75,6 +78,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                     Email = user.Email,
                     Role = roles.FirstOrDefault(),
                     IsEmailConfirmed = user.EmailConfirmed,
+                    PhoneNumber = user.PhoneNumber,
                     AccessToken = tokens.AccessToken,
                     RefreshToken = tokens.RefreshToken
                 };
@@ -175,9 +179,15 @@ namespace LawPlatform.DataAccess.Services.Auth
                 return _responseHandler.BadRequest<LawyerRegisterResponse>(emailPhoneCheck);
 
             using var transaction = await _context.Database.BeginTransactionAsync();
+            bool committed = false;
+
+            Lawyer? lawyer = null;
+            User? user = null;
+            LawyerRegisterResponse? response = null;
+
             try
             {
-                var user = new User
+                user = new User
                 {
                     UserName = model.UserName.Trim(),
                     Email = model.Email.Trim().ToLower(),
@@ -195,6 +205,7 @@ namespace LawPlatform.DataAccess.Services.Auth
 
                 await _userManager.AddToRoleAsync(user, "Lawyer");
 
+                // Upload files...
                 string? qualificationDocumentUrl = null;
                 if (model.QualificationDocument != null)
                 {
@@ -202,19 +213,25 @@ namespace LawPlatform.DataAccess.Services.Auth
                     qualificationDocumentUrl = uploadResult?.Url;
                 }
 
-                string? licenseDocumentUrl = null;
-                if (model.LicenseDocument != null)
+                if (model.LicenseDocument == null)
                 {
-                    var uploadResult = await _imageUploadService.UploadAsync(model.LicenseDocument);
-                    licenseDocumentUrl = uploadResult?.Url;
+                    return _responseHandler.BadRequest<LawyerRegisterResponse>("License document is required.");
                 }
 
-                var lawyer = new Lawyer
+                var licenseUploadResult = await _imageUploadService.UploadAsync(model.LicenseDocument);
+                if (licenseUploadResult == null || string.IsNullOrEmpty(licenseUploadResult.Url))
+                {
+                    return _responseHandler.BadRequest<LawyerRegisterResponse>("Failed to upload license document.");
+                }
+                string licenseDocumentUrl = licenseUploadResult.Url;
+
+                // Create Lawyer
+                lawyer = new Lawyer
                 {
                     FirstName = model.FirstName,
                     LastName = model.LastName,
                     User = user,
-                    Id = user.Id, // Shared PK with User
+                    Id = user.Id,
                     Bio = model.Bio,
                     Experiences = model.Experiences,
                     Qualifications = model.Qualifications,
@@ -238,9 +255,11 @@ namespace LawPlatform.DataAccess.Services.Auth
 
                 var tokens = await _tokenStoreService.GenerateAndStoreTokensAsync(user);
 
+                // Commit transaction BEFORE sending email/notification
                 await transaction.CommitAsync();
+                committed = true;
 
-                var response = new LawyerRegisterResponse
+                response = new LawyerRegisterResponse
                 {
                     Id = lawyer.Id,
                     Email = user.Email,
@@ -258,17 +277,48 @@ namespace LawPlatform.DataAccess.Services.Auth
                     Address = lawyer.Address,
                     Age = lawyer.Age
                 };
-
-                return _responseHandler.Created(response, "Lawyer registered successfully and is pending admin approval.");
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
+                // Rollback only if we didn't commit
+                if (!committed)
+                {
+                    try
+                    {
+                        await transaction.RollbackAsync();
+                    }
+                    catch (Exception rollEx)
+                    {
+                        _logger.LogWarning(rollEx, "Rollback warning (transaction may be already completed).");
+                    }
+                }
+
                 _logger.LogError(ex, "Error occurred during RegisterLawyerAsync for Email: {Email}", model.Email);
                 return _responseHandler.BadRequest<LawyerRegisterResponse>("An error occurred during registration.");
             }
+
+            // ===== Send email & notification AFTER transaction committed =====
+            try
+            {
+                if (lawyer != null)
+                {
+                    // If your Email service expects User, pass lawyer.User; else we assume it accepts Lawyer
+                    await _emailService.SendLawyerEmailAsync(lawyer, LawyerEmailType.Pending);
+                }
+
+                await _notificationService.NotifyUserAsync(lawyer!.Id,
+                    "Pending Approval",
+                    "Your lawyer account is pending approval by the admin.");
+            }
+            catch (Exception postEx)
+            {
+                _logger.LogError(postEx, "Failed to send post-registration email/notification for LawyerId {LawyerId}", lawyer?.Id);
+            }
+
+            return _responseHandler.Created(response!, "Lawyer registered successfully and is pending admin approval.");
         }
         #endregion
+
 
         #region Forgot / Reset Password
         public async Task<Response<ForgetPasswordResponse>> ForgotPasswordAsync(ForgetPasswordRequest model)

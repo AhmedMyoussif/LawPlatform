@@ -4,6 +4,7 @@ using LawPlatform.DataAccess.ApplicationContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LawPlatform.DataAccess.Migrations
 {
     [DbContext(typeof(LawPlatformContext))]
-    partial class LawPlatformContextModelSnapshot : ModelSnapshot
+    [Migration("20250919143015_Notifications")]
+    partial class Notifications
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -157,16 +160,10 @@ namespace LawPlatform.DataAccess.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -218,9 +215,6 @@ namespace LawPlatform.DataAccess.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Experiences")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -235,9 +229,6 @@ namespace LawPlatform.DataAccess.Migrations
                         .IsRequired()
                         .HasMaxLength(34)
                         .HasColumnType("nvarchar(34)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -417,7 +408,6 @@ namespace LawPlatform.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Notifications");
-                    b.ToTable("ConsultationFiles");
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.ProfileImage", b =>
@@ -503,53 +493,6 @@ namespace LawPlatform.DataAccess.Migrations
                     b.HasIndex("LawyerId");
 
                     b.ToTable("Proposals");
-                });
-
-            modelBuilder.Entity("LawPlatform.Entities.Models.Review", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ClientId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Comment")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool?>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("LawyerId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<double>("Rating")
-                        .HasColumnType("float");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .ValueGeneratedOnUpdate()
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
-
-                    b.HasIndex("LawyerId");
-
-                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
@@ -770,25 +713,6 @@ namespace LawPlatform.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("Consultation");
-
-                    b.Navigation("Lawyer");
-                });
-
-            modelBuilder.Entity("LawPlatform.Entities.Models.Review", b =>
-                {
-                    b.HasOne("LawPlatform.Entities.Models.Auth.Identity.User", "Client")
-                        .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("LawPlatform.Entities.Models.Auth.Identity.User", "Lawyer")
-                        .WithMany()
-                        .HasForeignKey("LawyerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Client");
 
                     b.Navigation("Lawyer");
                 });

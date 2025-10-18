@@ -45,7 +45,7 @@ namespace LawPlatform.API.Controllers
 
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized("User not authenticated.");
-            var result = await _consultationService.CreateConsultationAsync(request, userId);
+            var result = await _consultationService.CreateConsultationAsync(request);
 
             if (!result.Succeeded)
             {
@@ -81,26 +81,11 @@ namespace LawPlatform.API.Controllers
             }
             return Ok(result);
         }
-
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteConsultation(string id)
-        //{
-        //    var result = await _consultationService.DeleteConsultationAsync(id);
-        //    if (!result.Succeeded)
-        //    {
-        //        if (result.Message == "Consultation not found")
-        //            return NotFound(result);
-        //        return StatusCode(StatusCodes.Status500InternalServerError, result);
-        //    }
-        //    return Ok(result);
-        //}
-
-
         [HttpGet]
         public async Task<ActionResult<Response<List<GetConsultationResponse>>>> GetConsultations(
-            [FromQuery] ConsultationFilterRequest filter)
+            [FromQuery] ConsultationFilterRequest filter , [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _consultationService.GetConsultationsAsync(filter);
+            var result = await _consultationService.GetConsultationsAsync(filter, pageNumber ,pageSize);
             return Ok(result);
         }
 
@@ -156,6 +141,14 @@ namespace LawPlatform.API.Controllers
             var result = await _consultationService.GetMyConsultationsAsync();
 
             return Ok(result);
+        }
+
+
+        [HttpGet("NewestOrders")]
+        [Authorize(Roles = "Lawyer")]
+        public async Task<ActionResult<Response<List<GetConsultationResponse>>>> GetNewestOrders()
+        {
+            return await _consultationService.GetNewestOrders();
         }
 
     }

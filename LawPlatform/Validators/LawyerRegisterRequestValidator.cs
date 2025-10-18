@@ -63,9 +63,12 @@ namespace LawPlatform.API.Validators
                 .NotEmpty().WithMessage("License number is required.");
 
             RuleFor(x => x.LicenseDocument)
-                .NotNull().WithMessage("License document is required.");
+              .NotNull().WithMessage("License document is required.")
+              .Must(f => f.ContentType == "application/pdf")
+              .WithMessage("License document must be a PDF file.");
 
- 
+
+
             // Country
             RuleFor(x => x.Country)
                 .NotEmpty().WithMessage("Country is required.");
@@ -83,9 +86,20 @@ namespace LawPlatform.API.Validators
                 .MaximumLength(50).WithMessage("Bank account number cannot exceed 50 characters.")
                 .When(x => !string.IsNullOrEmpty(x.BankAccountNumber));
 
-            // Documents
             RuleFor(x => x.QualificationDocument)
-                .NotNull().WithMessage("Qualification document is required.");
+              .NotNull().WithMessage("Qualification document is required.")
+              .Must(f => f.ContentType == "application/pdf")
+              .WithMessage("Qualification document must be a PDF file.");
+
+            RuleFor(x => x.LicenseDocument.Length)
+                .LessThanOrEqualTo(5 * 1024 * 1024)
+                .WithMessage("License document size must not exceed 5 MB.");
+
+            RuleFor(x => x.QualificationDocument.Length)
+                .LessThanOrEqualTo(5 * 1024 * 1024)
+                .WithMessage("Qualification document size must not exceed 5 MB.");
+
+
         }
     }
 }

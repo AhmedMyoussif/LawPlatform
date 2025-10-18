@@ -12,7 +12,7 @@ namespace LawPlatform.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles ="Admin")]
+    [Authorize(Roles = "Admin")]
 
     public class AdminController : ControllerBase
     {
@@ -26,7 +26,7 @@ namespace LawPlatform.API.Controllers
             _logger = logger;
         }
 
-        #region Get Lawyers by Status
+
         [HttpGet("lawyers")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Response<List<GetLawyerResponse>>>> GetLawyersByStatus([FromQuery] ApprovalStatus? status)
@@ -35,39 +35,33 @@ namespace LawPlatform.API.Controllers
             if (!result.Succeeded) return BadRequest(result);
             return Ok(result);
         }
-        #endregion
 
-        #region Update Lawyer Account Status
         [HttpPut("lawyers/status")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Response<UpdateLawyerAccountStatusResponse>>> UpdateLawyerAccountStatus(
-           
-            [FromForm] UpdateLawyerAccountStatusRequest model)
+
+            [FromBody] UpdateLawyerAccountStatusRequest model)
         {
-          
+
             var result = await _adminService.UpdateLawyerAccountStatusAsync(model);
             if (!result.Succeeded) return BadRequest(result);
             return Ok(result);
         }
-        #endregion
 
-        #region Get Lawyer by Id
         [HttpGet("lawyers/{lawyerId}")]
-         public async Task<ActionResult<Response<GetLawyerResponse>>> GetLawyerById(string lawyerId)
+        public async Task<ActionResult<Response<GetLawyerResponse>>> GetLawyerById(string lawyerId)
         {
             var result = await _adminService.GetLawyerByIdAsync(lawyerId);
             if (!result.Succeeded) return BadRequest(result);
             return Ok(result);
         }
-        #endregion
 
-        #region Get All Clients
         [HttpGet("all/clients")]
-        public async Task<IActionResult> GetAllClients()
+        public async Task<IActionResult> GetAllClients(string?search)
         {
             _logger.LogInformation("HTTP GET /api/clients/all called");
 
-            var response = await _adminService.GetAllClients();
+            var response = await _adminService.GetAllClients(search);
 
             if (!response.Succeeded)
                 return BadRequest(response);
@@ -87,6 +81,14 @@ namespace LawPlatform.API.Controllers
 
             return Ok(response);
         }
+
+        [HttpGet("MentorConsultations")]
+        public async Task<IActionResult> GetMentorConsultations(string consultation , int pageNumber = 1 , int pageSize = 10 )
+        {
+            var response = await _adminService.MentorConsultationsync(consultation , pageNumber , pageSize);
+            if (!response.Succeeded) return BadRequest(response);
+            return Ok(response);
+        }
         #endregion
 
         #region Delete Account  
@@ -103,5 +105,29 @@ namespace LawPlatform.API.Controllers
             return Ok(response);
         }
         #endregion
+
+
+        [HttpGet("GetTotalConsultationsCount")]
+        public async Task<IActionResult> GetTotalConsultationsCount()
+        {
+            var response = await _adminService.GetTotalConsultationsCountAsync();
+            if (!response.Succeeded) return BadRequest(response);
+            return Ok(response);
+        }
+        [HttpGet("GetTotalClientsCount")]
+        public async Task<IActionResult> GetTotalClientsCount()
+        {
+            var response = await _adminService.GetTotalClientsCountAsync();
+            if (!response.Succeeded) return BadRequest(response);
+            return Ok(response);
+        }
+        [HttpGet("GetApprovedLawyers")]
+        public async Task<IActionResult> GetApprovedLawyers()
+        {
+            var response = await _adminService.GetLawyersByStatusAsync(ApprovalStatus.Approved);
+            if (!response.Succeeded) return BadRequest(response);
+            return Ok(response);
+        }
+
     }
 }
