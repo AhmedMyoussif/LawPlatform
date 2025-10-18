@@ -68,7 +68,7 @@ namespace LawPlatform.API.Hubs
         }
 
     
-        public async Task SendPrivateMessage(string receiverId, string content)
+        public async Task SendPrivateMessage(string receiverId, string content , Guid consultationId)
         {
             var senderId = GetUserId();
 
@@ -86,14 +86,35 @@ namespace LawPlatform.API.Hubs
                     await Clients.Caller.SendAsync("Error", "You are not allowed to message this user.");
                     return;
                 }
+                var chatResponse = await _chatService.GetChatAsync(senderId, receiverId, consultationId);
+                Guid chatId;
+
+                if (!chatResponse.Succeeded || chatResponse.Data == null)
+                {
+                    var newChat = new Chat
+                    {
+                        Id = Guid.NewGuid(),
+                        UserAId = senderId,
+                        UserBId = receiverId,
+                        ConsultationId = consultationId
+                    };
+                    await _chatService.CreateChatAsync(newChat);
+                    chatId = newChat.Id; 
+                }
+                else
+                {
+                    chatId = chatResponse.Data.ChatId;
+                }
 
                 var msg = new ChatMessage
                 {
                     SenderId = senderId,
                     ReceiverId = receiverId,
                     Content = content,
+                    ConsultationId = consultationId,
                     SentAt = DateTimeOffset.UtcNow,
-                    IsRead = false
+                    IsRead = false,
+                    ChatId = chatId
                 };
 
                 await _chatService.SaveMessageAsync(msg);
@@ -140,16 +161,24 @@ namespace LawPlatform.API.Hubs
             }
         }
 
-        public async Task<List<ChatMessageDto>> GetConversation(string otherUserId, Guid consultaionId, int take = 50)
+        public async Task<List<ChatMessageDto>> GetConversation(Guid chatId, int take = 50)
         {
             var me = GetUserId();
-            if (string.IsNullOrWhiteSpace(me) || string.IsNullOrWhiteSpace(otherUserId))
+            if (string.IsNullOrWhiteSpace(me))
             {
                 return new List<ChatMessageDto>();
             }
 
-            var msgs = await _chatService.GetConversationAsync(me, otherUserId, consultaionId, take);
-            return msgs.OrderBy(m => m.SentAt).ToList();
+            var response = await _chatService.GetConversationAsync(chatId, take);
+
+            if (!response.Succeeded || response.Data == null)
+            {
+                return new List<ChatMessageDto>();
+            }
+
+            return response.Data
+                          .OrderBy(m => m.SentAt)
+                          .ToList();
         }
 
 

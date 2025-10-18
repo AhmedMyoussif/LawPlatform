@@ -15,5 +15,6 @@ namespace LawPlatform.Entities.DTO.chat
         public DateTimeOffset SentAt { get; set; }
         public bool IsRead { get; set; }
         public Guid ConsultationId { get; set; }
+        public Guid ChatId { get; set; }
     }
 }
