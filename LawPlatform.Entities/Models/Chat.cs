@@ -15,6 +15,6 @@ namespace LawPlatform.Entities.Models
         public Guid ConsultationId { get; set; }
 
         // Navigation
-        public ICollection<ChatMessage> Messages { get; set; } = new List<ChatMessage>();
+        public ICollection<ChatMessage>?Messages { get; set; } = new List<ChatMessage>();
     }
 }

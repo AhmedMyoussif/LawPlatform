@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using LawPlatform.DataAccess.Services.Chat;
 using LawPlatform.Entities.Models;
 using LawPlatform.Entities.DTO.chat;
+using Microsoft.EntityFrameworkCore;
 
 namespace LawPlatform.API.Hubs
 {
@@ -72,11 +73,18 @@ namespace LawPlatform.API.Hubs
         {
             var senderId = GetUserId();
 
-            if (string.IsNullOrWhiteSpace(receiverId) || string.IsNullOrWhiteSpace(content))
+            if (string.IsNullOrWhiteSpace(receiverId))
             {
-                await Clients.Caller.SendAsync("Error", "ReceiverId and content are required.");
+                await Clients.Caller.SendAsync("Error", "ReceiverId  is required.");
                 return;
             }
+            
+            if (consultationId == Guid.Empty)
+            {
+                await Clients.Caller.SendAsync("Error", "ConsultationId is required.");
+                return;
+            }
+
 
             try
             {

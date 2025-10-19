@@ -50,7 +50,11 @@ namespace LawPlatform.DataAccess.Services.Chat
                     ReceiverId = m.ReceiverId,
                     Content = m.Content,
                     SentAt = m.SentAt.DateTime,
-                    IsRead = m.IsRead
+                    IsRead = m.IsRead,
+                    ChatId = m.ChatId,
+                    ConsultationId = m.ConsultationId
+                    
+
                 })
                 .ToListAsync();
                 return _responseHandler.Success<List<ChatMessageDto>>(messages, "Conversation Retrieved Successfully");
@@ -109,8 +113,14 @@ namespace LawPlatform.DataAccess.Services.Chat
 
         public async Task<ChatMessageDto> SendPrivateMessageAsync(string senderId, string receiverId, string content, Guid consultationId)
         {
-            if (string.IsNullOrWhiteSpace(receiverId) || string.IsNullOrWhiteSpace(content))
-                throw new ArgumentException("ReceiverId and Content are required.");
+            if (string.IsNullOrWhiteSpace(receiverId))
+                throw new ArgumentException("ReceiverId is required.");
+            var consultationExists = await _context.consultations.AnyAsync(c => c.Id == consultationId);
+            if (!consultationExists)
+            {
+                throw new ArgumentException("Invalid ConsultationId.");
+            }
+
 
             var canChat = await CanUsersChatAsync(senderId, receiverId);
             if (!canChat)
