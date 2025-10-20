@@ -63,7 +63,7 @@ namespace LawPlatform.DataAccess.Services.Admin
             query = filters.SortColumn switch
             {
                 LawyerSorting.Experience => isAscending ? query.OrderBy(l => l.YearsOfExperience) : query.OrderByDescending(l => l.YearsOfExperience),
-                LawyerSorting.Rating => isAscending ? query.OrderByDescending(l => l.Rating) : query.OrderByDescending(l => l.YearsOfExperience),
+                LawyerSorting.Rating => isAscending ? query.OrderBy(l => l.Rating) : query.OrderByDescending(l => l.Rating),
                 _ => query.OrderByDescending(l => l.Rating),
             };
 
