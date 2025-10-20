@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LawPlatform.Entities.DTO.Consultaion
+namespace LawPlatform.Entities.DTO.Consultation
 {
     public class ClientInfo
     {

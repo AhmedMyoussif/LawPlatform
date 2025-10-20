@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using LawPlatform.Entities.DTO.Consultaion;
+using LawPlatform.Entities.DTO.Consultation;
 using LawPlatform.Entities.Shared.Bases;
 
 namespace LawPlatform.DataAccess.Services.Consultation;

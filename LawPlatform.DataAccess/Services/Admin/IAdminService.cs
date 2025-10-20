@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LawPlatform.Entities.DTO.Account.Auth.Admin;
-using LawPlatform.Entities.DTO.Consultaion;
+using LawPlatform.Entities.DTO.Consultation;
 using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Utilities.Enums;
 
