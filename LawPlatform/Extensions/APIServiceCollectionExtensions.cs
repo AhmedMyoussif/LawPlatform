@@ -15,6 +15,8 @@ using Microsoft.OpenApi.Models;
 
 using Serilog;
 using EcommercePlatform;
+using LawPlatform.Entities.DTO.Shared;
+using LawPlatform.API.Validators;
 
 namespace Ecommerce.API.Extensions
 {
@@ -115,11 +117,14 @@ namespace Ecommerce.API.Extensions
         public static IServiceCollection AddFluentValidation(this IServiceCollection services)
         {
 
+            services.AddScoped<IValidator<RequestFilters<LawyerSorting>>,RequestFiltersValidator<LawyerSorting>>();
             services.AddControllers().AddFluentValidation(fv =>
             {
                 fv.RegisterValidatorsFromAssembly(typeof(Program).Assembly);
                 fv.AutomaticValidationEnabled = true;
             });
+
+
             return services;
         }
         public static IServiceCollection AddResendOtpRateLimiter(this IServiceCollection services)

@@ -28,6 +28,9 @@ namespace LawPlatform.Entities.Models.Auth.Users
         public string Qualifications { get; set; }
 
         public int YearsOfExperience { get; set; }
+        public double? Rating { get; set; }
+
+        public int? TotalReviews { get; set; }
 
         public int Age { get; set; }
 
