@@ -1,10 +1,11 @@
-﻿using System.Security.Claims;
-using LawPlatform.DataAccess.ApplicationContext;
+﻿using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.Entities.DTO.Review;
+using LawPlatform.Entities.Models.Auth.Users;
 using LawPlatform.Entities.Shared.Bases;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace LawPlatform.DataAccess.Services.Review;
 
@@ -23,7 +24,7 @@ public class ReviewService : IReviewService
         _responseHandler = responseHandler;
         _logger = logger;
     }
-
+    
     public async Task<Response<bool>> AddReviewAsync(string userId, AddReviewRequest request, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Starting AddReviewAsync for LawyerId: {LawyerId}", request.LawyerId);
@@ -32,7 +33,7 @@ public class ReviewService : IReviewService
         {
             // Verify the client exists
             var client = await _context.Clients
-                .FirstOrDefaultAsync(c => c.Id == userId, cancellationToken);
+                .FirstOrDefaultAsync(c => c.Id == userId && !c.IsDeleted, cancellationToken);
 
             if (client == null)
             {
@@ -88,7 +89,12 @@ public class ReviewService : IReviewService
             };
 
             await _context.Reviews.AddAsync(review, cancellationToken);
+
+            lawyer.TotalReviews += 1;
+            lawyer.Rating = GetAverageRatingForLawyerAsync(Guid.Parse(lawyer.Id)).Result.Data;
+            _context.Lawyers.Update(lawyer);
             await _context.SaveChangesAsync(cancellationToken);
+
 
             _logger.LogInformation("Review added successfully. ReviewId: {ReviewId}, LawyerId: {LawyerId}, ClientId: {ClientId}",
                 review.Id, request.LawyerId, userId);
@@ -236,6 +242,18 @@ public class ReviewService : IReviewService
             review.UpdatedAt = DateTime.UtcNow;
 
             _context.Reviews.Update(review);
+
+            // Update lawyer's average rating
+            var lawyer = await _context.Lawyers
+                .FirstOrDefaultAsync(l => l.Id == review.LawyerId && !l.IsDeleted, cancellationToken);
+
+            if (lawyer == null) { 
+                _logger.LogWarning("Lawyer not found or deleted for review. LawyerId: {LawyerId}", review.LawyerId);
+                return _responseHandler.NotFound<bool>("Associated lawyer not found.");
+            }
+
+            lawyer.Rating = GetAverageRatingForLawyerAsync(Guid.Parse(lawyer.Id)).Result.Data;
+            _context.Lawyers.Update(lawyer);
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Review updated successfully. ReviewId: {ReviewId}, ClientId: {ClientId}", 
@@ -289,6 +307,19 @@ public class ReviewService : IReviewService
             review.DeletedAt = DateTime.UtcNow;
 
             _context.Reviews.Update(review);
+
+            // Update lawyer's average rating
+            var lawyer = await _context.Lawyers
+                .FirstOrDefaultAsync(l => l.Id == review.LawyerId && !l.IsDeleted, cancellationToken);
+
+            if (lawyer == null)
+            {
+                _logger.LogWarning("Lawyer not found or deleted for review. LawyerId: {LawyerId}", review.LawyerId);
+                return _responseHandler.NotFound<bool>("Associated lawyer not found.");
+            }
+            lawyer.TotalReviews -= 1 ;
+            lawyer.Rating = GetAverageRatingForLawyerAsync(Guid.Parse(lawyer.Id)).Result.Data;
+            _context.Lawyers.Update(lawyer);
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Review soft deleted successfully. ReviewId: {ReviewId}, ClientId: {ClientId}", 
@@ -299,7 +330,7 @@ public class ReviewService : IReviewService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while deleting review. ReviewId: {ReviewId}", reviewId);
-            return _responseHandler.ServerError<bool>("An error occurred while deleting the review.");
+            return _responseHandler.InternalServerError<bool>("An error occurred while deleting the review.");
         }
     }
 }
