@@ -1,11 +1,8 @@
 ﻿using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.Entities.DTO.Review;
-using LawPlatform.Entities.Models.Auth.Users;
 using LawPlatform.Entities.Shared.Bases;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 
 namespace LawPlatform.DataAccess.Services.Review;
 
@@ -91,7 +88,7 @@ public class ReviewService : IReviewService
             await _context.Reviews.AddAsync(review, cancellationToken);
 
             lawyer.TotalReviews += 1;
-            lawyer.Rating = GetAverageRatingForLawyerAsync(Guid.Parse(lawyer.Id)).Result.Data;
+            lawyer.Rating = (await GetAverageRatingForLawyerAsync(Guid.Parse(lawyer.Id))).Data;
             _context.Lawyers.Update(lawyer);
             await _context.SaveChangesAsync(cancellationToken);
 
@@ -252,7 +249,7 @@ public class ReviewService : IReviewService
                 return _responseHandler.NotFound<bool>("Associated lawyer not found.");
             }
 
-            lawyer.Rating = GetAverageRatingForLawyerAsync(Guid.Parse(lawyer.Id)).Result.Data;
+            lawyer.Rating = (await GetAverageRatingForLawyerAsync(Guid.Parse(lawyer.Id))).Data;
             _context.Lawyers.Update(lawyer);
             await _context.SaveChangesAsync(cancellationToken);
 
@@ -318,7 +315,7 @@ public class ReviewService : IReviewService
                 return _responseHandler.NotFound<bool>("Associated lawyer not found.");
             }
             lawyer.TotalReviews -= 1 ;
-            lawyer.Rating = GetAverageRatingForLawyerAsync(Guid.Parse(lawyer.Id)).Result.Data;
+            lawyer.Rating = (await GetAverageRatingForLawyerAsync(Guid.Parse(lawyer.Id))).Data;
             _context.Lawyers.Update(lawyer);
             await _context.SaveChangesAsync(cancellationToken);
 

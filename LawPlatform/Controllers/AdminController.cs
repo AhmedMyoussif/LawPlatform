@@ -103,7 +103,7 @@ namespace LawPlatform.API.Controllers
         #region Delete Account  
 
         [HttpDelete("delete/{userId}")]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteAccount(Guid userId, CancellationToken cancellationToken)
         {
             _logger.LogInformation("HTTP DELETE /api/admin/delete/{UserId} called", userId);

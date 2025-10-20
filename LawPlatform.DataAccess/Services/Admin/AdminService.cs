@@ -1,23 +1,17 @@
-﻿using CloudinaryDotNet.Actions;
-using LawPlatform.DataAccess.ApplicationContext;
+﻿using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.Email;
 using LawPlatform.DataAccess.Services.Notification;
 using LawPlatform.Entities.DTO.Account.Auth.Admin;
 using LawPlatform.Entities.DTO.Consultation;
 using LawPlatform.Entities.DTO.Shared;
 using LawPlatform.Entities.Models.Auth.Identity;
-using LawPlatform.Entities.Models.Auth.Users;
 using LawPlatform.Entities.Shared;
 using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Utilities.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace LawPlatform.DataAccess.Services.Admin
 {
@@ -66,7 +60,7 @@ namespace LawPlatform.DataAccess.Services.Admin
 
             // Apply sorting
             var isAscending = filters.SortDirection == SortDirection.ASC;
-            var sortedQuery = filters.SortColumn switch
+            query = filters.SortColumn switch
             {
                 LawyerSorting.Experience => isAscending ? query.OrderBy(l => l.YearsOfExperience) : query.OrderByDescending(l => l.YearsOfExperience),
                 LawyerSorting.Rating => isAscending ? query.OrderByDescending(l => l.Rating) : query.OrderByDescending(l => l.YearsOfExperience),
@@ -423,20 +417,5 @@ namespace LawPlatform.DataAccess.Services.Admin
 
         #endregion
 
-
-        #region HelperFunctions
-
-        private static IQueryable<Lawyer> ApplySorting<TSorting>(IQueryable<Lawyer> query, TSorting sortColumn, SortDirection? direction)
-        {
-            var isAscending = direction == SortDirection.ASC;
-
-            return sortColumn switch
-            {
-                LawyerSorting.Experience => isAscending ? query.OrderBy(l => l.YearsOfExperience) : query.OrderByDescending(l => l.YearsOfExperience),
-                LawyerSorting.Rating => isAscending ? query.OrderByDescending(l => l.Rating) : query.OrderByDescending(l => l.YearsOfExperience),
-                _ => query.OrderByDescending(l => l.Rating),
-            };
-        }
-        #endregion
     }
 }

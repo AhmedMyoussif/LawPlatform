@@ -4,11 +4,6 @@ using LawPlatform.Entities.DTO.Shared;
 using LawPlatform.Entities.Shared;
 using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Utilities.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LawPlatform.DataAccess.Services.Admin
 {
