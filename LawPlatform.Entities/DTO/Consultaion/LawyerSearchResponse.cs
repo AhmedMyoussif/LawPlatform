@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LawPlatform.Utilities.Enums;
 
-namespace LawPlatform.Entities.DTO.Consultaion
+namespace LawPlatform.Entities.DTO.Consultation
 {
     public class LawyerSearchResponse
     {

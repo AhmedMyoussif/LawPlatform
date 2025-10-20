@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LawPlatform.Entities.Models;
 
-namespace LawPlatform.Entities.DTO.Profile
+namespace LawPlatform.Entities.DTO.Account.Auth.Login
 {
     public class UserInfoResponse
     {

@@ -3,7 +3,7 @@ using CloudinaryDotNet;
 using FluentValidation;
 using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.ImageUploading;
-using LawPlatform.Entities.DTO.Consultaion;
+using LawPlatform.Entities.DTO.Consultation;
 using LawPlatform.Entities.DTO.ImageUploading;
 using LawPlatform.Entities.DTO.Proposal;
 using LawPlatform.Entities.Models;
@@ -228,7 +228,7 @@ public class ConsultationService :  IConsultationService
                 {
                     Id = consultation.Client.Id,
                     FullName = consultation.Client.FirstName + " " + consultation.Client.LastName,
-                    ProfileImage = consultation.Client.ProfileImage.ImageUrl
+                    ProfileImage = consultation.Client.ProfileImage?.ImageUrl
                 },
                 Proposals = visibleProposals.Select(p => new GetProposalResponse
                 {

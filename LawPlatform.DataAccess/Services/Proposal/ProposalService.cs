@@ -8,7 +8,7 @@ using FluentValidation;
 using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.Consultation;
 using LawPlatform.DataAccess.Services.ImageUploading;
-using LawPlatform.Entities.DTO.Consultaion;
+using LawPlatform.Entities.DTO.Consultation;
 using LawPlatform.Entities.DTO.Proposal;
 using LawPlatform.Entities.Models.Auth.Users;
 using LawPlatform.Entities.Shared.Bases;

@@ -7,7 +7,7 @@ using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.Email;
 using LawPlatform.DataAccess.Services.Notification;
 using LawPlatform.Entities.DTO.Account.Auth.Admin;
-using LawPlatform.Entities.DTO.Consultaion;
+using LawPlatform.Entities.DTO.Consultation;
 using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Models.Auth.Users;
 using LawPlatform.Entities.Shared.Bases;

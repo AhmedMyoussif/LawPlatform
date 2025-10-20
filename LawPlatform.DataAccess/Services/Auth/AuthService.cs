@@ -8,7 +8,6 @@ using LawPlatform.Entities.DTO.Account.Auth.Admin;
 using LawPlatform.Entities.DTO.Account.Auth.Login;
 using LawPlatform.Entities.DTO.Account.Auth.Register;
 using LawPlatform.Entities.DTO.Account.Auth.ResetPassword;
-using LawPlatform.Entities.DTO.Account.Auth.ResetPassword;
 using LawPlatform.Entities.DTO.Profile;
 using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Models.Auth.Users;

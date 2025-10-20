@@ -6,7 +6,7 @@ using LawPlatform.Entities.Models;
 using LawPlatform.Entities.Models.Auth.Users;
 using LawPlatform.Utilities.Enums;
 
-namespace LawPlatform.Entities.DTO.Consultaion;
+namespace LawPlatform.Entities.DTO.Consultation;
 
 public class GetConsultationResponse
 {
