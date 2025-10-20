@@ -1,4 +1,7 @@
-﻿namespace LawPlatform.Entities.DTO.Account.Auth.Login
+﻿using LawPlatform.Entities.DTO.Profile;
+using LawPlatform.Entities.Models.Auth.Identity;
+
+namespace LawPlatform.Entities.DTO.Account.Auth.Login
 {
     public class LoginResponse
     {
@@ -9,5 +12,6 @@
         public bool IsEmailConfirmed { get; set; }
         public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
+        public UserInfoResponse User { get; set; }
     }
 }

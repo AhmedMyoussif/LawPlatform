@@ -1,24 +1,24 @@
-﻿using System.Security.Claims;
-using LawPlatform.Entities.DTO.Account.Auth.ResetPassword;
-using LawPlatform.DataAccess.ApplicationContext;
+﻿using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.Email;
 using LawPlatform.DataAccess.Services.ImageUploading;
+using LawPlatform.DataAccess.Services.Notification;
 using LawPlatform.DataAccess.Services.Token;
 using LawPlatform.Entities.DTO.Account.Auth;
 using LawPlatform.Entities.DTO.Account.Auth.Admin;
 using LawPlatform.Entities.DTO.Account.Auth.Login;
 using LawPlatform.Entities.DTO.Account.Auth.Register;
 using LawPlatform.Entities.DTO.Account.Auth.ResetPassword;
+using LawPlatform.Entities.DTO.Account.Auth.ResetPassword;
+using LawPlatform.Entities.DTO.Profile;
 using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Models.Auth.Users;
 using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Utilities.Enums;
-
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using LawPlatform.DataAccess.Services.Notification;
+using System.Security.Claims;
 
 namespace LawPlatform.DataAccess.Services.Auth
 {
@@ -60,7 +60,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                 var user = await FindUserByEmailAsync(model.Email);
                 if (user == null)
                     return _responseHandler.NotFound<LoginResponse>("User not found.");
-
+                
                 if (!await _userManager.CheckPasswordAsync(user, model.Password))
                     return _responseHandler.BadRequest<LoginResponse>("Invalid password.");
 
@@ -72,15 +72,60 @@ namespace LawPlatform.DataAccess.Services.Auth
                 // Generate tokens and store refresh token associated with user.Id
                 var tokens = await _tokenStoreService.GenerateAndStoreTokensAsync(user);
 
+
+                // Fetch user profile based on role
+                UserInfoResponse? userInfo = null;
+                var userRole = roles.FirstOrDefault();
+
+                switch (userRole)
+                {
+                    case "Client":
+                        var client = await _context.Clients
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(c => c.Id == user.Id);
+                        
+                        if (client != null)
+                        {
+                            userInfo = new UserInfoResponse
+                            {
+                                FirstName = client.FirstName,
+                                LastName = client.LastName,
+                                Address = client.Address,
+                            };
+                        }
+                        break;
+
+                    case "Lawyer":
+                        var lawyer = await _context.Lawyers
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(l => l.Id == user.Id);
+                        
+                        if (lawyer != null)
+                        {
+                            userInfo = new UserInfoResponse
+                            {
+                                FirstName = lawyer.FirstName,
+                                LastName = lawyer.LastName,
+                                Address = lawyer.Address,
+                            };
+                        }
+                        break;
+
+                    default:
+                        _logger.LogWarning("Unknown role {Role} for user {UserId} during login", userRole, user.Id);
+                        break;
+                }
+
                 var response = new LoginResponse
                 {
                     Id = user.Id,
                     Email = user.Email,
-                    Role = roles.FirstOrDefault(),
+                    Role = userRole,
                     IsEmailConfirmed = user.EmailConfirmed,
                     PhoneNumber = user.PhoneNumber,
                     AccessToken = tokens.AccessToken,
-                    RefreshToken = tokens.RefreshToken
+                    RefreshToken = tokens.RefreshToken,
+                    User = userInfo
                 };
 
                 return _responseHandler.Success(response, "Login successful.");

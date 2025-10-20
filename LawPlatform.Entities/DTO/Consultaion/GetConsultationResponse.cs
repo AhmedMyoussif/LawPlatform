@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using LawPlatform.Entities.DTO.Profile;
 using LawPlatform.Entities.DTO.Proposal;
 using LawPlatform.Entities.Models;
 using LawPlatform.Entities.Models.Auth.Users;
@@ -23,7 +24,6 @@ public class GetConsultationResponse
     public List<string> UrlFiles { get; set; }
     public ClientInfo Client { get; set; }
     public int ProposalsCount { get; set; }
-
 
     public List<GetProposalResponse> Proposals { get; set; }
     [JsonInclude]
