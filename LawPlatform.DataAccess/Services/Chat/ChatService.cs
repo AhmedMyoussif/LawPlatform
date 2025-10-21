@@ -49,12 +49,9 @@ namespace LawPlatform.DataAccess.Services.Chat
                 .OrderByDescending(m => m.SentAt)
                 .Select(m => new ChatMessageDto
                 {
-                    Id = m.Id,
                     SenderId = m.SenderId,
                     ReceiverId = m.ReceiverId,
                     Content = m.Content,
-                    SentAt = m.SentAt.DateTime,
-                    IsRead = m.IsRead,
                     ChatId = m.ChatId,
                     ConsultationId = m.ConsultationId
                 });
@@ -114,7 +111,7 @@ namespace LawPlatform.DataAccess.Services.Chat
             }
         }
 
-        public async Task<ChatMessageDto> SendPrivateMessageAsync(string senderId, string receiverId, string content, Guid consultationId)
+        public async Task<GetChatIdResponse> GetChatId(string senderId, string receiverId, Guid consultationId)
         {
             if (string.IsNullOrWhiteSpace(receiverId))
                 throw new ArgumentException("ReceiverId is required.");
@@ -131,28 +128,14 @@ namespace LawPlatform.DataAccess.Services.Chat
 
             var chatId = await CreateOrGetChatAsync(senderId, receiverId, consultationId);
 
-            var msg = new ChatMessage
+           
+            await _context.SaveChangesAsync();
+            var dto = new GetChatIdResponse
             {
                 SenderId = senderId,
-                ReceiverId = receiverId,
-                Content = content,
-                ConsultationId = consultationId,
-                SentAt = DateTimeOffset.UtcNow,
-                IsRead = false,
-                ChatId = chatId
-            };
-            _context.ChatMessages.Add(msg);
-            await _context.SaveChangesAsync();
-            var dto = new ChatMessageDto
-            {
-                Id = msg.Id,
-                SenderId = msg.SenderId,
-                ReceiverId = msg.ReceiverId,
-                Content = msg.Content,
-                SentAt = msg.SentAt.DateTime,
-                IsRead = msg.IsRead,
-                ChatId = msg.ChatId,
-                ConsultationId = msg.ConsultationId
+                ReceiverId = receiverId,   
+                ChatId = chatId,
+                ConsultationId = consultationId
             };
             return dto;
         }

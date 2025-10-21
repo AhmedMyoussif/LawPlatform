@@ -48,37 +48,30 @@ namespace LawPlatform.API.Controllers
         }
 
 
-        [HttpGet("chatId")]
-        public async Task<IActionResult> GetChat([FromQuery] string otherUserId, [FromQuery] Guid consultationId)
-        {
-            var me = GetCurrentUserId();
-            if (string.IsNullOrEmpty(me)) return Unauthorized();
+        //[HttpGet("chatId")]
+        //public async Task<IActionResult> GetChat([FromQuery] string otherUserId, [FromQuery] Guid consultationId)
+        //{
+        //    var me = GetCurrentUserId();
+        //    if (string.IsNullOrEmpty(me)) return Unauthorized();
 
-            var response = await _chatService.GetChatAsync(me, otherUserId, consultationId);
+        //    var response = await _chatService.GetChatAsync(me, otherUserId, consultationId);
 
-            if (!response.Succeeded)
-                return NotFound(response);
+        //    if (!response.Succeeded)
+        //        return NotFound(response);
 
-            return Ok(response);
-        }
+        //    return Ok(response);
+        //}
 
 
-        [HttpPost("private/send")]
-        public async Task<IActionResult> SendPrivate([FromBody] SendMessageRequest model)
+        [HttpPost]
+        public async Task<IActionResult> GetChatId([FromBody] SendMessageRequest model)
         {
             var me = GetCurrentUserId();
             if (string.IsNullOrEmpty(me)) return Unauthorized();
 
             try
             {
-                var msg = await _chatService.SendPrivateMessageAsync(me, model.ReceiverId, model.Content, model.ConsultationId);
-
-                await _hubContext.Clients.User(model.ReceiverId)
-                    .SendAsync("ReceivePrivateMessage", me, model.Content, msg.SentAt);
-
-                await _hubContext.Clients.User(me)
-                    .SendAsync("MessageSent", model.ReceiverId, model.Content, msg.SentAt);
-
+                var msg = await _chatService.GetChatId(me, model.ReceiverId, model.ConsultationId);
                 return Ok(msg);
             }
             catch (Exception ex)

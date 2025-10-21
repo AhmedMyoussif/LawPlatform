@@ -12,7 +12,7 @@ namespace LawPlatform.DataAccess.Services.Chat
 {
     public interface IChatService
     {
-        Task<ChatMessageDto> SendPrivateMessageAsync(string senderId, string receiverId, string content, Guid consultationId);
+        Task<GetChatIdResponse> GetChatId(string senderId, string receiverI, Guid consultationId);
         Task CreateChatAsync(LawPlatform.Entities.Models.Chat chat);
         Task SaveMessageAsync(ChatMessage msg);
         Task<Response<PaginatedList<ChatMessageDto>>> GetConversationAsync(Guid chatId, int pageNumber = 1, int pageSize = 50);
