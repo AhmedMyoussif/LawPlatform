@@ -118,7 +118,6 @@ namespace LawPlatform.API.Hubs
                 {
                     SenderId = senderId,
                     ReceiverId = receiverId,
-                    Content = content,
                     ConsultationId = consultationId,
                     SentAt = DateTimeOffset.UtcNow,
                     IsRead = false,
@@ -185,7 +184,6 @@ namespace LawPlatform.API.Hubs
             }
 
             return response.Data
-                          .OrderBy(m => m.SentAt)
                           .ToList();
         }
 
