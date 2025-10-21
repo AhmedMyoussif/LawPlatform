@@ -38,7 +38,7 @@ namespace LawPlatform.API.Controllers
 
         [HttpGet("conversation/{chatId}")]
         [Authorize]
-        public async Task<IActionResult> GetConversation(Guid chatId, int pageNumber, int pageSize)
+        public async Task<IActionResult> GetConversation(Guid chatId, int pageNumber = 1, int pageSize = 50)
         {
             var me = GetCurrentUserId();
             if (string.IsNullOrEmpty(me)) return Unauthorized();
