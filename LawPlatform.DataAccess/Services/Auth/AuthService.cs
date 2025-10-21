@@ -269,6 +269,14 @@ namespace LawPlatform.DataAccess.Services.Auth
                 }
                 string licenseDocumentUrl = licenseUploadResult.Url;
 
+                var profileImageResult = await _imageUploadService.UploadAsync(model.ProfileImage);
+                if (profileImageResult == null || string.IsNullOrEmpty(profileImageResult.Url))
+                {
+                    return _responseHandler.BadRequest<LawyerRegisterResponse>("Failed to upload profile image.");
+                }
+                
+                string profileImageResultUrl = profileImageResult.Url;
+
                 // Create Lawyer
                 lawyer = new Lawyer
                 {
@@ -288,6 +296,11 @@ namespace LawPlatform.DataAccess.Services.Auth
                     IBAN = model.IBAN,
                     Address = model.Address,
                     Age = model.Age,
+                    ProfileImage = new Entities.Models.ProfileImage
+                    {
+                        ImageUrl = profileImageResultUrl,
+                        LawyerId = user.Id
+                    },
                     BankAccountNumber = model.BankAccountNumber,
                     BankName = model.BankName,
                     Status = ApprovalStatus.Pending,
@@ -316,6 +329,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                     LicenseDocumentPath = lawyer.LicenseDocumentPath,
                     QualificationDocumentPath = lawyer.QualificationDocumentPath,
                     Status = lawyer.Status,
+                    ProfileImageUrl = profileImageResultUrl,
                     AccessToken = tokens.AccessToken,
                     RefreshToken = tokens.RefreshToken,
                     Address = lawyer.Address,
