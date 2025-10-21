@@ -38,12 +38,12 @@ namespace LawPlatform.API.Controllers
 
         [HttpGet("conversation/{chatId}")]
         [Authorize]
-        public async Task<IActionResult> GetConversation(Guid chatId)
+        public async Task<IActionResult> GetConversation(Guid chatId, int pageNumber, int pageSize)
         {
             var me = GetCurrentUserId();
             if (string.IsNullOrEmpty(me)) return Unauthorized();
 
-            var msgs = await _chatService.GetConversationAsync(chatId);
+            var msgs = await _chatService.GetConversationAsync(chatId, pageNumber, pageSize);
             return Ok(msgs);
         }
 
