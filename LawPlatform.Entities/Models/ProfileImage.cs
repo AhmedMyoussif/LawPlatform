@@ -19,13 +19,13 @@ namespace LawPlatform.Entities.Models
         [Required]
         public string ImageUrl { get; set; }
 
-        public string ClientId { get; set; }
+        public string? ClientId { get; set; }
         [ForeignKey(nameof(ClientId))]
         public Client? Client { get; set; }
 
         public string? LawyerId { get; set; }
         [ForeignKey(nameof(LawyerId))]
-        public Lawyer Lawyer { get; set; }
+        public Lawyer? Lawyer { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
