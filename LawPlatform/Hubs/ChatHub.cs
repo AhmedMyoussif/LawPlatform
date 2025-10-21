@@ -184,7 +184,6 @@ namespace LawPlatform.API.Hubs
             }
 
             return response.Data.Items
-                          .OrderBy(m => m.SentAt)
                           .ToList();
         }
 
