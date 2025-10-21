@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using LawPlatform.Entities.DTO.Account.Auth.Admin;
-using LawPlatform.Entities.DTO.Consultaion;
+﻿using LawPlatform.Entities.DTO.Account.Auth.Admin;
+using LawPlatform.Entities.DTO.Consultation;
+using LawPlatform.Entities.DTO.Shared;
+using LawPlatform.Entities.Shared;
 using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Utilities.Enums;
 
@@ -13,7 +10,7 @@ namespace LawPlatform.DataAccess.Services.Admin
     public interface IAdminService
     {
         #region Get / Update Lawyer
-        Task<Response<PaginatedResult<GetLawyerResponse>>> GetLawyersByStatusAsync(ApprovalStatus? status = null , int pageNumber = 1, int pageSize = 10);
+        Task<Response<PaginatedList<GetLawyerBriefResponse>>> GetLawyersByStatusAsync(ApprovalStatus? status, RequestFilters<LawyerSorting> filters);
         Task<Response<UpdateLawyerAccountStatusResponse>> UpdateLawyerAccountStatusAsync(UpdateLawyerAccountStatusRequest model);
         Task<Response<GetLawyerResponse>> GetLawyerByIdAsync(string lawyerId);
         #endregion

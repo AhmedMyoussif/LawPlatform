@@ -11,7 +11,6 @@ namespace LawPlatform.Entities.DTO.chat
     public class SendMessageRequest
     {
         public string ReceiverId { get; set; }
-        public string? Content { get; set; } = null!;
         public Guid ConsultationId { get; set; }
     }
 }

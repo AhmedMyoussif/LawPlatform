@@ -1,20 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using LawPlatform.DataAccess.ApplicationContext;
+﻿using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.Email;
 using LawPlatform.DataAccess.Services.Notification;
 using LawPlatform.Entities.DTO.Account.Auth.Admin;
-using LawPlatform.Entities.DTO.Consultaion;
+using LawPlatform.Entities.DTO.Consultation;
+using LawPlatform.Entities.DTO.Shared;
 using LawPlatform.Entities.Models.Auth.Identity;
-using LawPlatform.Entities.Models.Auth.Users;
+using LawPlatform.Entities.Shared;
 using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Utilities.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
 
 namespace LawPlatform.DataAccess.Services.Admin
 {
@@ -41,48 +38,46 @@ namespace LawPlatform.DataAccess.Services.Admin
 
 
         #region Get Lawyers by Status
-        public async Task<Response<PaginatedResult<GetLawyerResponse>>> GetLawyersByStatusAsync(
-         ApprovalStatus? status = ApprovalStatus.Pending,
-         int pageNumber = 1,
-         int pageSize = 10)
+        public async Task<Response<PaginatedList<GetLawyerBriefResponse>>> GetLawyersByStatusAsync(ApprovalStatus? status, RequestFilters<LawyerSorting> filters)
         {
-            if (pageNumber <= 0 || pageSize <= 0)
-                return _responseHandler.BadRequest<PaginatedResult<GetLawyerResponse>>("Invalid pagination parameters.");
-
             var query = _context.Lawyers
-                .Where(l => !status.HasValue || l.Status == status.Value)
+                .Where(l => !l.IsDeleted && (!status.HasValue || l.Status == status.Value))
                 .Join(_userManager.Users,
                       lawyer => lawyer.Id,
                       user => user.Id,
-                      (lawyer, user) => new GetLawyerResponse
+                      (lawyer, user) => new GetLawyerBriefResponse
                       {
                           Id = lawyer.Id,
                           FirstName = lawyer.FirstName,
                           LastName = lawyer.LastName,
-                          UserName = user.UserName,
-                          Email = user.Email,
-                          PhoneNumber = user.PhoneNumber,
                           QualificationDocumentUrl = lawyer.QualificationDocumentPath,
                           Status = lawyer.Status,
-                          CreatedAt = lawyer.CreatedAt,
                           Specialization = lawyer.Specialization.ToString(),
                           Experiences = lawyer.Experiences
-                      });
+                     }
+                )
+                .AsNoTracking();
 
-            var totalCount = await query.CountAsync();
-
-            var lawyers = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var result = new PaginatedResult<GetLawyerResponse>
+            // Apply sorting
+            var isAscending = filters.SortDirection == SortDirection.ASC;
+            query = filters.SortColumn switch
             {
-                Items = lawyers,
-                TotalCount = totalCount,
-                PageNumber = pageNumber,
-                PageSize = pageSize
+                LawyerSorting.Experience => isAscending ? query.OrderBy(l => l.YearsOfExperience) : query.OrderByDescending(l => l.YearsOfExperience),
+                LawyerSorting.Rating => isAscending ? query.OrderBy(l => l.Rating) : query.OrderByDescending(l => l.Rating),
+                _ => query.OrderByDescending(l => l.Rating),
             };
+
+            //Apply Searching
+            query = string.IsNullOrWhiteSpace(filters.SearchValue)
+                ? query
+                : query.Where(l =>
+                    EF.Functions.Contains(l.FirstName, $"\"{filters.SearchValue}\"") ||
+                    EF.Functions.Contains(l.LastName, $"\"{filters.SearchValue}\"")
+                );
+
+           
+            //Apply Pagination
+            var result = await PaginatedList<GetLawyerBriefResponse>.CreateAsync(query, filters.PageNumber, filters.PageSize);
 
             return _responseHandler.Success(result, "Lawyers retrieved successfully.");
         }

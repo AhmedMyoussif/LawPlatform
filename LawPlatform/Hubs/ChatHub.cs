@@ -118,7 +118,6 @@ namespace LawPlatform.API.Hubs
                 {
                     SenderId = senderId,
                     ReceiverId = receiverId,
-                    Content = content,
                     ConsultationId = consultationId,
                     SentAt = DateTimeOffset.UtcNow,
                     IsRead = false,
@@ -184,7 +183,7 @@ namespace LawPlatform.API.Hubs
                 return new List<ChatMessageDto>();
             }
 
-            return response.Data
+            return response.Data.Items
                           .OrderBy(m => m.SentAt)
                           .ToList();
         }

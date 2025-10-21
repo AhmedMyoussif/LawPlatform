@@ -5,6 +5,8 @@ namespace LawPlatform.API.Validators
 {
     public class LawyerRegisterRequestValidator : AbstractValidator<LawyerRegisterRequest>
     {
+        private readonly string[] allowedExtensions = { ".jpg", ".jpeg", ".png" };
+        private const long maxFileSize = 5 * 1024 * 1024; // 5 MB
         public LawyerRegisterRequestValidator()
         {
             // Email
@@ -49,7 +51,6 @@ namespace LawPlatform.API.Validators
             RuleFor(x => x.Qualifications)
                 .NotEmpty().WithMessage("Qualifications are required.");
 
-
             RuleFor(x => x.Experiences)
                 .MaximumLength(500).WithMessage("Experiences cannot exceed 500 characters.")
                 .When(x => !string.IsNullOrEmpty(x.Experiences));
@@ -66,8 +67,11 @@ namespace LawPlatform.API.Validators
               .NotNull().WithMessage("License document is required.")
               .Must(f => f.ContentType == "application/pdf")
               .WithMessage("License document must be a PDF file.");
-
-
+            
+          
+            RuleFor(x => x.ProfileImage)
+                .Must(file => file == null || IsValidFile(file))
+                .WithMessage("Profile image must be JPG or PNG and less than 5MB.");
 
             // Country
             RuleFor(x => x.Country)
@@ -100,6 +104,11 @@ namespace LawPlatform.API.Validators
                 .WithMessage("Qualification document size must not exceed 5 MB.");
 
 
+        }
+        private bool IsValidFile(IFormFile file)
+        {
+            var extension = Path.GetExtension(file.FileName).ToLower();
+            return allowedExtensions.Contains(extension) && file.Length <= maxFileSize;
         }
     }
 }

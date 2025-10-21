@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.Entities.DTO.chat;
 using LawPlatform.Entities.Models;
+using LawPlatform.Entities.Shared;
 using LawPlatform.Entities.Shared.Bases;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -28,37 +29,36 @@ namespace LawPlatform.DataAccess.Services.Chat
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Response<List<ChatMessageDto>>> GetConversationAsync(Guid chatId , int take = 50)
+        public async Task<Response<PaginatedList<ChatMessageDto>>> GetConversationAsync(Guid chatId, int pageNumber = 1, int pageSize = 50)
         {
             _logger.LogInformation($"Fetching conversation For Chat With Id : {chatId}");
 
             if (chatId == Guid.Empty)
             {
                 _logger.LogWarning("Invalid Chat Id provided.");
-                return _responseHandler.NotFound<List<ChatMessageDto>>("Invalid Chat Id provided.");
+                return _responseHandler.NotFound<PaginatedList<ChatMessageDto>>("Invalid Chat Id provided.");
             }
-            else 
-           {
-                var messages = await _context.ChatMessages
+            if (pageNumber <= 0 || pageSize <= 0)
+            {
+                _logger.LogWarning("Invalid pagination parameters.");
+                return _responseHandler.BadRequest<PaginatedList<ChatMessageDto>>("Invalid pagination parameters.");
+            }
+
+            var query = _context.ChatMessages
                 .Where(m => m.ChatId == chatId)
                 .OrderByDescending(m => m.SentAt)
-                .Take(take)
                 .Select(m => new ChatMessageDto
                 {
-                    Id = m.Id,
                     SenderId = m.SenderId,
                     ReceiverId = m.ReceiverId,
                     Content = m.Content,
-                    SentAt = m.SentAt.DateTime,
-                    IsRead = m.IsRead,
                     ChatId = m.ChatId,
                     ConsultationId = m.ConsultationId
-                    
+                });
 
-                })
-                .ToListAsync();
-                return _responseHandler.Success<List<ChatMessageDto>>(messages, "Conversation Retrieved Successfully");
-            }
+            var paginatedMessages = await PaginatedList<ChatMessageDto>.CreateAsync(query, pageNumber, pageSize);
+            
+            return _responseHandler.Success(paginatedMessages, "Conversation Retrieved Successfully");
         }
 
         public async Task MarkConversationAsReadAsync(string readerId, string otherUserId)
@@ -111,7 +111,7 @@ namespace LawPlatform.DataAccess.Services.Chat
             }
         }
 
-        public async Task<ChatMessageDto> SendPrivateMessageAsync(string senderId, string receiverId, string content, Guid consultationId)
+        public async Task<GetChatIdResponse> GetChatId(string senderId, string receiverId, Guid consultationId)
         {
             if (string.IsNullOrWhiteSpace(receiverId))
                 throw new ArgumentException("ReceiverId is required.");
@@ -128,28 +128,14 @@ namespace LawPlatform.DataAccess.Services.Chat
 
             var chatId = await CreateOrGetChatAsync(senderId, receiverId, consultationId);
 
-            var msg = new ChatMessage
+           
+            await _context.SaveChangesAsync();
+            var dto = new GetChatIdResponse
             {
                 SenderId = senderId,
-                ReceiverId = receiverId,
-                Content = content,
-                ConsultationId = consultationId,
-                SentAt = DateTimeOffset.UtcNow,
-                IsRead = false,
-                ChatId = chatId
-            };
-            _context.ChatMessages.Add(msg);
-            await _context.SaveChangesAsync();
-            var dto = new ChatMessageDto
-            {
-                Id = msg.Id,
-                SenderId = msg.SenderId,
-                ReceiverId = msg.ReceiverId,
-                Content = msg.Content,
-                SentAt = msg.SentAt.DateTime,
-                IsRead = msg.IsRead,
-                ChatId = msg.ChatId,
-                ConsultationId = msg.ConsultationId
+                ReceiverId = receiverId,   
+                ChatId = chatId,
+                ConsultationId = consultationId
             };
             return dto;
         }

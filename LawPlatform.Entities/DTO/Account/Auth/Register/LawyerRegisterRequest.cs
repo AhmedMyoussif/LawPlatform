@@ -37,6 +37,7 @@ namespace LawPlatform.Entities.DTO.Account.Auth.Register
 
         public string Address { get; set; }
 
+        public IFormFile ProfileImage { get; set; }
 
         public string IBAN { get; set; }
 

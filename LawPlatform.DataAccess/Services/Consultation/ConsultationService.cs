@@ -3,7 +3,7 @@ using CloudinaryDotNet;
 using FluentValidation;
 using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.ImageUploading;
-using LawPlatform.Entities.DTO.Consultaion;
+using LawPlatform.Entities.DTO.Consultation;
 using LawPlatform.Entities.DTO.ImageUploading;
 using LawPlatform.Entities.DTO.Proposal;
 using LawPlatform.Entities.Models;
@@ -196,6 +196,7 @@ public class ConsultationService :  IConsultationService
                 .Include(c => c.Files)
                 .Include(c => c.Proposals)
                 .ThenInclude(p => p.Lawyer)
+                .Include(c => c.Client)
                 .FirstOrDefaultAsync(c => c.Id == consultationGuid);
 
             if (consultation == null)
@@ -223,7 +224,12 @@ public class ConsultationService :  IConsultationService
                 Duration = consultation.Duration,
                 Status = consultation.Status,
                 UrlFiles = consultation.Files.Select(f => f.FilePath).ToList(),
-
+                Client = new ClientInfo
+                {
+                    Id = consultation.Client.Id,
+                    FullName = consultation.Client.FirstName + " " + consultation.Client.LastName,
+                    ProfileImage = consultation.Client.ProfileImage?.ImageUrl
+                },
                 Proposals = visibleProposals.Select(p => new GetProposalResponse
                 {
                     Id = p.Id,

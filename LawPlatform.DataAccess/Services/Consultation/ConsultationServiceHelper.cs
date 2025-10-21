@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Google;
-using LawPlatform.Entities.DTO.Consultaion;
+using LawPlatform.Entities.DTO.Consultation;
 using System.Security.Claims;
 using LawPlatform.Entities.Models;
 using Microsoft.AspNetCore.Http;

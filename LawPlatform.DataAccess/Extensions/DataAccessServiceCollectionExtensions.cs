@@ -30,9 +30,13 @@ namespace LawPlatform.DataAccess.Extensions
     {
         public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
         {
+
+            var conMode = configuration["ConnectionMode"] ?? "ProdCS";
+            var conString = configuration.GetConnectionString(conMode) ??
+                            throw new InvalidOperationException($"Connection string '{conMode}' not found.");
+            
             services.AddDbContext<LawPlatformContext>(options =>
-                options.UseSqlServer(
-                    configuration.GetConnectionString("ProdCS")));
+                options.UseSqlServer(conString));
 
             return services;
         }

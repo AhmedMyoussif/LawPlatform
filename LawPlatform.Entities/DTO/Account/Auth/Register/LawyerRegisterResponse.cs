@@ -15,7 +15,7 @@ namespace LawPlatform.Entities.DTO.Account.Auth.Register
         public string FullName { get; set; }
 
         public int Age { get; set; }
-
+        public string ProfileImageUrl { get; set; }
         public string Address { get; set; }
         public string Specialization { get; set; }
         public string LicenseNumber { get; set; }

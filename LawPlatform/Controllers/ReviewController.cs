@@ -3,9 +3,7 @@ using LawPlatform.DataAccess.Services.Review;
 using LawPlatform.Entities.DTO.Review;
 using LawPlatform.Entities.Shared.Bases;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Data;
 
 namespace LawPlatform.API.Controllers;
 

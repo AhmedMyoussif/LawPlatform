@@ -1,5 +1,5 @@
 using FluentValidation;
-using LawPlatform.Entities.DTO.Consultaion;
+using LawPlatform.Entities.DTO.Consultation;
 using Microsoft.AspNetCore.Http;
 using System.Linq;
 

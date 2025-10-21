@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using LawPlatform.DataAccess.Services.Consultation;
-using LawPlatform.Entities.DTO.Consultaion;
+using LawPlatform.Entities.DTO.Consultation;
 using LawPlatform.Entities.Shared.Bases;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;

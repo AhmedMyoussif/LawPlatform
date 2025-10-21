@@ -92,7 +92,7 @@ namespace LawPlatform.DataAccess.Services.Profile
             var lawyer = await _context.Lawyers
                 .Include(l => l.User)
                 .Include(l => l.ProfileImage)
-                .FirstOrDefaultAsync(l => l.Id == userId);
+                .FirstOrDefaultAsync(l => l.Id == userId && !l.IsDeleted);
 
             if (lawyer != null)
             {
@@ -144,19 +144,27 @@ namespace LawPlatform.DataAccess.Services.Profile
             try
             {
                
-                if(!string.IsNullOrEmpty(client.FirstName))
+                if(!string.IsNullOrEmpty(dto.FirstName))
                 {
                     client.FirstName = dto.FirstName;
                 }
-                if (!string.IsNullOrEmpty(client.LastName))
+                if (!string.IsNullOrEmpty(dto.LastName))
                 {
                     client.LastName = dto.LastName;
                 }
-                if (!string.IsNullOrEmpty(client.Address))
+                if (!string.IsNullOrEmpty(dto.Address))
                 {
                     client.Address = dto.Address;
                 }
-
+                if (dto.ProfileImage is not null)
+                {
+                    var uploadImageResult = await UpdateProfileImageAsync(dto.ProfileImage);
+                    if (!uploadImageResult.Succeeded)
+                    {
+                        _logger.LogWarning("Failed to upload profile image for UserId {UserId}: {ErrorMessage}", userId, uploadImageResult.Message);
+                        return _responseHandler.BadRequest<bool>("Failed to upload profile image: " + uploadImageResult.Message);
+                    }
+                }
                 await _context.SaveChangesAsync();
 
                 return _responseHandler.Success(true, "Profile updated successfully");
@@ -190,7 +198,7 @@ namespace LawPlatform.DataAccess.Services.Profile
                     client.ProfileImage = new ProfileImage
                     {
                         ImageUrl = uploadResult.Url,
-                        Id = Guid.Parse(client.Id)
+                        ClientId = client.Id
                     };
                 }
                 else
