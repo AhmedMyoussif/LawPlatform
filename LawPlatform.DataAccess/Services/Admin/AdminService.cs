@@ -40,46 +40,57 @@ namespace LawPlatform.DataAccess.Services.Admin
         #region Get Lawyers by Status
         public async Task<Response<PaginatedList<GetLawyerBriefResponse>>> GetLawyersByStatusAsync(ApprovalStatus? status, RequestFilters<LawyerSorting> filters)
         {
-            var query = _context.Lawyers
-                .Where(l => !l.IsDeleted && (!status.HasValue || l.Status == status.Value))
-                .Join(_userManager.Users,
-                      lawyer => lawyer.Id,
-                      user => user.Id,
-                      (lawyer, user) => new GetLawyerBriefResponse
-                      {
-                          Id = lawyer.Id,
-                          FirstName = lawyer.FirstName,
-                          LastName = lawyer.LastName,
-                          QualificationDocumentUrl = lawyer.QualificationDocumentPath,
-                          Status = lawyer.Status,
-                          Specialization = lawyer.Specialization.ToString(),
-                          Experiences = lawyer.Experiences
-                     }
-                )
-                .AsNoTracking();
-
-            // Apply sorting
-            var isAscending = filters.SortDirection == SortDirection.ASC;
-            query = filters.SortColumn switch
+            try
             {
-                LawyerSorting.Experience => isAscending ? query.OrderBy(l => l.YearsOfExperience) : query.OrderByDescending(l => l.YearsOfExperience),
-                LawyerSorting.Rating => isAscending ? query.OrderBy(l => l.Rating) : query.OrderByDescending(l => l.Rating),
-                _ => query.OrderByDescending(l => l.Rating),
-            };
 
-            //Apply Searching
-            query = string.IsNullOrWhiteSpace(filters.SearchValue)
-                ? query
-                : query.Where(l =>
-                    EF.Functions.Contains(l.FirstName, $"\"{filters.SearchValue}\"") ||
-                    EF.Functions.Contains(l.LastName, $"\"{filters.SearchValue}\"")
-                );
+                var query = _context.Lawyers
+                    .Where(l => !l.IsDeleted && (!status.HasValue || l.Status == status.Value))
+                    .Join(_userManager.Users,
+                          lawyer => lawyer.Id,
+                          user => user.Id,
+                          (lawyer, user) => new GetLawyerBriefResponse
+                          {
+                              Id = lawyer.Id,
+                              FirstName = lawyer.FirstName,
+                              LastName = lawyer.LastName,
+                              QualificationDocumentUrl = lawyer.QualificationDocumentPath,
+                              Status = lawyer.Status,
+                              Specialization = lawyer.Specialization.ToString(),
+                              Experiences = lawyer.Experiences ?? "Not specified",
+                              YearsOfExperience = lawyer.YearsOfExperience,
+                              Rating = lawyer.Rating ?? 0.0
+                          }
+                    )
+                    .AsNoTracking();
 
-           
-            //Apply Pagination
-            var result = await PaginatedList<GetLawyerBriefResponse>.CreateAsync(query, filters.PageNumber, filters.PageSize);
+                // Apply sorting
+                var isAscending = filters.SortDirection == SortDirection.ASC;
+                query = filters.SortColumn switch
+                {
+                    LawyerSorting.Experience => isAscending ? query.OrderBy(l => l.YearsOfExperience) : query.OrderByDescending(l => l.YearsOfExperience),
+                    LawyerSorting.Rating => isAscending ? query.OrderBy(l => l.Rating) : query.OrderByDescending(l => l.Rating),
+                    _ => query.OrderByDescending(l => l.Rating),
+                };
 
-            return _responseHandler.Success(result, "Lawyers retrieved successfully.");
+                //Apply Searching
+                query = string.IsNullOrWhiteSpace(filters.SearchValue)
+                    ? query
+                    : query.Where(l =>
+                        EF.Functions.Contains(l.FirstName, $"\"{filters.SearchValue}\"") ||
+                        EF.Functions.Contains(l.LastName, $"\"{filters.SearchValue}\"")
+                    );
+
+
+                //Apply Pagination
+                var result = await PaginatedList<GetLawyerBriefResponse>.CreateAsync(query, filters.PageNumber, filters.PageSize);
+
+                return _responseHandler.Success(result, "Lawyers retrieved successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving lawyers by status.");
+                return _responseHandler.BadRequest<PaginatedList<GetLawyerBriefResponse>>("An error occurred while retrieving lawyers.");
+            }
         }
 
         #endregion

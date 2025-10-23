@@ -114,6 +114,15 @@ namespace LawPlatform.DataAccess.Services.Auth
                         };
                         break;
 
+                    case "Admin":
+                        userInfo = new UserInfoResponse
+                        {
+                            FirstName = user.UserName,
+                            LastName = string.Empty,
+                            Address = string.Empty
+                        };
+                        break;
+
                     default:
                         _logger.LogWarning("Unknown role {Role} for user {UserId} during login", userRole, user.Id);
                         return _responseHandler.BadRequest<LoginResponse>("Invalid user role.");
