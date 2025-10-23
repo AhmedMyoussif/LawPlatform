@@ -68,11 +68,7 @@ namespace LawPlatform.DataAccess.Services.Auth
 
                 var roles = await _userManager.GetRolesAsync(user);
 
-                // Generate tokens and store refresh token associated with user.Id
-                var tokens = await _tokenStoreService.GenerateAndStoreTokensAsync(user);
-
-
-                // Fetch user profile based on role
+                // Fetch user profile based on role and check if deleted
                 UserInfoResponse? userInfo = null;
                 var userRole = roles.FirstOrDefault();
 
@@ -80,40 +76,51 @@ namespace LawPlatform.DataAccess.Services.Auth
                 {
                     case "Client":
                         var client = await _context.Clients
+                            .Where(c => !c.IsDeleted)
                             .AsNoTracking()
                             .FirstOrDefaultAsync(c => c.Id == user.Id);
                         
-                        if (client != null)
+                        if (client == null)
                         {
-                            userInfo = new UserInfoResponse
-                            {
-                                FirstName = client.FirstName,
-                                LastName = client.LastName,
-                                Address = client.Address,
-                            };
+                            _logger.LogWarning("Client account is deleted or not found for UserId: {UserId}", user.Id);
+                            return _responseHandler.Forbidden<LoginResponse>("Your account has been deactivated. Please contact support.");
                         }
+
+                        userInfo = new UserInfoResponse
+                        {
+                            FirstName = client.FirstName,
+                            LastName = client.LastName,
+                            Address = client.Address,
+                        };
                         break;
 
                     case "Lawyer":
                         var lawyer = await _context.Lawyers
+                            .Where(l => !l.IsDeleted)
                             .AsNoTracking()
                             .FirstOrDefaultAsync(l => l.Id == user.Id);
                         
-                        if (lawyer != null)
+                        if (lawyer == null)
                         {
-                            userInfo = new UserInfoResponse
-                            {
-                                FirstName = lawyer.FirstName,
-                                LastName = lawyer.LastName,
-                                Address = lawyer.Address,
-                            };
+                            _logger.LogWarning("Lawyer account is deleted or not found for UserId: {UserId}", user.Id);
+                            return _responseHandler.Forbidden<LoginResponse>("Your account has been deactivated. Please contact support.");
                         }
+
+                        userInfo = new UserInfoResponse
+                        {
+                            FirstName = lawyer.FirstName,
+                            LastName = lawyer.LastName,
+                            Address = lawyer.Address,
+                        };
                         break;
 
                     default:
                         _logger.LogWarning("Unknown role {Role} for user {UserId} during login", userRole, user.Id);
-                        break;
+                        return _responseHandler.BadRequest<LoginResponse>("Invalid user role.");
                 }
+
+                // Generate tokens and store refresh token associated with user.Id
+                var tokens = await _tokenStoreService.GenerateAndStoreTokensAsync(user);
 
                 var response = new LoginResponse
                 {

@@ -69,6 +69,7 @@ namespace LawPlatform.DataAccess.Services.Profile
 
             // Try client first
             var client = await _context.Clients
+                .Where(c => !c.IsDeleted)
                 .Include(c => c.User)
                 .Include(c => c.ProfileImage)
                 .FirstOrDefaultAsync(c => c.Id == userId);
@@ -90,9 +91,10 @@ namespace LawPlatform.DataAccess.Services.Profile
 
             // Then try lawyer
             var lawyer = await _context.Lawyers
+                .Where(l => !l.IsDeleted)
                 .Include(l => l.User)
                 .Include(l => l.ProfileImage)
-                .FirstOrDefaultAsync(l => l.Id == userId && !l.IsDeleted);
+                .FirstOrDefaultAsync(l => l.Id == userId);
 
             if (lawyer != null)
             {
@@ -132,6 +134,7 @@ namespace LawPlatform.DataAccess.Services.Profile
             }
 
             var client = await _context.Clients
+                .Where(c => !c.IsDeleted)
                 .Include(c => c.User)
                 .FirstOrDefaultAsync(c => c.Id == userId);
 
@@ -183,6 +186,7 @@ namespace LawPlatform.DataAccess.Services.Profile
                 return _responseHandler.Unauthorized<bool>("You are not authorized to update this profile image.");
 
             var client = await _context.Clients
+                .Where(c => !c.IsDeleted)
                 .Include(c => c.ProfileImage)
                 .FirstOrDefaultAsync(c => c.Id == userId);
 

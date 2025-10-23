@@ -44,7 +44,8 @@ public class ConsultationService :  IConsultationService
             var userId = ConsultationServiceHelper.GetCurrentUserId(_httpContextAccessor);
 
             var client = await _context.Clients
-           .FirstOrDefaultAsync(c => c.Id == userId);
+                .Where(c => !c.IsDeleted)
+                .FirstOrDefaultAsync(c => c.Id == userId);
             if (client == null)
             {
                 _logger.LogWarning("Client not found for UserId: {UserId}", userId);
@@ -406,7 +407,8 @@ public class ConsultationService :  IConsultationService
     public async Task<Response<List<LawyerSearchResponse>>> SearchLawyersByNameAsync(string name)
     {
         var lawyers = await _context.Lawyers
-            .Where(l => l.Status == ApprovalStatus.Approved &&
+            .Where(l => !l.IsDeleted && 
+                       l.Status == ApprovalStatus.Approved &&
                        (l.FirstName.Contains(name) || l.LastName.Contains(name)))
             .Select(l => new LawyerSearchResponse
             {
