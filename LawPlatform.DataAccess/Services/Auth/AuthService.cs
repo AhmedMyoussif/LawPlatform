@@ -27,7 +27,7 @@ namespace LawPlatform.DataAccess.Services.Auth
         private readonly LawPlatformContext _context;
         private readonly IEmailService _emailService;
         private readonly ResponseHandler _responseHandler;
-        private readonly IImageUploadService _imageUploadService;
+        private readonly IFileUploadService _imageUploadService;
         private readonly ITokenStoreService _tokenStoreService;
         private readonly ILogger<AuthService> _logger;
         private readonly INotificationService _notificationService;
@@ -36,7 +36,7 @@ namespace LawPlatform.DataAccess.Services.Auth
             LawPlatformContext context,
             IEmailService emailService,
             ResponseHandler responseHandler,
-            IImageUploadService imageUploadService,
+            IFileUploadService imageUploadService,
             ITokenStoreService tokenStoreService,
             ILogger<AuthService> logger,
             INotificationService notificationService)

@@ -19,14 +19,14 @@ namespace LawPlatform.DataAccess.Services.Profile
         private readonly ILogger<ProfileService> _logger;
         private readonly LawPlatformContext _context;
         private readonly ResponseHandler _responseHandler;
-        private readonly IImageUploadService _imageUploadService;
+        private readonly IFileUploadService _imageUploadService;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public ProfileService(
             ILogger<ProfileService> logger,
             LawPlatformContext context,
             ResponseHandler responseHandler,
-            IImageUploadService imageUploadService,
+            IFileUploadService imageUploadService,
             IHttpContextAccessor httpContextAccessor)
         {
             _logger = logger;

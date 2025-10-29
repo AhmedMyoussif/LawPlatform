@@ -23,10 +23,10 @@ public class ConsultationService :  IConsultationService
     private readonly ResponseHandler _responseHandler;
     private readonly ILogger<ConsultationService> _logger;
     private readonly IValidator<CreateConsultationRequest> _validator;
-    private readonly IImageUploadService _imageUploadService;
+    private readonly IFileUploadService _imageUploadService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ConsultationService(LawPlatformContext context, ResponseHandler responseHandler, ILogger<ConsultationService> logger, IImageUploadService imageUploadService, IValidator<CreateConsultationRequest> validator, IHttpContextAccessor httpContextAccessor)
+    public ConsultationService(LawPlatformContext context, ResponseHandler responseHandler, ILogger<ConsultationService> logger, IFileUploadService imageUploadService, IValidator<CreateConsultationRequest> validator, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _responseHandler = responseHandler;
@@ -535,7 +535,7 @@ public class ConsultationService :  IConsultationService
     private async Task<(List<ConsultationFile> Files, List<string> Urls)> UploadFilesAsync(
     List<IFormFile> files,
     Guid consultationId,
-    IImageUploadService imageUploadService)
+    IFileUploadService imageUploadService)
     {
         var uploadedFiles = new List<ConsultationFile>();
         var uploadedUrls = new List<string>();

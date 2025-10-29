@@ -42,7 +42,7 @@ namespace EcommercePlatform
 
             // IOptional Pattern
             builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JWT"));
-            builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("Cloudinary"));
+            builder.Services.Configure<UploadcareSettings>(builder.Configuration.GetSection("Uploadcare"));
             builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
             builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("Authorization:Google"));
 
