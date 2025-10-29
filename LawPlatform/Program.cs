@@ -51,21 +51,32 @@ namespace EcommercePlatform
             builder.Services.AddDatabase(builder.Configuration);
             builder.Services.AddAuthenticationAndAuthorization(builder.Configuration);
             builder.Services.AddEmailServices(builder.Configuration);
-          
 
 
+
+            //builder.Services.AddCors(options =>
+            //{
+            //    options.AddPolicy("AllowAll", policy =>
+            //    {
+            //        policy
+            //            .AllowAnyOrigin()
+            //            .AllowAnyMethod()
+            //            .AllowAnyHeader();
+            //    });
+            //});
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", policy =>
                 {
                     policy
-                        .AllowAnyOrigin()
+                        .AllowAnyHeader()
                         .AllowAnyMethod()
-                        .AllowAnyHeader();
+                        .SetIsOriginAllowed(_ => true)
+                        .AllowCredentials();
                 });
             });
 
-           
+
             builder.Services.AddFluentValidation();
 
             // Rate limiter for otp resend
