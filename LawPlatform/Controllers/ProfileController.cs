@@ -35,7 +35,7 @@ namespace LawPlatform.API.Controllers
         }
         
         [HttpPut]
-        public async Task<ActionResult<Response<bool>>> UpdateProfile([FromBody] UpdateClientProfileRequest dto)
+        public async Task<ActionResult<Response<bool>>> UpdateProfile([FromForm] UpdateClientProfileRequest dto)
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
             if (userId == null)
