@@ -40,7 +40,9 @@ namespace LawPlatform.DataAccess.Services.Proposal
             var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                  ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
 
-            var lawyer = await _context.Lawyers.FirstOrDefaultAsync(l => l.Id == userId);
+            var lawyer = await _context.Lawyers
+                .Where(l => !l.IsDeleted)
+                .FirstOrDefaultAsync(l => l.Id == userId);
             if (lawyer == null)
                 return _responseHandler.BadRequest<GetProposalResponse>("Only lawyers can submit proposals.");
 
@@ -126,8 +128,12 @@ namespace LawPlatform.DataAccess.Services.Proposal
 
             try
             {
-                var lawyer = await _context.Lawyers.FirstOrDefaultAsync(l => l.Id == userId);
-                var client = await _context.Clients.FirstOrDefaultAsync(c => c.Id == userId);
+                var lawyer = await _context.Lawyers
+                    .Where(l => !l.IsDeleted)
+                    .FirstOrDefaultAsync(l => l.Id == userId);
+                var client = await _context.Clients
+                    .Where(c => !c.IsDeleted)
+                    .FirstOrDefaultAsync(c => c.Id == userId);
 
                 IQueryable<LawPlatform.Entities.Models.Proposal> query = _context.Proposals;
 
@@ -183,7 +189,9 @@ namespace LawPlatform.DataAccess.Services.Proposal
                 return _responseHandler.Unauthorized<AcceptProposalResponse>("User not logged in.");
             try
             {
-                var client = await _context.Clients.FirstOrDefaultAsync(c => c.Id == userId);
+                var client = await _context.Clients
+                      .Where(c => !c.IsDeleted)
+                      .FirstOrDefaultAsync(c => c.Id == userId);
                 if (client == null)
                     return _responseHandler.BadRequest<AcceptProposalResponse>("Only clients can accept proposals.");
                 var proposal = await _context.Proposals
@@ -225,45 +233,47 @@ namespace LawPlatform.DataAccess.Services.Proposal
         public async Task<Response<GetProposalResponse>> GetMyProposalsAsync()
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                            ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
+     ?? _httpContextAccessor.HttpContext?.User.FindFirst("nameid")?.Value;
             if (string.IsNullOrEmpty(userId))
-                return _responseHandler.Unauthorized<GetProposalResponse>("User not logged in.");
+ return _responseHandler.Unauthorized<GetProposalResponse>("User not logged in.");
 
-            try
-            {
-               var lawyer = await _context.Lawyers.FirstOrDefaultAsync(l=>l.Id == userId);
-                if (lawyer == null) return _responseHandler.BadRequest<GetProposalResponse>("Lawyer Not Found.");
-              
-                var proposal = await _context.Proposals
-                    .Include(p=>p.Consultation)
-                    .FirstOrDefaultAsync(p=>p.LawyerId == userId && p.Consultation.LawyerId == lawyer.Id );
+    try
+ {
+ var lawyer = await _context.Lawyers
+      .Where(l => !l.IsDeleted)
+     .FirstOrDefaultAsync(l=>l.Id == userId);
+ if (lawyer == null) return _responseHandler.BadRequest<GetProposalResponse>("Lawyer Not Found.");
+     
+ var proposal = await _context.Proposals
+     .Include(p=>p.Consultation)
+     .FirstOrDefaultAsync(p=>p.LawyerId == userId && p.Consultation.LawyerId == lawyer.Id );
 
-                if (proposal == null)
-                {
-                    _logger.LogError("You didn't submit any propsal.");
-                    return _responseHandler.NotFound<GetProposalResponse>("You didn't submit any proposal yet.");
-                }
-                var result = new GetProposalResponse
-                {
-                    Id = proposal.Id,
-                    Amount = proposal.Amount,
-                    Description = proposal.Description,
-                    CreatedAt = proposal.CreatedAt,
-                    UpdatedAt = proposal.UpdatedAt,
-                    DurationTime = proposal.DurationTime,
-                    //LawyerId = p.LawyerId,
-                    //ConsultationId = p.ConsultationId,
-                    Status = proposal.Status
-                };
+     if (proposal == null)
+  {
+  _logger.LogError("You didn't submit any propsal.");
+    return _responseHandler.NotFound<GetProposalResponse>("You didn't submit any proposal yet.");
+    }
+    var result = new GetProposalResponse
+      {
+ Id = proposal.Id,
+       Amount = proposal.Amount,
+      Description = proposal.Description,
+   CreatedAt = proposal.CreatedAt,
+   UpdatedAt = proposal.UpdatedAt,
+      DurationTime = proposal.DurationTime,
+    //LawyerId = p.LawyerId,
+    //ConsultationId = p.ConsultationId,
+          Status = proposal.Status
+     };
 
-                return _responseHandler.Success(result, "Proposal fetched successfully");
-            }
-            catch(Exception ex) 
-            {
-                _logger.LogError(ex, "Error while fetching my proposals");
-                return _responseHandler.BadRequest<GetProposalResponse>("An error occurred while fetching your proposals");
-            }
-        }
+     return _responseHandler.Success(result, "Proposal fetched successfully");
+    }
+  catch(Exception ex) 
+    {
+   _logger.LogError(ex, "Error while fetching my proposals");
+    return _responseHandler.BadRequest<GetProposalResponse>("An error occurred while fetching your proposals");
+ }
+   }
     }
 
 }

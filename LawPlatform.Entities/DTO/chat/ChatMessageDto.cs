@@ -8,6 +8,7 @@ namespace LawPlatform.Entities.DTO.chat
 {
     public class ChatMessageDto
     {
+        public int Id { get; set; }
         public string SenderId { get; set; } = null!;
         public string? ReceiverId { get; set; }
 
@@ -15,5 +16,7 @@ namespace LawPlatform.Entities.DTO.chat
 
         public Guid ConsultationId { get; set; }
         public Guid ChatId { get; set; }
+
+        public DateTime SentAt { get; set; } = DateTime.UtcNow;
     }
 }

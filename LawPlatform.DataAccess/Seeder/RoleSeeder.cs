@@ -12,25 +12,9 @@ namespace LawPlatform.DataAccess.Seeder
             var rolesCount = await _roleManager.Roles.CountAsync();
             if (rolesCount <= 0)
             {
-                await _roleManager.CreateAsync(new Role()
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = "Admin",
-                    NormalizedName = "ADMIN"
-                });
-                await _roleManager.CreateAsync(new Role()
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = "Lawyer",
-                    NormalizedName = "LAWYER"
-                });
-                await _roleManager.CreateAsync(new Role()
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = "Client",
-                    NormalizedName = "CLIENT"
-                });
-
+                await _roleManager.CreateAsync(new Role { Name = "Admin" });
+                await _roleManager.CreateAsync(new Role { Name = "Lawyer" });
+                await _roleManager.CreateAsync(new Role { Name = "Client" });
             }
         }
     }

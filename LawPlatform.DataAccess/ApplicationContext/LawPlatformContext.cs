@@ -39,5 +39,6 @@ namespace LawPlatform.DataAccess.ApplicationContext
         public DbSet<ChatMessage> ChatMessages { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Chat> chats { get; set; }
+        public DbSet<Report> Reports { get; set; }
     }
 }

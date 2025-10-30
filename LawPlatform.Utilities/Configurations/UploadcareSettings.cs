@@ -1,9 +1,10 @@
 ﻿namespace LawPlatform.Utilities.Configurations
 {
-    public class CloudinarySettings
+    public class UploadcareSettings
     {
-        public string CloudName { get; set; }
+        public string UploadUrl { get; set; }
         public string ApiKey { get; set; }
         public string ApiSecret { get; set; }
+        public string CdnUrl { get; set; }
     }
 }
