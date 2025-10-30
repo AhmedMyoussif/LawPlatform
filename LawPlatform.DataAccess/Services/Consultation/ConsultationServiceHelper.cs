@@ -33,15 +33,20 @@ public static class ConsultationServiceHelper
     }
 
     public static async Task<List<Consultation>> GetConsultationsAsync(
-        LawPlatformContext context,
-        Expression<Func<Consultation, bool>> predicate,
-        bool includeFiles = false,
-        int? take = null)
+    LawPlatformContext context,
+    Expression<Func<Consultation, bool>> predicate,
+    bool includeFiles = false,
+    int? take = null)
     {
-        var query = context.consultations.Where(predicate);
+        IQueryable<Consultation> query = context.consultations
+            .Where(predicate)
+            .Include(c => c.Client)
+            .Include(c => c.Lawyer);
 
         if (includeFiles)
+        {
             query = query.Include(c => c.Files);
+        }
 
         query = query.OrderByDescending(c => c.CreatedAt);
 
@@ -50,4 +55,6 @@ public static class ConsultationServiceHelper
 
         return await query.ToListAsync();
     }
+
+
 }

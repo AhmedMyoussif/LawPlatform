@@ -471,6 +471,11 @@ public class ConsultationService :  IConsultationService
                     ClientName = c.Client.FirstName + " " + c.Client.LastName,
                     Status = c.Status.ToString(),
                     Budget = c.Budget,
+                    LawyerId = c.LawyerId,
+                    LawyerName = c.Lawyer != null ? c.Lawyer.FirstName + " " + c.Lawyer.LastName : "Unassigned",
+                    Specialization = c.Specialization.ToString(),
+                    CreatedAt = c.CreatedAt
+
                 }).ToList();
 
                 return _responseHandler.Success(consultationResponses, "Consultations retrieved.");
@@ -485,6 +490,10 @@ public class ConsultationService :  IConsultationService
                     ClientName = c.Client.FirstName + " " + c.Client.LastName,
                     Status = c.Status.ToString(),
                     Budget = c.Budget,
+                    LawyerId = c.LawyerId,
+                    LawyerName = c.Lawyer != null ? c.Lawyer.FirstName + " " + c.Lawyer.LastName : "Unassigned",
+                    Specialization = c.Specialization.ToString(),
+                    CreatedAt = c.CreatedAt,
                 }).ToList();
 
                 return _responseHandler.Success(consultationResponses, "Consultations retrieved.");

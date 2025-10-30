@@ -14,6 +14,7 @@ using Ecommerce.API.Extensions;
 using LawPlatform.DataAccess.Extensions;
 using Microsoft.AspNetCore.SignalR;
 using LawPlatform.API.Hubs;
+using System.Reflection;
 
 namespace EcommercePlatform
 {
@@ -94,7 +95,14 @@ namespace EcommercePlatform
                 return ConnectionMultiplexer.Connect(configuration);
             });
 
-            builder.Services.AddSwagger();
+
+            builder.Services.AddSwaggerGen(c =>
+            {
+                // Load XML documentation (to show summaries, params, etc.)
+                var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+            });
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSignalR();
             builder.Services.AddSingleton<IUserIdProvider, NameIdentifierUserIdProvider>();

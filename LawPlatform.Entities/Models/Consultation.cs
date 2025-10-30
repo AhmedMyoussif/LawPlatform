@@ -32,6 +32,8 @@ namespace LawPlatform.Entities.Models
         public Specialization Specialization { get; set; }
         public ICollection<ConsultationFile> Files { get; set; } = new List<ConsultationFile>();
         public ICollection<Proposal> Proposals { get; set; } = new List<Proposal>();
+        public ICollection<Report> Reports { get; set; }
+
 
     }
 }

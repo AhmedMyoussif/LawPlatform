@@ -22,6 +22,7 @@ using LawPlatform.DataAccess.Services.Proposal;
 using LawPlatform.DataAccess.Services.Review;
 using LawPlatform.DataAccess.Services.Chat;
 using LawPlatform.DataAccess.Services.Notification;
+using LawPlatform.DataAccess.Services.Report;
 
 
 namespace LawPlatform.DataAccess.Extensions
@@ -54,6 +55,7 @@ namespace LawPlatform.DataAccess.Extensions
             services.AddScoped<IReviewService, ReviewService>();
             services.AddScoped<IChatService, ChatService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IReportService, ReportService>();
             services.AddScoped<HttpClient>();
 
 
