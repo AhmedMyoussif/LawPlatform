@@ -96,13 +96,8 @@ namespace EcommercePlatform
             });
 
 
-            builder.Services.AddSwaggerGen(c =>
-            {
-                // Load XML documentation (to show summaries, params, etc.)
-                var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
-            });
 
+            builder.Services.AddSwagger();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSignalR();
             builder.Services.AddSingleton<IUserIdProvider, NameIdentifierUserIdProvider>();
