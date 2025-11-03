@@ -105,8 +105,13 @@ namespace LawPlatform.DataAccess.Services.Auth
                             _logger.LogWarning("Lawyer account is deleted or not found for UserId: {UserId}", user.Id);
                             return _responseHandler.Forbidden<LoginResponse>("Your account has been deactivated. Please contact support.");
                         }
+                        if (lawyer.Status != ApprovalStatus.Approved)
+                        {
+                            _logger.LogWarning("Lawyer account not approved for UserId: {UserId}", user.Id);
+                            return _responseHandler.Forbidden<LoginResponse>("Your lawyer account is not approved yet. Please wait for admin approval.");
+                        }
 
-                        userInfo = new UserInfoResponse
+                            userInfo = new UserInfoResponse
                         {
                             FirstName = lawyer.FirstName,
                             LastName = lawyer.LastName,
