@@ -1,9 +1,4 @@
 ﻿using LawPlatform.Utilities.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LawPlatform.Entities.DTO.Account.Auth.Admin;
 public class GetLawyerBriefResponse
@@ -16,5 +11,6 @@ public class GetLawyerBriefResponse
     public int YearsOfExperience { get; set; }
     public string Specialization { get; set; }
     public string? Experiences { get; set; }
-    public string? QualificationDocumentUrl { get; set; }
+    public string ProfileImageUrl { get; set; }
+    public int CompletedConsultations { get; set; }
 }

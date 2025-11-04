@@ -1,7 +1,7 @@
 ﻿using LawPlatform.Entities.Models.Auth.Users;
+using LawPlatform.Utilities.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using LawPlatform.Utilities.Enums;
 
 namespace LawPlatform.DataAccess.EntitiesConfigurations
 {
@@ -37,7 +37,7 @@ namespace LawPlatform.DataAccess.EntitiesConfigurations
                    .HasMaxLength(50)
                    .IsRequired();
 
-            builder.Property(l => l.Specialization)                 
+            builder.Property(l => l.Specialization)
                    .IsRequired();
 
             builder.Property(l => l.Country)
@@ -63,6 +63,10 @@ namespace LawPlatform.DataAccess.EntitiesConfigurations
 
             builder.Property(l => l.UpdatedAt)
                    .IsRequired(false);
+
+            builder.HasMany(l => l.Consultations)
+                .WithOne(c => c.Lawyer)
+                .HasForeignKey(l => l.LawyerId);
 
             builder.ToTable("Lawyers");
         }

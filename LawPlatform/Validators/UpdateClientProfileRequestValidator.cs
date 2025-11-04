@@ -1,7 +1,5 @@
 ﻿using FluentValidation;
 using LawPlatform.Entities.DTO.Profile;
-using Microsoft.AspNetCore.Http;
-using System.IO;
 
 public class UpdateClientProfileRequestValidator : AbstractValidator<UpdateClientProfileRequest>
 {
@@ -18,6 +16,16 @@ public class UpdateClientProfileRequestValidator : AbstractValidator<UpdateClien
 
         RuleFor(x => x.Address)
             .MaximumLength(200).WithMessage("Address must be less than 200 characters.");
+
+        RuleFor(x => x.PhoneNumber)
+             .Matches(@"^\+?\d{10,15}$").WithMessage("Phone number must be between 10 and 15 digits (optionally starting with +).")
+             .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
+
+        // Email - optional but validate if provided
+        RuleFor(x => x.Email)
+            .EmailAddress().WithMessage("Email must be valid")
+            .When(x => !string.IsNullOrEmpty(x.Email));
+
 
         RuleFor(x => x.ProfileImage)
             .Must(file => file == null || IsValidFile(file))

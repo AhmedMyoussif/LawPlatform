@@ -49,6 +49,7 @@ namespace LawPlatform.API.Validators
 
             // Qualifications
             RuleFor(x => x.Qualifications)
+                .MaximumLength(500).WithMessage("Qualifications cannot exceed 500 characters.")
                 .NotEmpty().WithMessage("Qualifications are required.");
 
             RuleFor(x => x.Experiences)
@@ -67,8 +68,8 @@ namespace LawPlatform.API.Validators
               .NotNull().WithMessage("License document is required.")
               .Must(f => f.ContentType == "application/pdf")
               .WithMessage("License document must be a PDF file.");
-            
-          
+
+
             RuleFor(x => x.ProfileImage)
                 .Must(file => file == null || IsValidFile(file))
                 .WithMessage("Profile image must be JPG or PNG and less than 5MB.");

@@ -1,23 +1,19 @@
-using System.Security.Claims;
-using CloudinaryDotNet;
 using FluentValidation;
 using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.DataAccess.Services.ImageUploading;
 using LawPlatform.Entities.DTO.Consultation;
-using LawPlatform.Entities.DTO.ImageUploading;
 using LawPlatform.Entities.DTO.Proposal;
 using LawPlatform.Entities.Models;
-using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Utilities.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.Security.Claims;
 
 namespace LawPlatform.DataAccess.Services.Consultation;
 
-public class ConsultationService :  IConsultationService
+public class ConsultationService : IConsultationService
 {
     private readonly LawPlatformContext _context;
     private readonly ResponseHandler _responseHandler;
@@ -53,7 +49,7 @@ public class ConsultationService :  IConsultationService
             }
             _logger.LogInformation("Starting CreateConsultationAsync for Client");
 
-            
+
             var validationResult = await _validator.ValidateAsync(request);
             if (!validationResult.IsValid)
             {
@@ -67,7 +63,7 @@ public class ConsultationService :  IConsultationService
 
             var consultation = new Entities.Models.Consultation
             {
-             
+
                 ClientId = client.Id,
                 Title = request.Title,
                 Description = request.Description,
@@ -78,7 +74,7 @@ public class ConsultationService :  IConsultationService
                 Duration = request.duration,
                 Status = ConsultationStatus.Active,
                 Files = new List<ConsultationFile>()
-               
+
             };
 
             await _context.consultations.AddAsync(consultation);
@@ -102,7 +98,7 @@ public class ConsultationService :  IConsultationService
                 Title = consultation.Title,
                 Description = consultation.Description,
                 Status = consultation.Status,
-                ClientId =  consultation.ClientId,
+                ClientId = consultation.ClientId,
                 Specialization = consultation.Specialization,
                 LawyerId = consultation.LawyerId,
                 Budget = consultation.Budget,
@@ -156,7 +152,7 @@ public class ConsultationService :  IConsultationService
             LawyerId = c.LawyerId,
             Specialization = c.Specialization,
             ClientId = c.ClientId,
-      
+
         }).ToList();
 
         var result = new PaginatedResult<GetConsultationResponse>
@@ -250,7 +246,7 @@ public class ConsultationService :  IConsultationService
             _logger.LogError(ex, "Error occurred while retrieving consultation: {ConsultationId}", consultationId);
             return _responseHandler.ServerError<GetConsultationResponse>("An error occurred while retrieving the consultation.");
         }
-    }    
+    }
 
 
     // For Filtering Consultations Based on Specialization, Budget Range, and Sorting by Newest or Oldest
@@ -263,7 +259,7 @@ public class ConsultationService :  IConsultationService
             return _responseHandler.BadRequest<PaginatedResult<GetConsultationResponse>>("Invalid pagination parameters.");
 
         var query = _context.consultations
-            .Include(c=>c.Client)
+            .Include(c => c.Client)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
@@ -286,16 +282,16 @@ public class ConsultationService :  IConsultationService
             query = query.Where(c => c.Budget <= filter.MaxBudget.Value);
 
         // Sorting
-       
-            query = (filter.Sort ?? string.Empty).ToLower() switch
-            {
-                "newest" => query.OrderByDescending(c => c.CreatedAt),
-                "oldest" => query.OrderBy(c => c.CreatedAt),
-                "budgetasc" => query.OrderBy(c => c.Budget),
-                "budgetdesc" => query.OrderByDescending(c => c.Budget),
-                _ => query.OrderByDescending(c => c.CreatedAt)
-            };
-        
+
+        query = (filter.Sort ?? string.Empty).ToLower() switch
+        {
+            "newest" => query.OrderByDescending(c => c.CreatedAt),
+            "oldest" => query.OrderBy(c => c.CreatedAt),
+            "budgetasc" => query.OrderBy(c => c.Budget),
+            "budgetdesc" => query.OrderByDescending(c => c.Budget),
+            _ => query.OrderByDescending(c => c.CreatedAt)
+        };
+
 
         // Count after filters
         var totalCount = await query.CountAsync();
@@ -321,7 +317,7 @@ public class ConsultationService :  IConsultationService
                 Duration = c.Duration,
                 UrlFiles = c.Files.Select(f => f.FilePath).ToList(),
                 Description = c.Description,
-                LawyerId = c.LawyerId,  
+                LawyerId = c.LawyerId,
                 Client = new ClientInfo
                 {
                     Id = c.Client.Id,
@@ -329,7 +325,7 @@ public class ConsultationService :  IConsultationService
                     FullName = c.Client.FirstName + " " + c.Client.LastName,
 
                 },
-               ProposalsCount = c.Proposals.Count
+                ProposalsCount = c.Proposals.Count
 
             })
             .ToListAsync();
@@ -407,7 +403,7 @@ public class ConsultationService :  IConsultationService
     public async Task<Response<List<LawyerSearchResponse>>> SearchLawyersByNameAsync(string name)
     {
         var lawyers = await _context.Lawyers
-            .Where(l => !l.IsDeleted && 
+            .Where(l => !l.IsDeleted &&
                        l.Status == ApprovalStatus.Approved &&
                        (l.FirstName.Contains(name) || l.LastName.Contains(name)))
             .Select(l => new LawyerSearchResponse
@@ -443,13 +439,13 @@ public class ConsultationService :  IConsultationService
                 _context,
                 c => c.Client.Id == userId,
                 includeFiles: true
-               
+
             );
             var lawyerConsultations = await ConsultationServiceHelper.GetConsultationsAsync(
                 _context,
                 c => c.Lawyer.Id == userId,
                 includeFiles: true
-                
+
             );
             var role = _httpContextAccessor.HttpContext.User.Claims
              .FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
@@ -486,7 +482,7 @@ public class ConsultationService :  IConsultationService
                 {
                     Id = c.Id,
                     Title = c.Title,
-                    ClientId = c.ClientId, 
+                    ClientId = c.ClientId,
                     ClientName = c.Client.FirstName + " " + c.Client.LastName,
                     Status = c.Status.ToString(),
                     Budget = c.Budget,
@@ -521,7 +517,6 @@ public class ConsultationService :  IConsultationService
             var consultations = await ConsultationServiceHelper.GetConsultationsAsync(
                 _context,
                 c => c.LawyerId == lawyerId
-
                     && c.Status == ConsultationStatus.Active,
                 includeFiles: true
             );
