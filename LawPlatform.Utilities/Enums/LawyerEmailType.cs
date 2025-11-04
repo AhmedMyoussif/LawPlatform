@@ -9,6 +9,7 @@ namespace LawPlatform.Utilities.Enums
     public enum LawyerEmailType
     {
         Pending,
-        Approved
+        Approved,
+        Rejected
     }
 }

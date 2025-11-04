@@ -4,11 +4,9 @@ using LawPlatform.DataAccess.Services.ImageUploading;
 using LawPlatform.DataAccess.Services.Notification;
 using LawPlatform.DataAccess.Services.Token;
 using LawPlatform.Entities.DTO.Account.Auth;
-using LawPlatform.Entities.DTO.Account.Auth.Admin;
 using LawPlatform.Entities.DTO.Account.Auth.Login;
 using LawPlatform.Entities.DTO.Account.Auth.Register;
 using LawPlatform.Entities.DTO.Account.Auth.ResetPassword;
-using LawPlatform.Entities.DTO.Profile;
 using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Models.Auth.Users;
 using LawPlatform.Entities.Shared.Bases;
@@ -58,10 +56,10 @@ namespace LawPlatform.DataAccess.Services.Auth
             {
                 var user = await FindUserByEmailAsync(model.Email);
                 if (user == null)
-                    return _responseHandler.NotFound<LoginResponse>("User not found.");
-                
+                    return _responseHandler.NotFound<LoginResponse>("Invalid credentials.");
+
                 if (!await _userManager.CheckPasswordAsync(user, model.Password))
-                    return _responseHandler.BadRequest<LoginResponse>("Invalid password.");
+                    return _responseHandler.BadRequest<LoginResponse>("Invalid credentials.");
 
                 if (!user.EmailConfirmed)
                     return _responseHandler.BadRequest<LoginResponse>("Email is not verified. Please verify your email first.");
@@ -79,7 +77,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                             .Where(c => !c.IsDeleted)
                             .AsNoTracking()
                             .FirstOrDefaultAsync(c => c.Id == user.Id);
-                        
+
                         if (client == null)
                         {
                             _logger.LogWarning("Client account is deleted or not found for UserId: {UserId}", user.Id);
@@ -99,7 +97,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                             .Where(l => !l.IsDeleted)
                             .AsNoTracking()
                             .FirstOrDefaultAsync(l => l.Id == user.Id);
-                        
+
                         if (lawyer == null)
                         {
                             _logger.LogWarning("Lawyer account is deleted or not found for UserId: {UserId}", user.Id);
@@ -111,7 +109,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                             return _responseHandler.Forbidden<LoginResponse>("Your lawyer account is not approved yet. Please wait for admin approval.");
                         }
 
-                            userInfo = new UserInfoResponse
+                        userInfo = new UserInfoResponse
                         {
                             FirstName = lawyer.FirstName,
                             LastName = lawyer.LastName,
@@ -295,7 +293,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                 {
                     return _responseHandler.BadRequest<LawyerRegisterResponse>("Failed to upload profile image.");
                 }
-                
+
                 string profileImageResultUrl = profileImageResult.Url;
 
                 // Create Lawyer
