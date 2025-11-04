@@ -2,10 +2,12 @@
 using LawPlatform.DataAccess.Services.ImageUploading;
 using LawPlatform.Entities.DTO.Profile;
 using LawPlatform.Entities.Models;
+using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Shared.Bases;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
 using System.Security.Claims;
 
 namespace LawPlatform.DataAccess.Services.Profile
@@ -128,7 +130,7 @@ namespace LawPlatform.DataAccess.Services.Profile
             return _responseHandler.NotFound<object>("User not found as Client or Lawyer");
         }
 
-        public async Task<Response<bool>> UpdateProfileAsync(UpdateClientProfileRequest dto)
+        public async Task<Response<bool>> UpdateClientProfileAsync(UpdateClientProfileRequest dto)
         {
             var userId = GetUserIdClaim();
             if (string.IsNullOrEmpty(userId))
@@ -169,6 +171,29 @@ namespace LawPlatform.DataAccess.Services.Profile
                 if (!string.IsNullOrEmpty(dto.Address))
                 {
                     client.Address = dto.Address;
+                }
+                if (!string.IsNullOrEmpty(dto.Email))
+                {
+                    // Check if email is already in use by another user (excluding current user)
+                    var emailExists = await ExistAsync(u => u.Email == dto.Email && u.Id != userId);
+                    if (emailExists)
+                    {
+                        _logger.LogWarning("Email {Email} is already in use", dto.Email);
+                        return _responseHandler.BadRequest<bool>("Email is already in use");
+                    }
+                    client.User.Email = dto.Email;
+                }
+
+                if (!string.IsNullOrEmpty(dto.PhoneNumber))
+                {
+                    // Check if phone number is already in use by another user (excluding current user)
+                    var phoneExists = await ExistAsync(u => u.PhoneNumber == dto.PhoneNumber && u.Id != userId);
+                    if (phoneExists)
+                    {
+                        _logger.LogWarning("Phone number {PhoneNumber} is already in use", dto.PhoneNumber);
+                        return _responseHandler.BadRequest<bool>("Phone number is already in use");
+                    }
+                    client.User.PhoneNumber = dto.PhoneNumber;
                 }
                 if (dto.ProfileImage is not null)
                 {
@@ -233,16 +258,41 @@ namespace LawPlatform.DataAccess.Services.Profile
 
                 if (!string.IsNullOrEmpty(dto.UserName))
                 {
-                    // Check if username is already taken by another user
+                    // Check if username is already taken by another user (excluding current user)
                     var existingUser = await _context.Users
                         .FirstOrDefaultAsync(u => u.UserName == dto.UserName && u.Id != userId);
-                    
+
                     if (existingUser != null)
                     {
+                        _logger.LogWarning("Username {UserName} is already taken", dto.UserName);
                         return _responseHandler.BadRequest<bool>("Username is already taken");
                     }
 
                     lawyer.User.UserName = dto.UserName;
+                }
+
+                if (!string.IsNullOrEmpty(dto.Email))
+                {
+                    // Check if email is already in use by another user (excluding current user)
+                    var emailExists = await ExistAsync(u => u.Email == dto.Email && u.Id != userId);
+                    if (emailExists)
+                    {
+                        _logger.LogWarning("Email {Email} is already in use", dto.Email);
+                        return _responseHandler.BadRequest<bool>("Email is already in use");
+                    }
+                    lawyer.User.Email = dto.Email;
+                }
+
+                if (!string.IsNullOrEmpty(dto.PhoneNumber))
+                {
+                    // Check if phone number is already in use by another user (excluding current user)
+                    var phoneExists = await ExistAsync(u => u.PhoneNumber == dto.PhoneNumber && u.Id != userId);
+                    if (phoneExists)
+                    {
+                        _logger.LogWarning("Phone number {PhoneNumber} is already in use", dto.PhoneNumber);
+                        return _responseHandler.BadRequest<bool>("Phone number is already in use");
+                    }
+                    lawyer.User.PhoneNumber = dto.PhoneNumber;
                 }
 
                 if (!string.IsNullOrEmpty(dto.Bio))
@@ -287,11 +337,25 @@ namespace LawPlatform.DataAccess.Services.Profile
 
                 if (!string.IsNullOrEmpty(dto.IBAN))
                 {
+                    // Check if IBAN is already in use by another lawyer (excluding current lawyer)
+                    var IBANExists = await _context.Lawyers.AnyAsync(l => l.IBAN == dto.IBAN && l.Id != userId);
+                    if (IBANExists)
+                    {
+                        _logger.LogWarning("IBAN {IBAN} is already in use", dto.IBAN);
+                        return _responseHandler.BadRequest<bool>("IBAN is already in use");
+                    }
                     lawyer.IBAN = dto.IBAN;
                 }
 
                 if (!string.IsNullOrEmpty(dto.BankAccountNumber))
                 {
+                    // Check if bank account number is already in use by another lawyer (excluding current lawyer)
+                    var bankAccountNumberExists = await _context.Lawyers.AnyAsync(l => l.BankAccountNumber == dto.BankAccountNumber && l.Id != userId);
+                    if (bankAccountNumberExists)
+                    {
+                        _logger.LogWarning("Bank account number {BankAccountNumber} is already in use", dto.BankAccountNumber);
+                        return _responseHandler.BadRequest<bool>("Bank account number is already in use");
+                    }
                     lawyer.BankAccountNumber = dto.BankAccountNumber;
                 }
 
@@ -304,7 +368,7 @@ namespace LawPlatform.DataAccess.Services.Profile
                 if (dto.ProfileImage != null)
                 {
                     var uploadResult = await _imageUploadService.UploadAsync(dto.ProfileImage);
-                    
+
                     if (uploadResult == null || string.IsNullOrEmpty(uploadResult.Url))
                     {
                         _logger.LogWarning("Failed to upload profile image for LawyerId {LawyerId}", userId);
@@ -380,5 +444,11 @@ namespace LawPlatform.DataAccess.Services.Profile
             }
         }
 
+
+        #region Helpers
+        private async Task<bool> ExistAsync(Expression<Func<User, bool>> predicate)
+            => await _context.Users.AsNoTracking().AnyAsync(predicate);
+
+        #endregion
     }
 }

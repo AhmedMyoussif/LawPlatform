@@ -26,6 +26,16 @@ public class UpdateLawyerProfileRequestValidator : AbstractValidator<UpdateLawye
             .MaximumLength(100).WithMessage("Username cannot exceed 100 characters.")
             .When(x => !string.IsNullOrEmpty(x.UserName));
 
+        // Email - optional but validate if provided
+        RuleFor(x => x.Email)
+            .EmailAddress().WithMessage("Email must be valid (e.g., user@example.com).")
+            .When(x => !string.IsNullOrEmpty(x.Email));
+
+        // PhoneNumber - optional but validate if provided
+        RuleFor(x => x.PhoneNumber)
+            .Matches(@"^\+?\d{10,15}$").WithMessage("Phone number must be between 10 and 15 digits (optionally starting with +).")
+            .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
+
         // Bio - optional but validate if provided
         RuleFor(x => x.Bio)
             .MaximumLength(500).WithMessage("Bio cannot exceed 500 characters.")

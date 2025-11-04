@@ -7,7 +7,7 @@ namespace LawPlatform.DataAccess.Services.Profile
     public interface IProfileService
     {
         Task<Response<object>> GetProfileAsync();
-        Task<Response<bool>> UpdateProfileAsync(UpdateClientProfileRequest dto);
+        Task<Response<bool>> UpdateClientProfileAsync(UpdateClientProfileRequest dto);
         Task<Response<bool>> UpdateLawyerProfileAsync(UpdateLawyerProfileRequest dto);
         Task<Response<bool>> UpdateProfileImageAsync(IFormFile profileImage);
     }
