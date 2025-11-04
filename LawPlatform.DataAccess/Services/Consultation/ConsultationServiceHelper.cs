@@ -1,11 +1,10 @@
-﻿using System.Linq.Expressions;
-using Google;
+﻿using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.Entities.DTO.Consultation;
-using System.Security.Claims;
 using LawPlatform.Entities.Models;
 using Microsoft.AspNetCore.Http;
-using LawPlatform.DataAccess.ApplicationContext;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
+using System.Security.Claims;
 
 public static class ConsultationServiceHelper
 {
@@ -28,10 +27,15 @@ public static class ConsultationServiceHelper
             Duration = c.Duration,
             Status = c.Status,
             LawyerId = c.LawyerId,
-            UrlFiles = c.Files?.Select(f => f.FilePath).ToList() ?? new()
+            UrlFiles = c.Files?.Select(f => f.FilePath).ToList() ?? new(),
+            Client = new ClientInfo
+            {
+                Id = c.Client.Id,
+                FullName = c.Client.FirstName + " " + c.Client.LastName,
+                ProfileImage = c.Client.ProfileImage?.ImageUrl
+            }
         };
     }
-
     public static async Task<List<Consultation>> GetConsultationsAsync(
     LawPlatformContext context,
     Expression<Func<Consultation, bool>> predicate,
