@@ -1,6 +1,5 @@
 ﻿using LawPlatform.Utilities.Enums;
 using Microsoft.AspNetCore.Http;
-using System.ComponentModel.DataAnnotations;
 
 namespace LawPlatform.Entities.DTO.Account.Auth.Register
 {
@@ -28,7 +27,7 @@ namespace LawPlatform.Entities.DTO.Account.Auth.Register
 
         public string LicenseNumber { get; set; }
 
-  
+
         public Specialization Specialization { get; set; }
 
         public string Country { get; set; }

@@ -40,46 +40,57 @@ namespace LawPlatform.DataAccess.Services.Admin
         #region Get Lawyers by Status
         public async Task<Response<PaginatedList<GetLawyerBriefResponse>>> GetLawyersByStatusAsync(ApprovalStatus? status, RequestFilters<LawyerSorting> filters)
         {
-            var query = _context.Lawyers
-                .Where(l => !l.IsDeleted && (!status.HasValue || l.Status == status.Value))
-                .Join(_userManager.Users,
-                      lawyer => lawyer.Id,
-                      user => user.Id,
-                      (lawyer, user) => new GetLawyerBriefResponse
-                      {
-                          Id = lawyer.Id,
-                          FirstName = lawyer.FirstName,
-                          LastName = lawyer.LastName,
-                          QualificationDocumentUrl = lawyer.QualificationDocumentPath,
-                          Status = lawyer.Status,
-                          Specialization = lawyer.Specialization.ToString(),
-                          Experiences = lawyer.Experiences
-                     }
-                )
-                .AsNoTracking();
-
-            // Apply sorting
-            var isAscending = filters.SortDirection == SortDirection.ASC;
-            query = filters.SortColumn switch
+            try
             {
-                LawyerSorting.Experience => isAscending ? query.OrderBy(l => l.YearsOfExperience) : query.OrderByDescending(l => l.YearsOfExperience),
-                LawyerSorting.Rating => isAscending ? query.OrderBy(l => l.Rating) : query.OrderByDescending(l => l.Rating),
-                _ => query.OrderByDescending(l => l.Rating),
-            };
 
-            //Apply Searching
-            query = string.IsNullOrWhiteSpace(filters.SearchValue)
-                ? query
-                : query.Where(l =>
-                    EF.Functions.Contains(l.FirstName, $"\"{filters.SearchValue}\"") ||
-                    EF.Functions.Contains(l.LastName, $"\"{filters.SearchValue}\"")
-                );
+                var query = _context.Lawyers
+                    .Where(l => !l.IsDeleted && (!status.HasValue || l.Status == status.Value))
+                    .Join(_userManager.Users,
+                          lawyer => lawyer.Id,
+                          user => user.Id,
+                          (lawyer, user) => new GetLawyerBriefResponse
+                          {
+                              Id = lawyer.Id,
+                              FirstName = lawyer.FirstName,
+                              LastName = lawyer.LastName,
+                              QualificationDocumentUrl = lawyer.QualificationDocumentPath,
+                              Status = lawyer.Status,
+                              Specialization = lawyer.Specialization.ToString(),
+                              Experiences = lawyer.Experiences ?? "Not specified",
+                              YearsOfExperience = lawyer.YearsOfExperience,
+                              Rating = lawyer.Rating ?? 0.0
+                          }
+                    )
+                    .AsNoTracking();
 
-           
-            //Apply Pagination
-            var result = await PaginatedList<GetLawyerBriefResponse>.CreateAsync(query, filters.PageNumber, filters.PageSize);
+                // Apply sorting
+                var isAscending = filters.SortDirection == SortDirection.ASC;
+                query = filters.SortColumn switch
+                {
+                    LawyerSorting.Experience => isAscending ? query.OrderBy(l => l.YearsOfExperience) : query.OrderByDescending(l => l.YearsOfExperience),
+                    LawyerSorting.Rating => isAscending ? query.OrderBy(l => l.Rating) : query.OrderByDescending(l => l.Rating),
+                    _ => query.OrderByDescending(l => l.Rating),
+                };
 
-            return _responseHandler.Success(result, "Lawyers retrieved successfully.");
+                //Apply Searching
+                query = string.IsNullOrWhiteSpace(filters.SearchValue)
+                    ? query
+                    : query.Where(l =>
+                        EF.Functions.Contains(l.FirstName, $"\"{filters.SearchValue}\"") ||
+                        EF.Functions.Contains(l.LastName, $"\"{filters.SearchValue}\"")
+                    );
+
+
+                //Apply Pagination
+                var result = await PaginatedList<GetLawyerBriefResponse>.CreateAsync(query, filters.PageNumber, filters.PageSize);
+
+                return _responseHandler.Success(result, "Lawyers retrieved successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving lawyers by status.");
+                return _responseHandler.BadRequest<PaginatedList<GetLawyerBriefResponse>>("An error occurred while retrieving lawyers.");
+            }
         }
 
         #endregion
@@ -90,7 +101,7 @@ namespace LawPlatform.DataAccess.Services.Admin
             if (string.IsNullOrEmpty(lawyerId))
                 return _responseHandler.BadRequest<GetLawyerResponse>("LawyerId is required.");
             var lawyer = await _context.Lawyers
-                .Where(l => l.Id == lawyerId)
+                .Where(l => l.Id == lawyerId && !l.IsDeleted)
                 .Join(_userManager.Users,
                       l => l.Id,
                       u => u.Id,
@@ -172,92 +183,93 @@ namespace LawPlatform.DataAccess.Services.Admin
         #region Get /  Client
         public async Task<Response<List<GetClientsResponse>>> GetAllClients(string? search)
         {
-            _logger.LogInformation("Starting GetAllClients at {Time}", DateTime.UtcNow);
+       _logger.LogInformation("Starting GetAllClients at {Time}", DateTime.UtcNow);
 
-            try
-            {
-                var clients = await _context.Clients
-                    .Join(_userManager.Users,
-                        client => client.Id,
-                        user => user.Id,
-                        (client, user) => new GetClientsResponse
-                        {
-                            Id = client.Id,
-                            FullName = client.FirstName + " " + client.LastName,
-                            Email = user.Email,
-                            PhoneNumber = user.PhoneNumber,
-                            CreatedAt = client.CreatedAt,
-                            ConsultationCount = client.Consultations.Count(),
+    try
+ {
+       var clients = await _context.Clients
+        .Where(c => !c.IsDeleted)
+       .Join(_userManager.Users,
+     client => client.Id,
+ user => user.Id,
+        (client, user) => new GetClientsResponse
+           {
+Id = client.Id,
+        FullName = client.FirstName + " " + client.LastName,
+           Email = user.Email,
+           PhoneNumber = user.PhoneNumber,
+CreatedAt = client.CreatedAt,
+        ConsultationCount = client.Consultations.Count(),
 
-                        })
-                    .ToListAsync();
-                if (!string.IsNullOrEmpty(search))
-                {
-                    clients = clients.Where(c =>
-                        c.FullName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        c.Email.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        c.PhoneNumber.Contains(search, StringComparison.OrdinalIgnoreCase)
-                    ).ToList();
+              })
+   .ToListAsync();
+      if (!string.IsNullOrEmpty(search))
+     {
+  clients = clients.Where(c =>
+        c.FullName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+         c.Email.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+         c.PhoneNumber.Contains(search, StringComparison.OrdinalIgnoreCase)
+        ).ToList();
                 }
 
-                if (clients == null || clients.Count == 0)
-                {
-                    _logger.LogWarning("No clients found.");
-                    return _responseHandler.Success(new List<GetClientsResponse>(), "No clients found.");
-                }
+     if (clients == null || clients.Count == 0)
+         {
+        _logger.LogWarning("No clients found.");
+                 return _responseHandler.Success(new List<GetClientsResponse>(), "No clients found.");
+   }
 
-                _logger.LogInformation("Retrieved {Count} clients.", clients.Count);
+       _logger.LogInformation("Retrieved {Count} clients.", clients.Count);
 
-                return _responseHandler.Success(clients, "Clients retrieved successfully.");
+    return _responseHandler.Success(clients, "Clients retrieved successfully.");
             }
-            catch (Exception ex)
+    catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while retrieving clients.");
-                return _responseHandler.BadRequest<List<GetClientsResponse>>("An error occurred while retrieving clients.");
-            }
+          _logger.LogError(ex, "An error occurred while retrieving clients.");
+    return _responseHandler.BadRequest<List<GetClientsResponse>>("An error occurred while retrieving clients.");
+          }
         }
 
         public async Task<Response<GetClientsResponse>> GetClientById(string clientId)
         {
-            _logger.LogInformation("Starting GetClientById for {ClientId} at {Time}", clientId, DateTime.UtcNow);
+   _logger.LogInformation("Starting GetClientById for {ClientId} at {Time}", clientId, DateTime.UtcNow);
 
             if (string.IsNullOrEmpty(clientId))
-                return _responseHandler.BadRequest<GetClientsResponse>("ClientId is required.");
+      return _responseHandler.BadRequest<GetClientsResponse>("ClientId is required.");
 
             try
             {
-                var client = await _context.Clients
-                    .Where(c => c.Id == clientId)
-                    .Join(_userManager.Users,
-                        c => c.Id,
-                        u => u.Id,
-                        (c, u) => new GetClientsResponse
-                        {
-                            Id = c.Id,
-                            FullName = u.UserName,
-                            Email = u.Email,
-                            PhoneNumber = u.PhoneNumber,
-                            CreatedAt = c.CreatedAt,
-                            ConsultationCount = c.Consultations.Count(),
-                        })
-                    .FirstOrDefaultAsync();
+       var client = await _context.Clients
+    .Where(c => c.Id == clientId && !c.IsDeleted)
+  .Join(_userManager.Users,
+       c => c.Id,
+                u => u.Id,
+    (c, u) => new GetClientsResponse
+     {
+   Id = c.Id,
+          FullName = u.UserName,
+        Email = u.Email,
+     PhoneNumber = u.PhoneNumber,
+    CreatedAt = c.CreatedAt,
+    ConsultationCount = c.Consultations.Count(),
+       })
+           .FirstOrDefaultAsync();
 
-                if (client == null)
-                {
-                    _logger.LogWarning("Client with id {ClientId} not found.", clientId);
-                    return _responseHandler.NotFound<GetClientsResponse>("Client not found.");
-                }
+      if (client == null)
+  {
+           _logger.LogWarning("Client with id {ClientId} not found.", clientId);
+      return _responseHandler.NotFound<GetClientsResponse>("Client not found.");
+         }
 
-                _logger.LogInformation("Retrieved client {ClientId}", clientId);
+            _logger.LogInformation("Retrieved client {ClientId}", clientId);
 
-                return _responseHandler.Success(client, "Client retrieved successfully.");
-            }
-            catch (Exception ex)
+    return _responseHandler.Success(client, "Client retrieved successfully.");
+      }
+    catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while retrieving client {ClientId}", clientId);
-                return _responseHandler.BadRequest<GetClientsResponse>("An error occurred while retrieving client.");
-            }
-        }
+ _logger.LogError(ex, "An error occurred while retrieving client {ClientId}", clientId);
+           return _responseHandler.BadRequest<GetClientsResponse>("An error occurred while retrieving client.");
+    }
+    }
 
         #endregion
 

@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace LawPlatform.Entities.DTO.ImageUploading
 {
-    public class UploadImageResponse
+    public class UploadFileResponse
     {
         public string Url { get; set; } = null!;
-        public string PublicId { get; set; } = null!;
     }
 }

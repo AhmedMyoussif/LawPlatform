@@ -14,57 +14,68 @@
 
     <script src="https://unpkg.com/@microsoft/signalr@7.0.5/dist/browser/signalr.min.js"></script>
     <script>
-    // ====== CONFIG ======
-    const hubUrl = (location.protocol === 'https:' ? 'https' : 'http') + '://' + location.host + '/hubs/chat';
-    // ====== GET JWT ======
-    const token = localStorage.getItem('jwt');
-    if(!token) alert('ضع JWT في localStorage كـ key = "jwt" قبل الاستخدام');
+        // ====== إعدادات Hub ======
+        const hubUrl = (location.protocol === 'https:' ? 'https' : 'http') + '://' + location.host + '/hubs/chat';
 
-    const connection = new signalR.HubConnectionBuilder()
-      .withUrl(hubUrl, { accessTokenFactory: () => token })
-      .withAutomaticReconnect()
-      .build();
+        // ====== JWT لازم يكون موجود في localStorage ======
+        const token = localStorage.getItem('jwt');
+        if (!token) alert('ضع JWT صالح في localStorage كـ key = "jwt" قبل الاستخدام');
 
-    const logEl = document.getElementById('log');
-    function log(...args) { logEl.value += args.join(' ') + '\n'; logEl.scrollTop = logEl.scrollHeight; }
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl(hubUrl, { accessTokenFactory: () => token })
+            .withAutomaticReconnect()
+            .build();
 
-    connection.on('Connected', (userId) => log('Connected as', userId));
-    connection.on('ReceivePrivateMessage', (fromUserId, content, sentAt) => {
-      log(`[IN] from ${fromUserId} @ ${sentAt}: ${content}`);
-    });
-    connection.on('MessageSent', (toUserId, content, sentAt) => {
-      log(`[SENT] to ${toUserId} @ ${sentAt}: ${content}`);
-    });
-    connection.on('MessagesReadBy', (readerId) => log(`[READ] messages read by ${readerId}`));
-    connection.on('Error', (msg) => log('[ERROR]', msg));
+        const logEl = document.getElementById('log');
+        function log(...args) {
+            logEl.value += args.join(' ') + '\n';
+            logEl.scrollTop = logEl.scrollHeight;
+        }
 
-    async function start() {
-      try {
-        await connection.start();
-        log('Connection started');
-      } catch (err) {
-        log('Start error', err);
-        setTimeout(start, 2000);
-      }
-    }
-    start();
+        // ====== أحداث Hub ======
+        connection.on('Connected', (userId) => log('Connected as', userId));
+        connection.on('ReceivePrivateMessage', (fromUserId, content, sentAt) => log(`[IN] from ${fromUserId} @ ${sentAt}: ${content}`));
+        connection.on('MessageSent', (toUserId, content, sentAt) => log(`[SENT] to ${toUserId} @ ${sentAt}: ${content}`));
+        connection.on('MessagesReadBy', (readerId) => log(`[READ] messages read by ${readerId}`));
+        connection.on('Error', (msg) => log('[ERROR]', msg));
 
-    document.getElementById('sendBtn').addEventListener('click', async () => {
-      const receiverId = document.getElementById('receiverId').value.trim();
-      const content = document.getElementById('message').value.trim();
-      if(!receiverId || !content) { alert('أدخل ReceiverId والنص'); return; }
-      try {
-        await connection.invoke('SendPrivateMessage', receiverId, content);
-      } catch (err) { log('Invoke error', err); }
-    });
+        // ====== بدء الاتصال ======
+        async function start() {
+            try {
+                await connection.start();
+                log('Connection started');
+            } catch (err) {
+                log('Start error', err);
+                setTimeout(start, 2000);
+            }
+        }
+        start();
 
-    document.getElementById('markReadBtn').addEventListener('click', async () => {
-      const other = document.getElementById('receiverId').value.trim();
-      if(!other) { alert('أدخل otherUserId'); return; }
-      try {
-        await connection.invoke('MarkAsRead', other);
-      } catch (err) { log('MarkAsRead error', err); }
-    });
+        // ====== إرسال رسالة ======
+        document.getElementById('sendBtn').addEventListener('click', async () => {
+            const receiverId = document.getElementById('receiverId').value.trim();
+            const content = document.getElementById('message').value.trim();
+            const consultationId = prompt("Enter ConsultationId (GUID)"); // تدخل GUID صالح
+            if (!receiverId || !content || !consultationId) {
+                alert('أدخل ReceiverId والنص و ConsultationId');
+                return;
+            }
+            try {
+                await connection.invoke('SendPrivateMessage', receiverId, content, consultationId);
+            } catch (err) {
+                log('Invoke error', err);
+            }
+        });
+
+        // ====== تعليم الرسائل كمقروءة ======
+        document.getElementById('markReadBtn').addEventListener('click', async () => {
+            const other = document.getElementById('receiverId').value.trim();
+            if (!other) { alert('أدخل otherUserId'); return; }
+            try {
+                await connection.invoke('MarkAsRead', other);
+            } catch (err) { log('MarkAsRead error', err); }
+        });
     </script>
+
 </body>
 </html>

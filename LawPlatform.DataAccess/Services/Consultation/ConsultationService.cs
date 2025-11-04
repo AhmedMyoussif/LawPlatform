@@ -23,10 +23,10 @@ public class ConsultationService :  IConsultationService
     private readonly ResponseHandler _responseHandler;
     private readonly ILogger<ConsultationService> _logger;
     private readonly IValidator<CreateConsultationRequest> _validator;
-    private readonly IImageUploadService _imageUploadService;
+    private readonly IFileUploadService _imageUploadService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ConsultationService(LawPlatformContext context, ResponseHandler responseHandler, ILogger<ConsultationService> logger, IImageUploadService imageUploadService, IValidator<CreateConsultationRequest> validator, IHttpContextAccessor httpContextAccessor)
+    public ConsultationService(LawPlatformContext context, ResponseHandler responseHandler, ILogger<ConsultationService> logger, IFileUploadService imageUploadService, IValidator<CreateConsultationRequest> validator, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _responseHandler = responseHandler;
@@ -44,7 +44,8 @@ public class ConsultationService :  IConsultationService
             var userId = ConsultationServiceHelper.GetCurrentUserId(_httpContextAccessor);
 
             var client = await _context.Clients
-           .FirstOrDefaultAsync(c => c.Id == userId);
+                .Where(c => !c.IsDeleted)
+                .FirstOrDefaultAsync(c => c.Id == userId);
             if (client == null)
             {
                 _logger.LogWarning("Client not found for UserId: {UserId}", userId);
@@ -406,7 +407,8 @@ public class ConsultationService :  IConsultationService
     public async Task<Response<List<LawyerSearchResponse>>> SearchLawyersByNameAsync(string name)
     {
         var lawyers = await _context.Lawyers
-            .Where(l => l.Status == ApprovalStatus.Approved &&
+            .Where(l => !l.IsDeleted && 
+                       l.Status == ApprovalStatus.Approved &&
                        (l.FirstName.Contains(name) || l.LastName.Contains(name)))
             .Select(l => new LawyerSearchResponse
             {
@@ -469,6 +471,11 @@ public class ConsultationService :  IConsultationService
                     ClientName = c.Client.FirstName + " " + c.Client.LastName,
                     Status = c.Status.ToString(),
                     Budget = c.Budget,
+                    LawyerId = c.LawyerId,
+                    LawyerName = c.Lawyer != null ? c.Lawyer.FirstName + " " + c.Lawyer.LastName : "Unassigned",
+                    Specialization = c.Specialization.ToString(),
+                    CreatedAt = c.CreatedAt
+
                 }).ToList();
 
                 return _responseHandler.Success(consultationResponses, "Consultations retrieved.");
@@ -483,6 +490,10 @@ public class ConsultationService :  IConsultationService
                     ClientName = c.Client.FirstName + " " + c.Client.LastName,
                     Status = c.Status.ToString(),
                     Budget = c.Budget,
+                    LawyerId = c.LawyerId,
+                    LawyerName = c.Lawyer != null ? c.Lawyer.FirstName + " " + c.Lawyer.LastName : "Unassigned",
+                    Specialization = c.Specialization.ToString(),
+                    CreatedAt = c.CreatedAt,
                 }).ToList();
 
                 return _responseHandler.Success(consultationResponses, "Consultations retrieved.");
@@ -533,7 +544,7 @@ public class ConsultationService :  IConsultationService
     private async Task<(List<ConsultationFile> Files, List<string> Urls)> UploadFilesAsync(
     List<IFormFile> files,
     Guid consultationId,
-    IImageUploadService imageUploadService)
+    IFileUploadService imageUploadService)
     {
         var uploadedFiles = new List<ConsultationFile>();
         var uploadedUrls = new List<string>();
