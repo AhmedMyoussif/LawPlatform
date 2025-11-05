@@ -26,7 +26,7 @@ namespace LawPlatform.API.Controllers
 
 
         [HttpGet("lawyers")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]  // For Admin (Retrieve All Lawyers By Status)
         public async Task<ActionResult<Response<List<GetLawyerBriefResponse>>>> GetLawyersByStatus([FromQuery] ApprovalStatus? status, [FromQuery] RequestFilters<LawyerSorting> filters)
         {
             var validationResult = await _requestFiltersValidator.ValidateAsync(filters);
@@ -39,8 +39,8 @@ namespace LawPlatform.API.Controllers
             if (!result.Succeeded) return BadRequest(result);
             return Ok(result);
         }
-
-        [HttpPut("lawyers/status")]
+        // Update Lawyer Account Status
+        [HttpPut("lawyers/status")] 
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Response<UpdateLawyerAccountStatusResponse>>> UpdateLawyerAccountStatus(
 
@@ -52,6 +52,7 @@ namespace LawPlatform.API.Controllers
             return Ok(result);
         }
 
+        // Get Lawyer By Id
         [HttpGet("lawyers/{lawyerId}")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Response<GetLawyerResponse>>> GetLawyerById(string lawyerId)
@@ -61,6 +62,7 @@ namespace LawPlatform.API.Controllers
             return Ok(result);
         }
 
+        // Get All Clients
         [HttpGet("all/clients")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllClients(string? search)
@@ -75,6 +77,7 @@ namespace LawPlatform.API.Controllers
             return Ok(response);
         }
 
+        // Get Client By Id
         [HttpGet("client{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetClientById(string id)

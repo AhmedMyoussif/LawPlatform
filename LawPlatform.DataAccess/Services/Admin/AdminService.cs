@@ -113,7 +113,21 @@ namespace LawPlatform.DataAccess.Services.Admin
                           PhoneNumber = u.PhoneNumber,
                           QualificationDocumentUrl = l.QualificationDocumentPath,
                           Status = l.Status,
-                          CreatedAt = l.CreatedAt
+                          CreatedAt = l.CreatedAt,
+                          Specialization = l.Specialization.ToString(),
+                          Experiences = l.Experiences ?? "Not specified",
+                          Bio = l.Bio,
+                          Address = l.Address,
+                          BankName = l.BankName,
+                          YearsOfExperience = l.YearsOfExperience,
+                          LicenseNumber = l.LicenseNumber,
+                          LicenseDocumentUrl = l.LicenseDocumentPath,
+                          Country = l.Country,
+                          Age = l.Age,
+                          ProfileImage = l.ProfileImage != null ? l.ProfileImage.ImageUrl : null,
+                          IBAN = l.IBAN,
+                          BankAccountNumber = l.BankAccountNumber
+                         
                       })
                 .FirstOrDefaultAsync();
             if (lawyer == null)
