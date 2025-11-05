@@ -260,6 +260,7 @@ public class ConsultationService : IConsultationService
 
         var query = _context.consultations
             .Include(c => c.Client)
+            .Include(c => c.Lawyer)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
@@ -325,7 +326,23 @@ public class ConsultationService : IConsultationService
                     FullName = c.Client.FirstName + " " + c.Client.LastName,
 
                 },
-                ProposalsCount = c.Proposals.Count
+                Lawyer = c.Lawyer == null ? null : new LawyerInfo
+                {
+                    Id = c.Lawyer.Id,
+                    FullName = c.Lawyer.FirstName + " " + c.Lawyer.LastName,
+                    ProfileImage = c.Lawyer.ProfileImage != null ? c.Lawyer.ProfileImage.ImageUrl : null,
+                    Address = c.Lawyer.Address,
+                    Age = c.Lawyer.Age,
+                    Bio = c.Lawyer.Bio,
+                    UserName = c.Lawyer.User.UserName,
+                    Country = c.Lawyer.Country,
+                    Experiences = c.Lawyer.Experiences,
+                    CreatedAt = c.Lawyer.CreatedAt,
+                    Email = c.Lawyer.User.Email,
+                    PhoneNumber = c.Lawyer.User.PhoneNumber,
+                    Specialization = c.Lawyer.Specialization.ToString(),
+                    Status = c.Lawyer.Status,
+                }
 
             })
             .ToListAsync();
