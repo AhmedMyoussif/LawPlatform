@@ -8,6 +8,7 @@ using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Shared;
 using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Utilities.Enums;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -55,6 +56,7 @@ namespace LawPlatform.DataAccess.Services.Admin
                         Experiences = lawyer.Experiences ?? "Not specified",
                         YearsOfExperience = lawyer.YearsOfExperience,
                         Rating = lawyer.Rating ?? 0.0,
+                        CreatedAt = lawyer.CreatedAt.ToString("yyyy-MM-dd"),
                         ProfileImageUrl = lawyer.ProfileImage != null ? lawyer.ProfileImage.ImageUrl : null,
                         CompletedConsultations = lawyer.Consultations.Count(c => c.Status == ConsultationStatus.Completed)
                     })
@@ -66,6 +68,7 @@ namespace LawPlatform.DataAccess.Services.Admin
                 {
                     LawyerSorting.Experience => isAscending ? query.OrderBy(l => l.YearsOfExperience) : query.OrderByDescending(l => l.YearsOfExperience),
                     LawyerSorting.Rating => isAscending ? query.OrderBy(l => l.Rating) : query.OrderByDescending(l => l.Rating),
+                    LawyerSorting.CreatedAt => isAscending ? query.OrderBy(l => l.CreatedAt) : query.OrderByDescending(l => l.CreatedAt),
                     _ => query.OrderByDescending(l => l.Rating),
                 };
 

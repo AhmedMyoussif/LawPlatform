@@ -13,4 +13,5 @@ public class GetLawyerBriefResponse
     public string? Experiences { get; set; }
     public string ProfileImageUrl { get; set; }
     public int CompletedConsultations { get; set; }
+    public string CreatedAt { get; set; }
 }
