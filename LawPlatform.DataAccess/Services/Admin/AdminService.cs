@@ -52,6 +52,17 @@ namespace LawPlatform.DataAccess.Services.Admin
                         FirstName = lawyer.FirstName,
                         LastName = lawyer.LastName,
                         Status = lawyer.Status,
+                        Email = lawyer.User.Email,
+                        PhoneNumber = lawyer.User.PhoneNumber,
+                        UserName = lawyer.User.UserName,
+                        Age = lawyer.Age,
+                        Address = lawyer.Address,
+                        Bio = lawyer.Bio,
+                        BankName = lawyer.BankName,
+                        LicenseDocument = lawyer.LicenseDocumentPath,
+                        LicenseNumber = lawyer.LicenseNumber,
+                        Qualifications = lawyer.QualificationDocumentPath,
+                        YersOfExperience = lawyer.YearsOfExperience,
                         Specialization = lawyer.Specialization.ToString(),
                         Experiences = lawyer.Experiences ?? "Not specified",
                         YearsOfExperience = lawyer.YearsOfExperience,
@@ -59,6 +70,7 @@ namespace LawPlatform.DataAccess.Services.Admin
                         CreatedAt = lawyer.CreatedAt.ToString("yyyy-MM-dd"),
                         ProfileImageUrl = lawyer.ProfileImage != null ? lawyer.ProfileImage.ImageUrl : null,
                         CompletedConsultations = lawyer.Consultations.Count(c => c.Status == ConsultationStatus.Completed)
+                        
                     })
                     .AsNoTracking();
 
