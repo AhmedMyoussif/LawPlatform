@@ -1,20 +1,17 @@
 
-using System.Text.Json.Serialization;
+using Ecommerce.API.Extensions;
+using LawPlatform.API.Hubs;
 using LawPlatform.DataAccess.ApplicationContext;
+using LawPlatform.DataAccess.Extensions;
 using LawPlatform.DataAccess.Seeder;
 using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Utilities.Configurations;
-
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
-
-using StackExchange.Redis;
-using Ecommerce.API.Extensions;
-using LawPlatform.DataAccess.Extensions;
 using Microsoft.AspNetCore.SignalR;
-using LawPlatform.API.Hubs;
-using System.Reflection;
+using StackExchange.Redis;
+using System.Text.Json.Serialization;
 
 namespace EcommercePlatform
 {
@@ -130,7 +127,7 @@ namespace EcommercePlatform
             app.UseAuthorization();
 
             app.MapControllers();
-            app.UseStaticFiles(); 
+            app.UseStaticFiles();
 
             app.MapHub<LawPlatform.API.Hubs.ChatHub>("/hubs/chat");
             app.MapHub<NotificationHub>("/notificationHub");
