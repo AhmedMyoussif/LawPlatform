@@ -1,10 +1,9 @@
-﻿using System.Security.Claims;
-using LawPlatform.DataAccess.Services.Profile;
+﻿using LawPlatform.DataAccess.Services.Profile;
 using LawPlatform.Entities.DTO.Profile;
 using LawPlatform.Entities.Shared.Bases;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace LawPlatform.API.Controllers
 {
@@ -23,6 +22,9 @@ namespace LawPlatform.API.Controllers
             _httpContextAccessor = httpContextAccessor;
         }
 
+        /// <summary>
+        /// Get the authenticated user's profile (Client or Lawyer)
+        /// </summary>
         [HttpGet]
         public async Task<ActionResult<Response<ClientProfileResponse>>> GetProfile()
         {
@@ -33,19 +35,40 @@ namespace LawPlatform.API.Controllers
             var result = await _ProfileService.GetProfileAsync();
             return StatusCode((int)result.StatusCode, result);
         }
-        
-        [HttpPut]
+
+        /// <summary>
+        /// Update client profile
+        /// </summary>
+        [HttpPut("client")]
+        [Authorize(Roles = "Client")]
         public async Task<ActionResult<Response<bool>>> UpdateProfile([FromForm] UpdateClientProfileRequest dto)
         {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
                 return Unauthorized();
 
-            var result = await _ProfileService.UpdateProfileAsync( dto);
+
+
+            var result = await _ProfileService.UpdateClientProfileAsync(dto);
             return StatusCode((int)result.StatusCode, result);
         }
 
-   
+        /// <summary>
+        /// Update lawyer profile
+        /// </summary>
+        [HttpPut("lawyer")]
+        [Authorize(Roles = "Lawyer")]
+        public async Task<ActionResult<Response<bool>>> UpdateLawyerProfile([FromForm] UpdateLawyerProfileRequest dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return Unauthorized();
+
+            var result = await _ProfileService.UpdateLawyerProfileAsync(dto);
+            return StatusCode((int)result.StatusCode, result);
+        }
+
+
         //[HttpPut("image")]
         //public async Task<ActionResult<Response<string>>> UpdateProfileImage([FromForm] IFormFile newImage)
         //{

@@ -1,12 +1,11 @@
-﻿using LawPlatform.DataAccess.Services.Admin;
-using LawPlatform.DataAccess.Services.Auth;
+﻿using FluentValidation;
+using LawPlatform.DataAccess.Services.Admin;
 using LawPlatform.Entities.DTO.Account.Auth.Admin;
+using LawPlatform.Entities.DTO.Shared;
 using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Utilities.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using LawPlatform.Entities.DTO.Shared;
-using FluentValidation;
 
 namespace LawPlatform.API.Controllers
 {
@@ -15,13 +14,11 @@ namespace LawPlatform.API.Controllers
 
     public class AdminController : ControllerBase
     {
-        private readonly IAuthService _authService;
         private readonly IAdminService _adminService;
         private readonly ILogger<AdminController> _logger;
         private readonly IValidator<RequestFilters<LawyerSorting>> _requestFiltersValidator;
-        public AdminController(IAuthService authService, IAdminService adminService, ILogger<AdminController> logger, IValidator<RequestFilters<LawyerSorting>> requestFiltersValidator)
+        public AdminController(IAdminService adminService, ILogger<AdminController> logger, IValidator<RequestFilters<LawyerSorting>> requestFiltersValidator)
         {
-            _authService = authService;
             _adminService = adminService;
             _logger = logger;
             _requestFiltersValidator = requestFiltersValidator;
@@ -29,7 +26,7 @@ namespace LawPlatform.API.Controllers
 
 
         [HttpGet("lawyers")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]  // For Admin (Retrieve All Lawyers By Status)
         public async Task<ActionResult<Response<List<GetLawyerBriefResponse>>>> GetLawyersByStatus([FromQuery] ApprovalStatus? status, [FromQuery] RequestFilters<LawyerSorting> filters)
         {
             var validationResult = await _requestFiltersValidator.ValidateAsync(filters);
@@ -42,8 +39,8 @@ namespace LawPlatform.API.Controllers
             if (!result.Succeeded) return BadRequest(result);
             return Ok(result);
         }
-
-        [HttpPut("lawyers/status")]
+        // Update Lawyer Account Status
+        [HttpPut("lawyers/status")] 
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Response<UpdateLawyerAccountStatusResponse>>> UpdateLawyerAccountStatus(
 
@@ -55,6 +52,7 @@ namespace LawPlatform.API.Controllers
             return Ok(result);
         }
 
+        // Get Lawyer By Id
         [HttpGet("lawyers/{lawyerId}")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Response<GetLawyerResponse>>> GetLawyerById(string lawyerId)
@@ -64,9 +62,10 @@ namespace LawPlatform.API.Controllers
             return Ok(result);
         }
 
+        // Get All Clients
         [HttpGet("all/clients")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAllClients(string?search)
+        public async Task<IActionResult> GetAllClients(string? search)
         {
             _logger.LogInformation("HTTP GET /api/clients/all called");
 
@@ -78,6 +77,7 @@ namespace LawPlatform.API.Controllers
             return Ok(response);
         }
 
+        // Get Client By Id
         [HttpGet("client{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetClientById(string id)
@@ -92,10 +92,11 @@ namespace LawPlatform.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("MentorConsultations")]
-        public async Task<IActionResult> GetMentorConsultations(string consultation , int pageNumber = 1 , int pageSize = 10 )
+        [HttpGet("MonitorConsultations")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetMonitorConsultations(string consultation, int pageNumber = 1, int pageSize = 10)
         {
-            var response = await _adminService.MentorConsultationsync(consultation , pageNumber , pageSize);
+            var response = await _adminService.MonitorConsultationsAsync(consultation, pageNumber, pageSize);
             if (!response.Succeeded) return BadRequest(response);
             return Ok(response);
         }
@@ -123,13 +124,16 @@ namespace LawPlatform.API.Controllers
             if (!response.Succeeded) return BadRequest(response);
             return Ok(response);
         }
+
         [HttpGet("GetTotalClientsCount")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetTotalClientsCount()
         {
             var response = await _adminService.GetTotalClientsCountAsync();
             if (!response.Succeeded) return BadRequest(response);
             return Ok(response);
         }
+
         [HttpGet("GetApprovedLawyers")]
         [Authorize(Roles = "Admin,Client")]
         public async Task<IActionResult> GetApprovedLawyers([FromQuery] RequestFilters<LawyerSorting> filters)
