@@ -23,7 +23,7 @@ using LawPlatform.DataAccess.Services.Review;
 using LawPlatform.DataAccess.Services.Chat;
 using LawPlatform.DataAccess.Services.Notification;
 using LawPlatform.DataAccess.Services.Report;
-
+using LawPlatform.DataAccess.Services.Payment;
 
 namespace LawPlatform.DataAccess.Extensions
 {
@@ -56,9 +56,11 @@ namespace LawPlatform.DataAccess.Extensions
             services.AddScoped<IChatService, ChatService>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IReportService, ReportService>();
+            
+            // Register Tamara Payment Service
+            services.AddScoped<ITamaraPaymentService, TamaraPaymentService>();
+            
             services.AddScoped<HttpClient>();
-
-
 
             QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
