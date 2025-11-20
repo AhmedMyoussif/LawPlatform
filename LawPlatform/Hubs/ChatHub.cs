@@ -116,12 +116,14 @@ namespace LawPlatform.API.Hubs
 
                 var msg = new ChatMessage
                 {
+                    
                     SenderId = senderId,
                     ReceiverId = receiverId,
                     ConsultationId = consultationId,
                     SentAt = DateTimeOffset.UtcNow,
                     IsRead = false,
-                    ChatId = chatId
+                    ChatId = chatId,
+                    Content = content
                 };
 
                 await _chatService.SaveMessageAsync(msg);
@@ -184,7 +186,7 @@ namespace LawPlatform.API.Hubs
             }
 
             return response.Data.Items
-                          .OrderBy(m => m.SentAt)
+                         
                           .ToList();
         }
 

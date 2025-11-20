@@ -1,6 +1,5 @@
 ﻿using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Utilities.Enums;
-using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -37,7 +36,7 @@ namespace LawPlatform.Entities.Models.Auth.Users
         public string Address { get; set; }
 
         [Required, MaxLength(50)]
-        public string LicenseNumber { get; set; }  
+        public string LicenseNumber { get; set; }
 
         public string LicenseDocumentPath { get; set; }
 
@@ -66,5 +65,6 @@ namespace LawPlatform.Entities.Models.Auth.Users
         public DateTime? DeletedAt { get; set; }
         public ProfileImage ProfileImage { get; set; }
         public ICollection<Proposal> Proposals { get; set; } = new List<Proposal>();
+        public ICollection<Consultation> Consultations { get; set; } = new List<Consultation>();
     }
 }

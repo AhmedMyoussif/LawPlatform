@@ -140,7 +140,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserRefreshTokens");
+                    b.ToTable("UserRefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.Auth.Users.Client", b =>
@@ -306,7 +306,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("chats");
+                    b.ToTable("chats", (string)null);
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.ChatMessage", b =>
@@ -345,7 +345,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("ConsultationId");
 
-                    b.ToTable("ChatMessages");
+                    b.ToTable("ChatMessages", (string)null);
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.Consultation", b =>
@@ -399,7 +399,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("LawyerId");
 
-                    b.ToTable("consultations");
+                    b.ToTable("consultations", (string)null);
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.ConsultationFile", b =>
@@ -424,7 +424,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("ConsultationId");
 
-                    b.ToTable("ConsultationFiles");
+                    b.ToTable("ConsultationFiles", (string)null);
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.Notification", b =>
@@ -453,7 +453,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.ProfileImage", b =>
@@ -488,7 +488,7 @@ namespace LawPlatform.DataAccess.Migrations
                         .IsUnique()
                         .HasFilter("[LawyerId] IS NOT NULL");
 
-                    b.ToTable("profileImages");
+                    b.ToTable("profileImages", (string)null);
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.Proposal", b =>
@@ -538,7 +538,45 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("LawyerId");
 
-                    b.ToTable("Proposals");
+                    b.ToTable("Proposals", (string)null);
+                });
+
+            modelBuilder.Entity("LawPlatform.Entities.Models.Report", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ConsultationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReportedLawyerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ReporterId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConsultationId");
+
+                    b.HasIndex("ReportedLawyerId");
+
+                    b.HasIndex("ReporterId");
+
+                    b.ToTable("Reports", (string)null);
                 });
 
             modelBuilder.Entity("LawPlatform.Entities.Models.Review", b =>
@@ -585,7 +623,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasIndex("LawyerId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
@@ -604,7 +642,7 @@ namespace LawPlatform.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DataProtectionKeys");
+                    b.ToTable("DataProtectionKeys", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -827,6 +865,33 @@ namespace LawPlatform.DataAccess.Migrations
                     b.Navigation("Lawyer");
                 });
 
+            modelBuilder.Entity("LawPlatform.Entities.Models.Report", b =>
+                {
+                    b.HasOne("LawPlatform.Entities.Models.Consultation", "Consultation")
+                        .WithMany("Reports")
+                        .HasForeignKey("ConsultationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LawPlatform.Entities.Models.Auth.Users.Lawyer", "ReportedLawyer")
+                        .WithMany()
+                        .HasForeignKey("ReportedLawyerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LawPlatform.Entities.Models.Auth.Identity.User", "Reporter")
+                        .WithMany()
+                        .HasForeignKey("ReporterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Consultation");
+
+                    b.Navigation("ReportedLawyer");
+
+                    b.Navigation("Reporter");
+                });
+
             modelBuilder.Entity("LawPlatform.Entities.Models.Review", b =>
                 {
                     b.HasOne("LawPlatform.Entities.Models.Auth.Identity.User", "Client")
@@ -923,6 +988,8 @@ namespace LawPlatform.DataAccess.Migrations
                     b.Navigation("Files");
 
                     b.Navigation("Proposals");
+
+                    b.Navigation("Reports");
                 });
 #pragma warning restore 612, 618
         }

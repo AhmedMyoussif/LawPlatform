@@ -1,6 +1,7 @@
 ﻿using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.Entities.DTO.Review;
 using LawPlatform.Entities.Shared.Bases;
+using LawPlatform.Utilities.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -21,7 +22,7 @@ public class ReviewService : IReviewService
         _responseHandler = responseHandler;
         _logger = logger;
     }
-    
+
     public async Task<Response<bool>> AddReviewAsync(string userId, AddReviewRequest request, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Starting AddReviewAsync for LawyerId: {LawyerId}", request.LawyerId);
@@ -65,7 +66,8 @@ public class ReviewService : IReviewService
             // Check if client had any consultation with this lawyer
             var hadConsultation = await _context.consultations
                 .AnyAsync(c => c.ClientId == userId &&
-                               c.LawyerId == request.LawyerId.ToString(),
+                               c.LawyerId == request.LawyerId.ToString()
+                               && c.Status == ConsultationStatus.Completed,
                            cancellationToken);
 
             if (!hadConsultation)
@@ -135,7 +137,7 @@ public class ReviewService : IReviewService
             // Calculate average rating
             var averageRating = reviews.Average(r => r.Rating);
 
-            _logger.LogInformation("Average rating calculated for LawyerId: {LawyerId}, Rating: {Rating}", 
+            _logger.LogInformation("Average rating calculated for LawyerId: {LawyerId}, Rating: {Rating}",
                 lawyerId, averageRating);
 
             return _responseHandler.Success(Math.Round(averageRating, 2), "Average rating retrieved successfully.");
@@ -221,7 +223,7 @@ public class ReviewService : IReviewService
             // Verify the review belongs to the client
             if (review.ClientId != userId)
             {
-                _logger.LogWarning("Client does not own this review. ClientId: {ClientId}, ReviewId: {ReviewId}", 
+                _logger.LogWarning("Client does not own this review. ClientId: {ClientId}, ReviewId: {ReviewId}",
                     userId, reviewId);
                 return _responseHandler.Forbidden<bool>("You can only update your own reviews.");
             }
@@ -244,7 +246,8 @@ public class ReviewService : IReviewService
             var lawyer = await _context.Lawyers
                 .FirstOrDefaultAsync(l => l.Id == review.LawyerId && !l.IsDeleted, cancellationToken);
 
-            if (lawyer == null) { 
+            if (lawyer == null)
+            {
                 _logger.LogWarning("Lawyer not found or deleted for review. LawyerId: {LawyerId}", review.LawyerId);
                 return _responseHandler.NotFound<bool>("Associated lawyer not found.");
             }
@@ -253,7 +256,7 @@ public class ReviewService : IReviewService
             _context.Lawyers.Update(lawyer);
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Review updated successfully. ReviewId: {ReviewId}, ClientId: {ClientId}", 
+            _logger.LogInformation("Review updated successfully. ReviewId: {ReviewId}, ClientId: {ClientId}",
                 reviewId, userId);
 
             return _responseHandler.Success(true, "Review updated successfully.");
@@ -294,7 +297,7 @@ public class ReviewService : IReviewService
             // Verify the review belongs to the client
             if (review.ClientId != clientId)
             {
-                _logger.LogWarning("Client does not own this review. ClientId: {ClientId}, ReviewId: {ReviewId}", 
+                _logger.LogWarning("Client does not own this review. ClientId: {ClientId}, ReviewId: {ReviewId}",
                     clientId, reviewId);
                 return _responseHandler.Forbidden<bool>("You can only delete your own reviews.");
             }
@@ -314,12 +317,12 @@ public class ReviewService : IReviewService
                 _logger.LogWarning("Lawyer not found or deleted for review. LawyerId: {LawyerId}", review.LawyerId);
                 return _responseHandler.NotFound<bool>("Associated lawyer not found.");
             }
-            lawyer.TotalReviews -= 1 ;
+            lawyer.TotalReviews -= 1;
             lawyer.Rating = (await GetAverageRatingForLawyerAsync(Guid.Parse(lawyer.Id))).Data;
             _context.Lawyers.Update(lawyer);
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Review soft deleted successfully. ReviewId: {ReviewId}, ClientId: {ClientId}", 
+            _logger.LogInformation("Review soft deleted successfully. ReviewId: {ReviewId}, ClientId: {ClientId}",
                 reviewId, clientId);
 
             return _responseHandler.Success(true, "Review deleted successfully.");

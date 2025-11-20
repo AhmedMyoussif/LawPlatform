@@ -1,19 +1,17 @@
 
-using System.Text.Json.Serialization;
+using Ecommerce.API.Extensions;
+using LawPlatform.API.Hubs;
 using LawPlatform.DataAccess.ApplicationContext;
+using LawPlatform.DataAccess.Extensions;
 using LawPlatform.DataAccess.Seeder;
 using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Utilities.Configurations;
-
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
-
-using StackExchange.Redis;
-using Ecommerce.API.Extensions;
-using LawPlatform.DataAccess.Extensions;
 using Microsoft.AspNetCore.SignalR;
-using LawPlatform.API.Hubs;
+using StackExchange.Redis;
+using System.Text.Json.Serialization;
 
 namespace EcommercePlatform
 {
@@ -42,7 +40,7 @@ namespace EcommercePlatform
 
             // IOptional Pattern
             builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JWT"));
-            builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("Cloudinary"));
+            builder.Services.Configure<UploadcareSettings>(builder.Configuration.GetSection("Uploadcare"));
             builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
             builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("Authorization:Google"));
 
@@ -51,21 +49,32 @@ namespace EcommercePlatform
             builder.Services.AddDatabase(builder.Configuration);
             builder.Services.AddAuthenticationAndAuthorization(builder.Configuration);
             builder.Services.AddEmailServices(builder.Configuration);
-          
 
 
+
+            //builder.Services.AddCors(options =>
+            //{
+            //    options.AddPolicy("AllowAll", policy =>
+            //    {
+            //        policy
+            //            .AllowAnyOrigin()
+            //            .AllowAnyMethod()
+            //            .AllowAnyHeader();
+            //    });
+            //});
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", policy =>
                 {
                     policy
-                        .AllowAnyOrigin()
+                        .AllowAnyHeader()
                         .AllowAnyMethod()
-                        .AllowAnyHeader();
+                        .SetIsOriginAllowed(_ => true)
+                        .AllowCredentials();
                 });
             });
 
-           
+
             builder.Services.AddFluentValidation();
 
             // Rate limiter for otp resend
@@ -82,6 +91,8 @@ namespace EcommercePlatform
                 configuration.AbortOnConnectFail = false;
                 return ConnectionMultiplexer.Connect(configuration);
             });
+
+
 
             builder.Services.AddSwagger();
             builder.Services.AddEndpointsApiExplorer();
@@ -116,7 +127,7 @@ namespace EcommercePlatform
             app.UseAuthorization();
 
             app.MapControllers();
-            app.UseStaticFiles(); 
+            app.UseStaticFiles();
 
             app.MapHub<LawPlatform.API.Hubs.ChatHub>("/hubs/chat");
             app.MapHub<NotificationHub>("/notificationHub");

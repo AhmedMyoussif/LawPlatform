@@ -8,6 +8,7 @@ using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Shared;
 using LawPlatform.Entities.Shared.Bases;
 using LawPlatform.Utilities.Enums;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace LawPlatform.DataAccess.Services.Admin
 {
-    public class AdminService:IAdminService
+    public class AdminService : IAdminService
     {
         private readonly UserManager<User> _userManager;
         private readonly LawPlatformContext _context;
@@ -40,49 +41,72 @@ namespace LawPlatform.DataAccess.Services.Admin
         #region Get Lawyers by Status
         public async Task<Response<PaginatedList<GetLawyerBriefResponse>>> GetLawyersByStatusAsync(ApprovalStatus? status, RequestFilters<LawyerSorting> filters)
         {
-            var query = _context.Lawyers
-                .Where(l => !l.IsDeleted && (!status.HasValue || l.Status == status.Value))
-                .Join(_userManager.Users,
-                      lawyer => lawyer.Id,
-                      user => user.Id,
-                      (lawyer, user) => new GetLawyerBriefResponse
-                      {
-                          Id = lawyer.Id,
-                          FirstName = lawyer.FirstName,
-                          LastName = lawyer.LastName,
-                          QualificationDocumentUrl = lawyer.QualificationDocumentPath,
-                          Status = lawyer.Status,
-                          Specialization = lawyer.Specialization.ToString(),
-                          Experiences = lawyer.Experiences
-                     }
-                )
-                .AsNoTracking();
-
-            // Apply sorting
-            var isAscending = filters.SortDirection == SortDirection.ASC;
-            query = filters.SortColumn switch
+            try
             {
-                LawyerSorting.Experience => isAscending ? query.OrderBy(l => l.YearsOfExperience) : query.OrderByDescending(l => l.YearsOfExperience),
-                LawyerSorting.Rating => isAscending ? query.OrderBy(l => l.Rating) : query.OrderByDescending(l => l.Rating),
-                _ => query.OrderByDescending(l => l.Rating),
-            };
+                var query = _context.Lawyers
+                    .Where(l => !l.IsDeleted && (!status.HasValue || l.Status == status.Value))
+                    .Include(l => l.ProfileImage)
+                    .Select(lawyer => new GetLawyerBriefResponse
+                    {
+                        Id = lawyer.Id,
+                        FirstName = lawyer.FirstName,
+                        LastName = lawyer.LastName,
+                        Status = lawyer.Status,
+                        Email = lawyer.User.Email,
+                        PhoneNumber = lawyer.User.PhoneNumber,
+                        UserName = lawyer.User.UserName,
+                        Age = lawyer.Age,
+                        Address = lawyer.Address,
+                        Bio = lawyer.Bio,
+                        BankName = lawyer.BankName,
+                        LicenseDocument = lawyer.LicenseDocumentPath,
+                        LicenseNumber = lawyer.LicenseNumber,
+                        Qualifications = lawyer.QualificationDocumentPath,
+                        YersOfExperience = lawyer.YearsOfExperience,
+                        Specialization = lawyer.Specialization.ToString(),
+                        Experiences = lawyer.Experiences ?? "Not specified",
+                        YearsOfExperience = lawyer.YearsOfExperience,
+                        Rating = lawyer.Rating ?? 0.0,
+                        CreatedAt = lawyer.CreatedAt.ToString("yyyy-MM-dd"),
+                        ProfileImageUrl = lawyer.ProfileImage != null ? lawyer.ProfileImage.ImageUrl : null,
+                        CompletedConsultations = lawyer.Consultations.Count(c => c.Status == ConsultationStatus.Completed)
+                        
+                    })
+                    .AsNoTracking();
 
-            //Apply Searching
-            query = string.IsNullOrWhiteSpace(filters.SearchValue)
-                ? query
-                : query.Where(l =>
-                    EF.Functions.Contains(l.FirstName, $"\"{filters.SearchValue}\"") ||
-                    EF.Functions.Contains(l.LastName, $"\"{filters.SearchValue}\"")
-                );
+                // Apply sorting
+                var isAscending = filters.SortDirection == SortDirection.ASC;
+                query = filters.SortColumn switch
+                {
+                    LawyerSorting.Experience => isAscending ? query.OrderBy(l => l.YearsOfExperience) : query.OrderByDescending(l => l.YearsOfExperience),
+                    LawyerSorting.Rating => isAscending ? query.OrderBy(l => l.Rating) : query.OrderByDescending(l => l.Rating),
+                    LawyerSorting.CreatedAt => isAscending ? query.OrderBy(l => l.CreatedAt) : query.OrderByDescending(l => l.CreatedAt),
+                    _ => query.OrderByDescending(l => l.Rating),
+                };
 
-           
-            //Apply Pagination
-            var result = await PaginatedList<GetLawyerBriefResponse>.CreateAsync(query, filters.PageNumber, filters.PageSize);
+                //Apply Searching
+                query = string.IsNullOrWhiteSpace(filters.SearchValue)
+                    ? query
+                    : query.Where(l =>
+                        EF.Functions.Contains(l.FirstName, $"\"{filters.SearchValue}\"") ||
+                        EF.Functions.Contains(l.LastName, $"\"{filters.SearchValue}\"")
+                    );
 
-            return _responseHandler.Success(result, "Lawyers retrieved successfully.");
+
+                //Apply Pagination
+                var result = await PaginatedList<GetLawyerBriefResponse>.CreateAsync(query, filters.PageNumber, filters.PageSize);
+
+                return _responseHandler.Success(result, "Lawyers retrieved successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving lawyers by status.");
+                return _responseHandler.BadRequest<PaginatedList<GetLawyerBriefResponse>>("An error occurred while retrieving lawyers.");
+            }
         }
 
         #endregion
+        
         #region Get Lawyer by Id
 
         public async Task<Response<GetLawyerResponse>> GetLawyerByIdAsync(string lawyerId)
@@ -90,7 +114,7 @@ namespace LawPlatform.DataAccess.Services.Admin
             if (string.IsNullOrEmpty(lawyerId))
                 return _responseHandler.BadRequest<GetLawyerResponse>("LawyerId is required.");
             var lawyer = await _context.Lawyers
-                .Where(l => l.Id == lawyerId)
+                .Where(l => l.Id == lawyerId && !l.IsDeleted)
                 .Join(_userManager.Users,
                       l => l.Id,
                       u => u.Id,
@@ -104,7 +128,21 @@ namespace LawPlatform.DataAccess.Services.Admin
                           PhoneNumber = u.PhoneNumber,
                           QualificationDocumentUrl = l.QualificationDocumentPath,
                           Status = l.Status,
-                          CreatedAt = l.CreatedAt
+                          CreatedAt = l.CreatedAt,
+                          Specialization = l.Specialization.ToString(),
+                          Experiences = l.Experiences ?? "Not specified",
+                          Bio = l.Bio,
+                          Address = l.Address,
+                          BankName = l.BankName,
+                          YearsOfExperience = l.YearsOfExperience,
+                          LicenseNumber = l.LicenseNumber,
+                          LicenseDocumentUrl = l.LicenseDocumentPath,
+                          Country = l.Country,
+                          Age = l.Age,
+                          ProfileImage = l.ProfileImage != null ? l.ProfileImage.ImageUrl : null,
+                          IBAN = l.IBAN,
+                          BankAccountNumber = l.BankAccountNumber
+                         
                       })
                 .FirstOrDefaultAsync();
             if (lawyer == null)
@@ -120,8 +158,8 @@ namespace LawPlatform.DataAccess.Services.Admin
                 return _responseHandler.BadRequest<UpdateLawyerAccountStatusResponse>("LawyerId is required.");
 
             var lawyer = await _context.Lawyers
-            .Include(l => l.User)
-            .FirstOrDefaultAsync(l => l.Id == model.LawyerId);
+                .Include(l => l.User)
+                .FirstOrDefaultAsync(l => l.Id == model.LawyerId);
 
             if (lawyer == null)
                 return _responseHandler.NotFound<UpdateLawyerAccountStatusResponse>("Lawyer not found.");
@@ -134,17 +172,13 @@ namespace LawPlatform.DataAccess.Services.Admin
             {
                 LawyerId = lawyer.Id,
                 FullName = lawyer.FirstName + " " + lawyer.LastName,
-                Email = lawyer.User.Email,           
-                PhoneNumber = lawyer.User.PhoneNumber, 
+                Email = lawyer.User.Email,
+                PhoneNumber = lawyer.User.PhoneNumber,
                 Status = lawyer.Status,
             };
+            
             if (lawyer.Status == ApprovalStatus.Approved)
             {
-                await _notificationService.NotifyUserAsync(
-                    lawyer.Id,
-                    "Account Approved",
-                    "Your lawyer account has been approved. You can now log in."
-                );
                 await _emailService.SendLawyerEmailAsync(lawyer, LawyerEmailType.Approved);
                 await _notificationService.NotifyUserAsync(
                     lawyer.Id,
@@ -155,10 +189,11 @@ namespace LawPlatform.DataAccess.Services.Admin
 
             if (lawyer.Status == ApprovalStatus.Rejected)
             {
+                await _emailService.SendLawyerEmailAsync(lawyer, LawyerEmailType.Rejected);
                 await _notificationService.NotifyUserAsync(
                     lawyer.Id,
                     "Account Rejected",
-                    "Sorry Your Lawyer Account Has Been Rejected From Admin."
+                    "Sorry, your lawyer account has been rejected by admin."
                 );
             }
 
@@ -169,36 +204,39 @@ namespace LawPlatform.DataAccess.Services.Admin
 
         #endregion
 
-        #region Get /  Client
+        #region Get / Client
         public async Task<Response<List<GetClientsResponse>>> GetAllClients(string? search)
         {
             _logger.LogInformation("Starting GetAllClients at {Time}", DateTime.UtcNow);
 
             try
             {
-                var clients = await _context.Clients
+                var query = _context.Clients
+                    .Where(c => !c.IsDeleted)
                     .Join(_userManager.Users,
-                        client => client.Id,
-                        user => user.Id,
-                        (client, user) => new GetClientsResponse
-                        {
-                            Id = client.Id,
-                            FullName = client.FirstName + " " + client.LastName,
-                            Email = user.Email,
-                            PhoneNumber = user.PhoneNumber,
-                            CreatedAt = client.CreatedAt,
-                            ConsultationCount = client.Consultations.Count(),
+                          client => client.Id,
+                          user => user.Id,
+                          (client, user) => new GetClientsResponse
+                          {
+                              Id = client.Id,
+                              FullName = client.FirstName + " " + client.LastName,
+                              Email = user.Email,
+                              PhoneNumber = user.PhoneNumber,
+                              CreatedAt = client.CreatedAt,
+                              ConsultationCount = client.Consultations.Count(),
+                          });
 
-                        })
-                    .ToListAsync();
+                // Apply search filter before executing query
                 if (!string.IsNullOrEmpty(search))
                 {
-                    clients = clients.Where(c =>
-                        c.FullName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        c.Email.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        c.PhoneNumber.Contains(search, StringComparison.OrdinalIgnoreCase)
-                    ).ToList();
+                    query = query.Where(c =>
+                        c.FullName.Contains(search) ||
+                        c.Email.Contains(search) ||
+                        c.PhoneNumber.Contains(search)
+                    );
                 }
+
+                var clients = await query.ToListAsync();
 
                 if (clients == null || clients.Count == 0)
                 {
@@ -227,19 +265,19 @@ namespace LawPlatform.DataAccess.Services.Admin
             try
             {
                 var client = await _context.Clients
-                    .Where(c => c.Id == clientId)
+                    .Where(c => c.Id == clientId && !c.IsDeleted)
                     .Join(_userManager.Users,
-                        c => c.Id,
-                        u => u.Id,
-                        (c, u) => new GetClientsResponse
-                        {
-                            Id = c.Id,
-                            FullName = u.UserName,
-                            Email = u.Email,
-                            PhoneNumber = u.PhoneNumber,
-                            CreatedAt = c.CreatedAt,
-                            ConsultationCount = c.Consultations.Count(),
-                        })
+                          c => c.Id,
+                          u => u.Id,
+                          (c, u) => new GetClientsResponse
+                          {
+                              Id = c.Id,
+                              FullName = u.UserName,
+                              Email = u.Email,
+                              PhoneNumber = u.PhoneNumber,
+                              CreatedAt = c.CreatedAt,
+                              ConsultationCount = c.Consultations.Count(),
+                          })
                     .FirstOrDefaultAsync();
 
                 if (client == null)
@@ -298,7 +336,7 @@ namespace LawPlatform.DataAccess.Services.Admin
                         {
                             _logger.LogWarning("Client with id {UserId} not found.", userId);
                             return _responseHandler.NotFound<bool>("Client not found.");
-                         }
+                        }
                         client.IsDeleted = true;
                         client.DeletedAt = DateTime.UtcNow;
                     }
@@ -309,12 +347,12 @@ namespace LawPlatform.DataAccess.Services.Admin
                 var refreshTokens = await _context.UserRefreshTokens
                     .Where(rt => rt.UserId == userId.ToString())
                     .ToListAsync(cancellationToken);
-                
+
                 _context.UserRefreshTokens.RemoveRange(refreshTokens);
 
                 await _context.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
-                
+
                 _logger.LogInformation("User account {UserId} and related data marked as deleted.", userId);
                 return _responseHandler.Success(true, "User account deleted successfully.");
             }
@@ -329,9 +367,9 @@ namespace LawPlatform.DataAccess.Services.Admin
 
         #endregion
 
-        #region mentoring
-        public async Task<Response<PaginatedResult<ShowAllConsultaionWithoutDetails>>> MentorConsultationsync(
-     string consultation, int pageNumber = 1, int pageSize = 10)
+        #region Monitor Consultations
+        public async Task<Response<PaginatedResult<ShowAllConsultaionWithoutDetails>>> MonitorConsultationsAsync(
+            string consultation, int pageNumber = 1, int pageSize = 10)
         {
             if (pageNumber <= 0 || pageSize <= 0)
                 return _responseHandler.BadRequest<PaginatedResult<ShowAllConsultaionWithoutDetails>>("Invalid pagination parameters.");
@@ -339,7 +377,7 @@ namespace LawPlatform.DataAccess.Services.Admin
             var query = _context.consultations
                 .Include(c => c.Client)
                 .Include(c => c.Lawyer)
-                .Where(c=>c.Status != ConsultationStatus.Active)
+                .Where(c => c.Status != ConsultationStatus.Active)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(consultation))
@@ -350,7 +388,7 @@ namespace LawPlatform.DataAccess.Services.Admin
             var totalCount = await query.CountAsync();
 
             var consultations = await query
-                .OrderByDescending(c => c.CreatedAt) 
+                .OrderByDescending(c => c.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .Select(c => new ShowAllConsultaionWithoutDetails
@@ -359,10 +397,10 @@ namespace LawPlatform.DataAccess.Services.Admin
                     Title = c.Title,
                     Status = c.Status.ToString(),
                     CreatedAt = c.CreatedAt,
-                    LawyerName = c.Lawyer.FirstName + " " + c.Lawyer.LastName,
+                    LawyerName = c.Lawyer != null ? c.Lawyer.FirstName + " " + c.Lawyer.LastName : "Unassigned",
                     ClientName = c.Client.FirstName + " " + c.Client.LastName,
                     Budget = c.Budget,
-                    LawyerId = c.LawyerId,                   
+                    LawyerId = c.LawyerId,
                     ClientId = c.ClientId,
                     Specialization = c.Specialization.ToString()
                 })
@@ -383,13 +421,13 @@ namespace LawPlatform.DataAccess.Services.Admin
         #endregion
 
         #region Statistics
-        // count if clients 
+        // count of clients 
 
         public async Task<Response<int>> GetTotalClientsCountAsync()
         {
             try
             {
-                var count = await _context.Clients.CountAsync();
+                var count = await _context.Clients.Where(c => !c.IsDeleted).CountAsync();
                 return _responseHandler.Success(count, "Total clients count retrieved successfully.");
             }
             catch (Exception ex)
@@ -399,12 +437,12 @@ namespace LawPlatform.DataAccess.Services.Admin
             }
         }
 
-        // count of  in progress consultaions
+        // count of in progress consultations
         public async Task<Response<int>> GetTotalConsultationsCountAsync()
         {
             try
             {
-                var count = await _context.consultations.Where(c=>c.Status == ConsultationStatus.InProgress).CountAsync();
+                var count = await _context.consultations.Where(c => c.Status == ConsultationStatus.InProgress).CountAsync();
                 return _responseHandler.Success(count, "Total consultations count retrieved successfully.");
 
             }

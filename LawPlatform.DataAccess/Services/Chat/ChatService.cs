@@ -46,14 +46,16 @@ namespace LawPlatform.DataAccess.Services.Chat
 
             var query = _context.ChatMessages
                 .Where(m => m.ChatId == chatId)
-                .OrderByDescending(m => m.SentAt)
+                .OrderBy(m => m.SentAt)
                 .Select(m => new ChatMessageDto
                 {
+                    Id = m.Id,
                     SenderId = m.SenderId,
                     ReceiverId = m.ReceiverId,
                     Content = m.Content,
                     ChatId = m.ChatId,
-                    ConsultationId = m.ConsultationId
+                    ConsultationId = m.ConsultationId,
+                    SentAt = m.SentAt.UtcDateTime
                 });
 
             var paginatedMessages = await PaginatedList<ChatMessageDto>.CreateAsync(query, pageNumber, pageSize);

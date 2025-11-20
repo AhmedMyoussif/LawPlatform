@@ -4,11 +4,9 @@ using LawPlatform.DataAccess.Services.ImageUploading;
 using LawPlatform.DataAccess.Services.Notification;
 using LawPlatform.DataAccess.Services.Token;
 using LawPlatform.Entities.DTO.Account.Auth;
-using LawPlatform.Entities.DTO.Account.Auth.Admin;
 using LawPlatform.Entities.DTO.Account.Auth.Login;
 using LawPlatform.Entities.DTO.Account.Auth.Register;
 using LawPlatform.Entities.DTO.Account.Auth.ResetPassword;
-using LawPlatform.Entities.DTO.Profile;
 using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Models.Auth.Users;
 using LawPlatform.Entities.Shared.Bases;
@@ -27,7 +25,7 @@ namespace LawPlatform.DataAccess.Services.Auth
         private readonly LawPlatformContext _context;
         private readonly IEmailService _emailService;
         private readonly ResponseHandler _responseHandler;
-        private readonly IImageUploadService _imageUploadService;
+        private readonly IFileUploadService _imageUploadService;
         private readonly ITokenStoreService _tokenStoreService;
         private readonly ILogger<AuthService> _logger;
         private readonly INotificationService _notificationService;
@@ -36,7 +34,7 @@ namespace LawPlatform.DataAccess.Services.Auth
             LawPlatformContext context,
             IEmailService emailService,
             ResponseHandler responseHandler,
-            IImageUploadService imageUploadService,
+            IFileUploadService imageUploadService,
             ITokenStoreService tokenStoreService,
             ILogger<AuthService> logger,
             INotificationService notificationService)
@@ -58,21 +56,17 @@ namespace LawPlatform.DataAccess.Services.Auth
             {
                 var user = await FindUserByEmailAsync(model.Email);
                 if (user == null)
-                    return _responseHandler.NotFound<LoginResponse>("User not found.");
-                
+                    return _responseHandler.NotFound<LoginResponse>("Invalid credentials.");
+
                 if (!await _userManager.CheckPasswordAsync(user, model.Password))
-                    return _responseHandler.BadRequest<LoginResponse>("Invalid password.");
+                    return _responseHandler.BadRequest<LoginResponse>("Invalid credentials.");
 
                 if (!user.EmailConfirmed)
                     return _responseHandler.BadRequest<LoginResponse>("Email is not verified. Please verify your email first.");
 
                 var roles = await _userManager.GetRolesAsync(user);
 
-                // Generate tokens and store refresh token associated with user.Id
-                var tokens = await _tokenStoreService.GenerateAndStoreTokensAsync(user);
-
-
-                // Fetch user profile based on role
+                // Fetch user profile based on role and check if deleted
                 UserInfoResponse? userInfo = null;
                 var userRole = roles.FirstOrDefault();
 
@@ -80,40 +74,65 @@ namespace LawPlatform.DataAccess.Services.Auth
                 {
                     case "Client":
                         var client = await _context.Clients
+                            .Where(c => !c.IsDeleted)
                             .AsNoTracking()
                             .FirstOrDefaultAsync(c => c.Id == user.Id);
-                        
-                        if (client != null)
+
+                        if (client == null)
                         {
-                            userInfo = new UserInfoResponse
-                            {
-                                FirstName = client.FirstName,
-                                LastName = client.LastName,
-                                Address = client.Address,
-                            };
+                            _logger.LogWarning("Client account is deleted or not found for UserId: {UserId}", user.Id);
+                            return _responseHandler.Forbidden<LoginResponse>("Your account has been deactivated. Please contact support.");
                         }
+
+                        userInfo = new UserInfoResponse
+                        {
+                            FirstName = client.FirstName,
+                            LastName = client.LastName,
+                            Address = client.Address,
+                        };
                         break;
 
                     case "Lawyer":
                         var lawyer = await _context.Lawyers
+                            .Where(l => !l.IsDeleted)
                             .AsNoTracking()
                             .FirstOrDefaultAsync(l => l.Id == user.Id);
-                        
-                        if (lawyer != null)
+
+                        if (lawyer == null)
                         {
-                            userInfo = new UserInfoResponse
-                            {
-                                FirstName = lawyer.FirstName,
-                                LastName = lawyer.LastName,
-                                Address = lawyer.Address,
-                            };
+                            _logger.LogWarning("Lawyer account is deleted or not found for UserId: {UserId}", user.Id);
+                            return _responseHandler.Forbidden<LoginResponse>("Your account has been deactivated. Please contact support.");
                         }
+                        if (lawyer.Status != ApprovalStatus.Approved)
+                        {
+                            _logger.LogWarning("Lawyer account not approved for UserId: {UserId}", user.Id);
+                            return _responseHandler.Forbidden<LoginResponse>("Your lawyer account is not approved yet. Please wait for admin approval.");
+                        }
+
+                        userInfo = new UserInfoResponse
+                        {
+                            FirstName = lawyer.FirstName,
+                            LastName = lawyer.LastName,
+                            Address = lawyer.Address,
+                        };
+                        break;
+
+                    case "Admin":
+                        userInfo = new UserInfoResponse
+                        {
+                            FirstName = user.UserName,
+                            LastName = string.Empty,
+                            Address = string.Empty
+                        };
                         break;
 
                     default:
                         _logger.LogWarning("Unknown role {Role} for user {UserId} during login", userRole, user.Id);
-                        break;
+                        return _responseHandler.BadRequest<LoginResponse>("Invalid user role.");
                 }
+
+                // Generate tokens and store refresh token associated with user.Id
+                var tokens = await _tokenStoreService.GenerateAndStoreTokensAsync(user);
 
                 var response = new LoginResponse
                 {
@@ -274,7 +293,7 @@ namespace LawPlatform.DataAccess.Services.Auth
                 {
                     return _responseHandler.BadRequest<LawyerRegisterResponse>("Failed to upload profile image.");
                 }
-                
+
                 string profileImageResultUrl = profileImageResult.Url;
 
                 // Create Lawyer

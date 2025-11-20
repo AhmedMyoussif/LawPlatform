@@ -1,8 +1,10 @@
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using LawPlatform.Entities.DTO.Consultation;
 using LawPlatform.Entities.DTO.Profile;
 using LawPlatform.Entities.DTO.Proposal;
 using LawPlatform.Entities.Models;
+using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Models.Auth.Users;
 using LawPlatform.Utilities.Enums;
 
@@ -23,6 +25,7 @@ public class GetConsultationResponse
     public Specialization Specialization { get; set; }
     public List<string> UrlFiles { get; set; }
     public ClientInfo Client { get; set; }
+    public LawyerInfo Lawyer { get; set; }
     public int ProposalsCount { get; set; }
 
     public List<GetProposalResponse> Proposals { get; set; }

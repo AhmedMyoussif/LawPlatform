@@ -3,10 +3,8 @@ using LawPlatform.Entities.DTO.ImageUploading;
 
 namespace LawPlatform.DataAccess.Services.ImageUploading
 {
-    public interface IImageUploadService
+    public interface IFileUploadService
     {
-        Task<UploadImageResponse> UploadAsync(IFormFile file);
-
-        Task<bool> DeleteAsync(string publicId);
+        Task<UploadFileResponse> UploadAsync(IFormFile file);
     }
 }

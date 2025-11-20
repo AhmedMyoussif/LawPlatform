@@ -1,15 +1,15 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
+﻿using LawPlatform.DataAccess.ApplicationContext;
 using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Entities.Models.Auth.UserTokens;
 using LawPlatform.Utilities.Configurations;
-using LawPlatform.DataAccess.ApplicationContext;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace LawPlatform.DataAccess.Services.Token
 {
@@ -49,7 +49,7 @@ namespace LawPlatform.DataAccess.Services.Token
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddDays(30),
+                Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = creds,
                 Issuer = _jwtSettings.Issuer,
                 Audience = _jwtSettings.Audience,
@@ -75,7 +75,7 @@ namespace LawPlatform.DataAccess.Services.Token
             {
                 UserId = userId,
                 Token = refreshToken,
-                ExpiryDateUtc = DateTime.UtcNow.AddDays(7),
+                ExpiryDateUtc = DateTime.UtcNow.AddDays(30),
                 IsUsed = false,
             });
 

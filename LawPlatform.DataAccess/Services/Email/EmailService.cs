@@ -30,6 +30,7 @@ namespace LawPlatform.DataAccess.Services.Email
                 {
                     LawyerEmailType.Pending => "LawyerRegisterEmail.html",
                     LawyerEmailType.Approved => "LawyerApprovalEmail.html",
+                    LawyerEmailType.Rejected => "LawyerRejectionEmail.html",
                     _ => throw new ArgumentException("Invalid email type")
                 };
 
@@ -52,6 +53,7 @@ namespace LawPlatform.DataAccess.Services.Email
                 {
                     LawyerEmailType.Pending => "Your Lawyer Account Is Pending Approval",
                     LawyerEmailType.Approved => "Your Lawyer Account Has Been Approved",
+                    LawyerEmailType.Rejected => "Your Lawyer Account Application Update",
                     _ => "Lawyer Account Update"
                 };
 

@@ -1,22 +1,19 @@
-﻿using System.Text;
-using System.Threading.RateLimiting;
+﻿using EcommercePlatform;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using LawPlatform.API.Validators;
 using LawPlatform.DataAccess.ApplicationContext;
+using LawPlatform.Entities.DTO.Shared;
 using LawPlatform.Entities.Models.Auth.Identity;
 using LawPlatform.Utilities.Configurations;
 using LawPlatform.Utilities.Enums;
-
-using FluentValidation;
-using FluentValidation.AspNetCore;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-
 using Serilog;
-using EcommercePlatform;
-using LawPlatform.Entities.DTO.Shared;
-using LawPlatform.API.Validators;
+using System.Text;
+using System.Threading.RateLimiting;
 
 namespace Ecommerce.API.Extensions
 {
@@ -70,7 +67,8 @@ namespace Ecommerce.API.Extensions
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SigningKey)),
                     ValidateLifetime = true
                 };
-               
+
+
             });
 
             return services;
@@ -117,7 +115,7 @@ namespace Ecommerce.API.Extensions
         public static IServiceCollection AddFluentValidation(this IServiceCollection services)
         {
 
-            services.AddScoped<IValidator<RequestFilters<LawyerSorting>>,RequestFiltersValidator<LawyerSorting>>();
+            services.AddScoped<IValidator<RequestFilters<LawyerSorting>>, RequestFiltersValidator<LawyerSorting>>();
             services.AddControllers().AddFluentValidation(fv =>
             {
                 fv.RegisterValidatorsFromAssembly(typeof(Program).Assembly);
